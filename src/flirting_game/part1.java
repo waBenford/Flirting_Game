@@ -85,7 +85,7 @@ public class part1 extends JFrame {
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         // Name Box
-        JPanel nameBox = new JPanel();
+        TopLeftRoundedPanel nameBox = new TopLeftRoundedPanel(25); // 25 คือความโค้งของมุม
         nameBox.setLayout(null);
         nameBox.setBackground(new Color(255, 204, 0)); 
         nameBox.setBounds(0, 0, 160, 35); 
@@ -226,5 +226,32 @@ class RoundedPanel extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); 
         g2.setColor(getBackground());
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
+    }
+}
+class TopLeftRoundedPanel extends JPanel {
+    private int cornerRadius;
+
+    public TopLeftRoundedPanel(int radius) {
+        this.cornerRadius = radius;
+        setOpaque(false);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(getBackground());
+
+        int w = getWidth();
+        int h = getHeight();
+
+        java.awt.geom.RoundRectangle2D rect = new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h, cornerRadius, cornerRadius);
+        
+        java.awt.geom.Area area = new java.awt.geom.Area(rect);
+        area.add(new java.awt.geom.Area(new Rectangle(cornerRadius, 0, w - cornerRadius, h))); // ทับฝั่งขวา
+        area.add(new java.awt.geom.Area(new Rectangle(0, cornerRadius, w, h - cornerRadius))); // ทับฝั่งล่าง
+        
+        g2.fill(area);
     }
 }
