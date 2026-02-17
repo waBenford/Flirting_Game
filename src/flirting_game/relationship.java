@@ -8,7 +8,7 @@ public class relationship {
         this.characterName = characterName;
         this.affinity = 0; // เริ่มต้นที่ 0 เหมือนเดิม
     }
-                        
+
     // เพิ่มค่า: ไม่มีการจำกัดเพดาน 100
     public void addAffinity(int points) {
         this.affinity += points;
