@@ -6,11 +6,20 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 
 public class part1 extends JFrame {
+    // --- Variables for Animation ---
+    private JLayeredPane layeredPane; 
+    private float alpha = 1.0f; 
+    private JPanel fadeOverlay;
+    private Timer typewriterTimer;
+    private int charIndex = 0;
+    private boolean isAnimating = false;
+
+    // --- Game Components ---
     private JLabel backgroundLabel; 
     private JLabel characterLabel;  
-    private JLabel dialogueArea; // เปลี่ยนเป็น JLabel เพื่อรองรับ HTML Shadow
+    private JLabel dialogueArea; 
     private JLabel nameLabel;
-    private RoundedPanel dialoguePanel; // ประกาศไว้ที่นี่เพื่อให้เรียก repaint ได้ถูกต้อง
+    private RoundedPanel dialoguePanel; 
     private int currentIndex = 0; 
     
     private String[] imagePaths = {
@@ -55,27 +64,27 @@ public class part1 extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
-        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
+        // Background
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
         backgroundLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
+        // Character
         characterLabel = new JLabel(scaleImage(charPaths[0], 1000, 800));
         characterLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
+        // Dialogue UI
         dialoguePanel = new RoundedPanel(30); 
         dialoguePanel.setLayout(null);
         dialoguePanel.setBounds(50, 580, 900, 160); 
         dialoguePanel.setBackground(new Color(20, 20, 25, 215));
-        
-        dialoguePanel.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25)); 
-        
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
-        // --- กล่องชื่อสีเหลืองพร้อมเงา ---
+        // Name Box
         JPanel nameBox = new JPanel();
         nameBox.setLayout(null);
         nameBox.setBackground(new Color(255, 204, 0)); 
@@ -83,34 +92,57 @@ public class part1 extends JFrame {
         nameBox.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 3, new Color(0, 0, 0, 120)));
         dialoguePanel.add(nameBox);
 
-        nameLabel = new JLabel("<html><span style='text-shadow: 2px 2px 3px rgba(0,0,0,0.5);'>" + names[0] + "</span></html>");
+        nameLabel = new JLabel();
+        updateNameLabel(names[0]);
         nameLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
         nameLabel.setForeground(Color.BLACK); 
         nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
         nameLabel.setBounds(0, 0, 160, 35);
         nameBox.add(nameLabel);
 
-        // --- บทสนทนาพร้อมเงา (ใช้ JLabel แทน JTextArea) ---
-        dialogueArea = new JLabel("<html><body style='width: 750px;'><span style='text-shadow: 1px 1px 2px black;'>" + dialogues[0] + "</span></body></html>");
+        // Dialogue Area
+        dialogueArea = new JLabel();
         dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 22));
         dialogueArea.setForeground(Color.WHITE);
         dialogueArea.setVerticalAlignment(SwingConstants.TOP); 
         dialogueArea.setBounds(25, 55, 850, 100); 
         dialoguePanel.add(dialogueArea);
 
+        // Fade Overlay Setup
+        fadeOverlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(new Color(0, 0, 0, (int)(alpha * 255)));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        fadeOverlay.setBounds(0, 0, 1000, 800);
+        fadeOverlay.setOpaque(false);
+        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+
+        // Start Initial Animations
+        startFadeIn();
+        animateText(dialogues[0]);
+
+        // Mouse Listener for Progressing Dialogue
         layeredPane.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (isAnimating) {
+                    stopAnimation();
+                    updateDialogueDisplay(dialogues[currentIndex]);
+                    return;
+                }
+
                 currentIndex++; 
                 if (currentIndex < dialogues.length) {
-                    // อัปเดตข้อความพร้อม HTML Shadow
-                    dialogueArea.setText("<html><body style='width: 750px;'><span style='text-shadow: 1px 1px 2px black;'>" + dialogues[currentIndex] + "</span></body></html>");
-                    nameLabel.setText("<html><span style='text-shadow: 2px 2px 3px rgba(0,0,0,0.5);'>" + names[currentIndex] + "</span></html>");
-                    
+                    updateNameLabel(names[currentIndex]);
                     backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1000, 800));
                     characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 800));
                     
-                    layeredPane.repaint(); // บังคับวาดใหม่ทั้งเลเยอร์
+                    animateText(dialogues[currentIndex]);
+                    layeredPane.repaint();
                 } else {
                     JOptionPane.showMessageDialog(null, "จบช่วงนำทางแล้ว!");
                     System.exit(0);
@@ -118,6 +150,56 @@ public class part1 extends JFrame {
             }
         }); 
     } 
+
+    private void startFadeIn() {
+        Timer fadeTimer = new Timer(80, null);
+        fadeTimer.addActionListener(e -> {
+            alpha -= 0.05f;
+            if (alpha <= 0) {
+                alpha = 0;
+                fadeTimer.stop();
+                layeredPane.remove(fadeOverlay);
+                layeredPane.repaint();
+            }
+            fadeOverlay.repaint();
+        });
+        fadeTimer.start();
+    }
+
+    private void animateText(String fullText) {
+        isAnimating = true;
+        charIndex = 0;
+        dialogueArea.setText(""); 
+
+        if (typewriterTimer != null && typewriterTimer.isRunning()) {
+            typewriterTimer.stop();
+        }
+
+        typewriterTimer = new Timer(20, e -> {
+            if (charIndex <= fullText.length()) {
+                String partialText = fullText.substring(0, charIndex);
+                updateDialogueDisplay(partialText);
+                charIndex++;
+            } else {
+                stopAnimation();
+            }
+        });
+        typewriterTimer.start();
+    }
+
+    private void stopAnimation() {
+        if (typewriterTimer != null) typewriterTimer.stop();
+        isAnimating = false;
+    }
+
+    private void updateDialogueDisplay(String text) {
+        dialogueArea.setText("<html><body style='width: 750px;'><span style='text-shadow: 1px 1px 2px black;'>" 
+                             + text + "</span></body></html>");
+    }
+
+    private void updateNameLabel(String name) {
+        nameLabel.setText("<html><span style='text-shadow: 2px 2px 3px rgba(0,0,0,0.5);'>" + name + "</span></html>");
+    }
 
     public ImageIcon scaleImage(String path, int width, int height) {
         ImageIcon icon = new ImageIcon(path);
@@ -130,14 +212,13 @@ public class part1 extends JFrame {
         SwingUtilities.invokeLater(() -> new part1().setVisible(true));
     }
 }
+
 class RoundedPanel extends JPanel {
     private int cornerRadius;
-
     public RoundedPanel(int radius) {
         this.cornerRadius = radius;
         setOpaque(false); 
     }
-
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
