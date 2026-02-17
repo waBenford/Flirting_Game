@@ -1,32 +1,29 @@
 package flirting_game;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.*;
 
 public class part1 extends JFrame {
-    private JLabel backgroundLabel; // สำหรับฉากหลัง
-    private JLabel characterLabel;  // สำหรับตัวละคร
+    private JLabel backgroundLabel; 
+    private JLabel characterLabel;  
     private JTextArea dialogueArea;
     private JLabel nameLabel;
     private int currentIndex = 0; 
     
-    // 1. รายชื่อไฟล์รูปภาพพื้นหลัง (แยกชั้นล่าง)
-    private String[] bgPaths = {
+    private String[] imagePaths = {
         "res/scene1/s1.png", "res/scene1/s2.png", "res/scene1/s3.png", "res/scene1/s4.png",
         "res/scene1/s5.png", "res/scene1/s6.png", "res/scene1/s7.png", "res/scene1/s8.png",
         "res/scene1/s9.png", "res/scene1/s9.png", "res/scene1/s9.png", "res/scene1/s10.png",
         "res/scene1/s10.png", "res/scene1/s11.png"
     };
 
-    // 2. รายชื่อไฟล์รูปตัวละคร (แยกชั้นบน - ควรเป็นไฟล์ .png โปร่งใส)
-    // หากช่วงไหนไม่มีตัวละคร ให้ใส่เส้นทางไฟล์ภาพเปล่า หรือใช้ภาพเดิมซ้ำ
     private String[] charPaths = {
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-        "res/empty.png",  "res//scene1/s11g.png" // ตัวอย่าง: เด็กผู้หญิงปรากฏตัวในฉากที่ 13
+        "res/empty.png",  "res/scene1/s11g.png" 
     };
 
     private String[] names = {
@@ -53,37 +50,43 @@ public class part1 extends JFrame {
 
     public part1() {
         setTitle("ISEKAI DEMO - Layered Scene");
-        setSize(1000, 700);
+        setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
         JLayeredPane layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
-        // --- Layer 1: รูปภาพพื้นหลัง (ชั้นล่างสุด) ---
-        backgroundLabel = new JLabel(scaleImage(bgPaths[0], 1000, 700));
-        backgroundLabel.setBounds(0, 0, 1000, 700);
+        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
+        backgroundLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        // --- Layer 2: รูปตัวละคร (ชั้นกลาง) ---
-        // ปรับตำแหน่ง x, y ตามความเหมาะสม (ในตัวอย่างคือวางไว้ตรงกลาง)
-        characterLabel = new JLabel(scaleImage(charPaths[0], 1000, 700));
-        characterLabel.setBounds(0, 0, 1000, 700);
+        characterLabel = new JLabel(scaleImage(charPaths[0], 1000, 800));
+        characterLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
-        // --- Layer 3: แถบข้อความ (ชั้นบนสุด) ---
         JPanel dialoguePanel = new JPanel();
         dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(40, 473, 900, 180);
-        dialoguePanel.setBackground(new Color(0, 51, 102, 210)); 
-        dialoguePanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        dialoguePanel.setBounds(50, 580, 900, 160); 
+        dialoguePanel.setBackground(new Color(25, 25, 25, 200)); 
+        dialoguePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 255, 255, 80), 1),
+            BorderFactory.createEmptyBorder(15, 25, 15, 25)
+        ));
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
+        JPanel nameBox = new JPanel();
+        nameBox.setLayout(null);
+        nameBox.setBackground(new Color(255, 204, 0)); 
+        nameBox.setBounds(0, 0, 150, 35); 
+        dialoguePanel.add(nameBox);
+
         nameLabel = new JLabel(names[0]);
-        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
-        nameLabel.setForeground(Color.YELLOW);
-        nameLabel.setBounds(30, 15, 200, 30);
-        dialoguePanel.add(nameLabel);
+        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
+        nameLabel.setForeground(Color.BLACK); 
+        nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        nameLabel.setBounds(0, 0, 150, 35);
+        nameBox.add(nameLabel);
 
         dialogueArea = new JTextArea(dialogues[0]);
         dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 22));
@@ -92,29 +95,28 @@ public class part1 extends JFrame {
         dialogueArea.setOpaque(false);
         dialogueArea.setLineWrap(true);
         dialogueArea.setWrapStyleWord(true);
-        dialogueArea.setBounds(30, 60, 840, 100);
+        dialogueArea.setBounds(25, 45, 850, 100); 
         dialoguePanel.add(dialogueArea);
 
-        // ระบบคลิกเพื่อเปลี่ยนฉาก
         layeredPane.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 currentIndex++; 
-                
                 if (currentIndex < dialogues.length) {
                     dialogueArea.setText(dialogues[currentIndex]);
                     nameLabel.setText(names[currentIndex]);
+                    backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1000, 800));
+                    characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 800));
                     
-                    // อัปเดตรูปพื้นหลัง และรูปตัวละครพร้อมกัน
-                    backgroundLabel.setIcon(scaleImage(bgPaths[currentIndex], 1000, 700));
-                    characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 700));
+                    dialogueArea.repaint();
+                    dialoguePanel.repaint();
                 } else {
                     JOptionPane.showMessageDialog(null, "จบช่วงนำทางแล้ว!");
                     System.exit(0);
                 }
             }
-        });
-    }
+        }); 
+    } 
 
     public ImageIcon scaleImage(String path, int width, int height) {
         ImageIcon icon = new ImageIcon(path);
