@@ -88,22 +88,25 @@ public class part1 extends JFrame {
         dialoguePanel = new RoundedPanel(40); 
         dialoguePanel.setLayout(null);
         dialoguePanel.setBounds(50, 550, 900, 180);
+        dialoguePanel.setBackground(new Color(20, 20, 25, 215));
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         // Name Label
         nameLabel = new JLabel();
         updateNameLabel(names[0]);
         nameLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
-        nameLabel.setForeground(Color.WHITE); 
-        nameLabel.setBounds(40, 15, 200, 40); 
+        nameLabel.setForeground(new Color(255, 204, 0)); 
+
+        nameLabel.setBounds(60, 20, 300, 40); 
         dialoguePanel.add(nameLabel);
 
         // Dialogue Area
         dialogueArea = new JLabel();
-        dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 22));
+        dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 24));
         dialogueArea.setForeground(new Color(230, 230, 230));
         dialogueArea.setVerticalAlignment(SwingConstants.TOP); 
-        dialogueArea.setBounds(50, 65, 800, 100); 
+
+        dialogueArea.setBounds(60, 70, 800, 100); 
         dialoguePanel.add(dialogueArea);
 
         // Fade Overlay
