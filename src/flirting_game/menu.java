@@ -1,63 +1,93 @@
 package flirting_game;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class menu {
     public static void main(String[] args) {
-        JFrame frame = new JFrame("DEMO GAME - Main Menu");
+        JFrame frame = new JFrame("Isekai Lover");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(450, 600); // ปรับความสูงเล็กน้อยให้สมดุลกับ 4 ปุ่ม
-        frame.setLayout(new BorderLayout());
-        frame.getContentPane().setBackground(new Color(204, 229, 255));
+        frame.setSize(1024, 600);
+        frame.setResizable(false);
+        
+        JLayeredPane lp = new JLayeredPane();
+        frame.setContentPane(lp);
 
-        // Font
-        Font thaiFontBold = new Font("Tahoma", Font.BOLD, 36);
-        Font thaiFontNormal = new Font("Tahoma", Font.PLAIN, 18);
+        // --- 1. Background ---
+        ImageIcon bgOriginal = new ImageIcon("res/menu/bg.png");
+        Image bgImg = bgOriginal.getImage().getScaledInstance(1024, 600, Image.SCALE_SMOOTH);
+        JLabel background = new JLabel(new ImageIcon(bgImg));
+        background.setBounds(0, 0, 1024, 600);
+        lp.add(background, JLayeredPane.DEFAULT_LAYER);
 
-        // Header
-        JLabel titleLabel = new JLabel("GAME DEMO", SwingConstants.CENTER);
-        titleLabel.setFont(thaiFontBold);
-        titleLabel.setForeground(new Color(0, 102, 204));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(50, 0, 50, 0));
-        frame.add(titleLabel, BorderLayout.NORTH);
+        // --- 2. Logo ---
+        int logoW = 700;
+        int logoH = 350;
+        JLabel logoLabel = new JLabel(getScaledIcon("res/menu/Logo.png", logoW, logoH));
+        logoLabel.setBounds(170, 20, logoW, logoH);
+        lp.add(logoLabel, JLayeredPane.PALETTE_LAYER);
 
-        // Buttons
-        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 10, 20));
+        // --- 3. Buttons ---
+        int btnW = 300;
+        int btnH = 150;
+        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15));
         buttonPanel.setOpaque(false);
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 80, 50, 80));
+        buttonPanel.setBounds(360, 200, btnW, 320);
 
-        JButton startButton = createBlueButton("เริ่มเกม", thaiFontNormal);
-        JButton galleryButton = createBlueButton("Gallery" ,thaiFontNormal);
-        JButton optionsButton = createBlueButton("Options", thaiFontNormal);
-        JButton exitButton = createBlueButton("ออกจากเกม", thaiFontNormal);
+        // สร้างปุ่มแยกทีละตัวเพื่อใส่ Action
+        JButton startBtn = createImageButton("res/buttons/buttonStart.png", btnW, btnH);
+        JButton galleryBtn = createImageButton("res/buttons/buttonGallery.png", btnW, btnH);
+        JButton settingBtn = createImageButton("res/buttons/buttonSetting.png", btnW, btnH);
+        JButton exitBtn = createImageButton("res/buttons/buttonExit.png", btnW, btnH);
 
-        // --- แก้ไขจุดนี้: ลบเครื่องหมายคอมเมนต์ที่เกินมาออก ---
-        startButton.addActionListener(e -> {
-            new part1().setVisible(true); // เปิดหน้าเนื้อเรื่อง part1
-            frame.dispose(); // ปิดหน้าเมนูหลัก
+        // --- เพิ่มฟังก์ชันการกดปุ่ม (Actions) ---
+
+        // ปุ่ม Start: ปิดหน้าเมนูแล้วไปหน้า part1
+        startBtn.addActionListener(e -> {
+            // ตรวจสอบว่าคุณมีไฟล์ part1.java หรือคลาส part1 แล้ว
+            try {
+                new part1().setVisible(true);
+                frame.dispose(); // ปิดหน้าเมนู
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "ยังไม่ได้สร้างคลาส part1 หรือมีข้อผิดพลาด");
+            }
         });
 
-        exitButton.addActionListener(e -> System.exit(0));
+        // ปุ่ม Exit: ปิดโปรแกรมทันที
+        exitBtn.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(frame,
+                "คุณต้องการออกจากเกมใช่หรือไม่?", "ยืนยัน", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+        });
 
-        buttonPanel.add(startButton);
-        buttonPanel.add(galleryButton);
-        buttonPanel.add(optionsButton);
-        buttonPanel.add(exitButton);
-        frame.add(buttonPanel, BorderLayout.CENTER);
+        // เพิ่มปุ่มลงใน Panel
+        buttonPanel.add(startBtn);
+        buttonPanel.add(galleryBtn);
+        buttonPanel.add(settingBtn);
+        buttonPanel.add(exitBtn);
+        
+        lp.add(buttonPanel, JLayeredPane.MODAL_LAYER);
 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
-    private static JButton createBlueButton(String text, Font font) {
-        JButton button = new JButton(text);
-        button.setFont(font);
-        button.setBackground(new Color(51, 153, 255));
-        button.setForeground(Color.WHITE);
-        button.setFocusable(false);
-        // เพิ่มขอบปุ่มเล็กน้อยให้ดูสวยงาม
-        button.setBorder(BorderFactory.createLineBorder(new Color(0, 102, 204), 1));
+    private static ImageIcon getScaledIcon(String path, int width, int height) {
+        ImageIcon icon = new ImageIcon(path);
+        if (icon.getIconWidth() == -1) return new ImageIcon();
+        Image img = icon.getImage();
+        Image newImg = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        return new ImageIcon(newImg);
+    }
+
+    private static JButton createImageButton(String path, int w, int h) {
+        JButton button = new JButton(getScaledIcon(path, w, h));
+        button.setBorder(BorderFactory.createEmptyBorder());
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return button;
     }
 }
