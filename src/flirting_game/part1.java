@@ -189,7 +189,7 @@ public class part1 extends JFrame {
     }
 
     private void updateNameLabel(String name) {
-        nameLabel.setText("<html><span style='text-shadow: 2px 2px 3px rgba(0,0,0,0.5);'>" + name + "</span></html>");
+        nameLabel.setText(name);
     }
 
     public ImageIcon scaleImage(String path, int width, int height) {
