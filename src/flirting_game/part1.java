@@ -77,35 +77,26 @@ public class part1 extends JFrame {
         characterLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
-        // Dialogue UI
-        dialoguePanel = new RoundedPanel(30); 
+        // Dialogue UI (ปรับให้ดูแบนและกว้างขึ้น)
+        dialoguePanel = new RoundedPanel(40); 
         dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(50, 580, 900, 160); 
-        dialoguePanel.setBackground(new Color(20, 20, 25, 215));
+        dialoguePanel.setBounds(50, 550, 900, 180);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
-        // Name Box
-        TopLeftRoundedPanel nameBox = new TopLeftRoundedPanel(25); // 25 คือความโค้งของมุม
-        nameBox.setLayout(null);
-        nameBox.setBackground(new Color(255, 204, 0)); 
-        nameBox.setBounds(0, 0, 160, 35); 
-        nameBox.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 3, new Color(0, 0, 0, 120)));
-        dialoguePanel.add(nameBox);
-
+        // Name Label (ปรับฟอนต์และตำแหน่งให้ตรงกับ "Death" ในรูป)
         nameLabel = new JLabel();
         updateNameLabel(names[0]);
-        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
-        nameLabel.setForeground(Color.BLACK); 
-        nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        nameLabel.setBounds(0, 0, 160, 35);
-        nameBox.add(nameLabel);
+        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
+        nameLabel.setForeground(Color.WHITE); 
+        nameLabel.setBounds(40, 15, 200, 40); 
+        dialoguePanel.add(nameLabel);
 
-        // Dialogue Area
+        // Dialogue Area (ปรับข้อความให้มี "..." นำหน้าและใช้ฟอนต์ที่ชัดเจน)
         dialogueArea = new JLabel();
         dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 22));
-        dialogueArea.setForeground(Color.WHITE);
+        dialogueArea.setForeground(new Color(230, 230, 230));
         dialogueArea.setVerticalAlignment(SwingConstants.TOP); 
-        dialogueArea.setBounds(25, 55, 850, 100); 
+        dialogueArea.setBounds(50, 65, 800, 100); 
         dialoguePanel.add(dialogueArea);
 
         // Fade Overlay Setup
@@ -215,17 +206,30 @@ public class part1 extends JFrame {
 
 class RoundedPanel extends JPanel {
     private int cornerRadius;
+
     public RoundedPanel(int radius) {
         this.cornerRadius = radius;
         setOpaque(false); 
     }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); 
-        g2.setColor(getBackground());
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // สร้างการไล่เฉดสีจากดำโปร่งใสไปเทาเข้ม (คล้ายในรูป)
+        GradientPaint gp = new GradientPaint(0, 0, new Color(30, 30, 30, 180), 
+                                            0, getHeight(), new Color(60, 60, 60, 220));
+        g2.setPaint(gp);
+        
+        // วาดตัวกล่อง
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
+
+        // วาดขอบสีขาวบางๆ ให้ดูมีมิติ
+        g2.setColor(new Color(255, 255, 255, 50));
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, cornerRadius, cornerRadius);
     }
 }
 class TopLeftRoundedPanel extends JPanel {
