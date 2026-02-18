@@ -19,6 +19,7 @@ public class part2 extends JFrame {
             "res/scene2/s4.png", "res/scene2/s4.png", "res/scene2/s5.png", "res/scene2/s5.png",
             "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png",
             "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png",
+            "res/scene2/s5.png", "res/scene2/s5.png"
     };
     
     private String[] charPaths = {
@@ -29,19 +30,22 @@ public class part2 extends JFrame {
             "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png",
             "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
             "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            
+            "res/empty.png", "res/empty.png", "res/empty.png"
     };
     
-    private String[] names = { "" }; // ใส่ค่าว่างไว้กัน Error
+    // ปรับให้มีจำนวนเท่ากับบทสนทนาเพื่อกัน Error
+    private String[] names = new String[30]; 
     
     private String[] dialogues = {
         "1", "2", "3", "4", "5", "6", "7", "8", "9", "10.",
-        "1", "2", "3", "4", "5", "6", "7", "8", "9", "10.",
-        "1", "2", "3", "4", "5", "6", "7", "8", "9", "10.",
+        "11", "12", "13", "14", "15", "16", "17", "18", "19", "20.",
+        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30.",
     };
 
     public part2() {
+        // กำหนดชื่อเริ่มต้น
+        java.util.Arrays.fill(names, "เด็กผู้หญิง");
+
         setTitle("ISEKAI DEMO - Part 2: First Encounter");
         setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -64,12 +68,11 @@ public class part2 extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 currentIndex++;
-                // คลิกไปเรื่อยๆ จนกว่าจะหมดบทสนทนา
                 if (currentIndex < dialogues.length) {
                     updateScene();
                 } else {
-                    // จบบทสนทนาสุดท้าย
-                    System.out.println("End of dialogues.");
+                    JOptionPane.showMessageDialog(null, "จบการทดสอบ Part 2");
+                    System.exit(0);
                 }
             }
         });
@@ -85,10 +88,10 @@ public class part2 extends JFrame {
         TopLeftRoundedPanel nameBox = new TopLeftRoundedPanel(25);
         nameBox.setLayout(null);
         nameBox.setBackground(new Color(255, 204, 0));
-        nameBox.setBounds(0, 0, 0, 0);
+        nameBox.setBounds(0, -35, 160, 35); // ปรับตำแหน่งให้ลอยเหนือกล่องข้อความ
         dialoguePanel.add(nameBox);
 
-        nameLabel = new JLabel(names.length > 0 ? names[0] : "", SwingConstants.CENTER);
+        nameLabel = new JLabel(names[0], SwingConstants.CENTER);
         nameLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
         nameLabel.setForeground(Color.BLACK);
         nameLabel.setBounds(0, 0, 160, 35);
@@ -98,7 +101,7 @@ public class part2 extends JFrame {
         dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 22));
         dialogueArea.setForeground(Color.WHITE);
         dialogueArea.setVerticalAlignment(SwingConstants.TOP);
-        dialogueArea.setBounds(25, 55, 850, 100);
+        dialogueArea.setBounds(25, 30, 850, 110);
         dialoguePanel.add(dialogueArea);
     }
 
@@ -110,12 +113,54 @@ public class part2 extends JFrame {
     }
 
     public ImageIcon scaleImage(String path, int width, int height) {
-        ImageIcon icon = new ImageIcon(path);
-        Image img = icon.getImage();
-        return new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH));
+        try {
+            ImageIcon icon = new ImageIcon(path);
+            Image img = icon.getImage();
+            return new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH));
+        } catch (Exception e) {
+            return null; // ป้องกันค้างถ้าหาไฟล์ภาพไม่เจอ
+        }
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part2().setVisible(true));
+    }
+}
+
+// --- เพิ่มคลาสที่ขาดหายไปเพื่อให้ Error หาย ---
+class RoundedPanel extends JPanel {
+    private int cornerRadius;
+    public RoundedPanel(int radius) {
+        this.cornerRadius = radius;
+        setOpaque(false); 
+    }
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(getBackground());
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
+    }
+}
+
+class TopLeftRoundedPanel extends JPanel {
+    private int cornerRadius;
+    public TopLeftRoundedPanel(int radius) {
+        this.cornerRadius = radius;
+        setOpaque(false);
+    }
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(getBackground());
+        int w = getWidth();
+        int h = getHeight();
+        java.awt.geom.Area area = new java.awt.geom.Area(new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h, cornerRadius, cornerRadius));
+        area.add(new java.awt.geom.Area(new java.awt.Rectangle(cornerRadius, 0, w - cornerRadius, h)));
+        area.add(new java.awt.geom.Area(new java.awt.Rectangle(0, cornerRadius, w, h - cornerRadius)));
+        g2.fill(area);
     }
 }
