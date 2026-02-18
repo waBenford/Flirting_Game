@@ -19,16 +19,16 @@ public class part2 extends JFrame {
             "res/scene2/s4.png", "res/scene2/s4.png", "res/scene2/s5.png", "res/scene2/s5.png",
             "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png",
             "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png",
-            "res/scene2/s5.png", "res/scene2/s5.png"
+            "res/scene2/s6.png", "res/scene2/s6.png"
     };
     
     private String[] charPaths = {
             "res/scene2/s1g.png", "res/scene2/s1g.png", "res/scene2/s1sitdown.png",  
             "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png",
             "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", 
-            "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/scene2/s1sitdown.png", "res/empty.png", "res/empty.png","res/empty.png",
+             "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png","res/empty.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
             "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
             "res/empty.png", "res/empty.png", "res/empty.png"
     };
@@ -71,7 +71,7 @@ public class part2 extends JFrame {
                 if (currentIndex < dialogues.length) {
                     updateScene();
                 } else {
-                    JOptionPane.showMessageDialog(null, "จบการทดสอบ Part 2");
+                    JOptionPane.showMessageDialog(null, "end Part 2");
                     System.exit(0);
                 }
             }
