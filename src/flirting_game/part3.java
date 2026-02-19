@@ -15,26 +15,34 @@ public class part3 extends JFrame {
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 24);
 
     private String[] imagePaths = {
-    		"res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png",
-        	"res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png",
-        	"res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png",
-        	"res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png",
-        	"res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png", "res/scene3/s1.png",
-        	"res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s3.png",
-        	"res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s4.png", 
-        	"res/scene3/s4.png", "res/scene3/s4.png", "res/scene3/s5.png", "res/scene3/s5.png",
-        	"res/scene3/s5.png", "res/scene3/s5.png", "res/scene3/s5.png", "res/scene3/s5.png",
-        	"res/scene3/s5.png", "res/scene3/s5.png", "res/scene3/s5.png", "res/scene3/s5.png",
-        	"res/scene3/s5.png", "res/scene3/s5.png", "res/scene3/s5.png", "res/scene3/s5.png",
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
+        "res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s3.png",
+        "res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s1.jpg", 
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
     };
     
     private String[] charPaths = {
-    	"res/empty.png" 
+        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
+        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
+        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
+        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
+        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/scene3/gSad.png", "res/scene3/gSad.png",
+        "res/scene3/gSad.png", "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png",
+        "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png",
+        "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png",
+        "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png"
     };
     
-    private String[] names = { 
-    	""
-    };
+    private String[] names = { "" };
     
     private String[] dialogues = {
         "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
@@ -53,12 +61,17 @@ public class part3 extends JFrame {
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
+        // พื้นหลัง
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
         backgroundLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        characterLabel = new JLabel(scaleImage(charPaths[0], 1000, 800));
-        characterLabel.setBounds(0, 0, 1000, 800);
+        // --- แก้ไขส่วนตัวละครให้แสดงครึ่งตัว ---
+        // ปรับขนาดภาพให้ใหญ่ขึ้น (กว้าง 850 สูง 1100) เพื่อให้เห็นรายละเอียดชัด
+        characterLabel = new JLabel(scaleImage(charPaths[0], 850, 1100));
+        // ขยับ x ไปที่ 75 (เพื่อให้ภาพกว้าง 850 อยู่กลางจอ 1000)
+        // ขยับ y ลงไปที่ 50 เพื่อให้ส่วนขาจมหายไปจากขอบจอด้านล่าง
+        characterLabel.setBounds(75, 50, 850, 1100); 
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
@@ -66,13 +79,12 @@ public class part3 extends JFrame {
         layeredPane.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // ตรวจสอบว่ายังมีข้อความต่อไปหรือไม่
                 if (currentIndex < dialogues.length - 1) {
                     currentIndex++;
                     updateScene();
                 } else {
                     UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
-                    JOptionPane.showMessageDialog(null, "จบการสาธิตช่วงที่ 3 ขอบคุณค่ะ!");
+                    JOptionPane.showMessageDialog(null, "จบPart3");
                     System.exit(0); 
                 }
             }
@@ -80,21 +92,18 @@ public class part3 extends JFrame {
     }
 
     private void setupDialogueUI() {
-        // 1. กล่องข้อความหลัก (ตามที่คุณส่งมา)
         dialoguePanel = new RoundedPanel(40);
         dialoguePanel.setLayout(null);
         dialoguePanel.setBounds(50, 550, 900, 180); 
         dialoguePanel.setBackground(new Color(20, 20, 25, 215));
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
-        // 2. ชื่อตัวละคร
         nameLabel = new JLabel(names[0]);
         nameLabel.setFont(THAI_FONT_BOLD);
         nameLabel.setForeground(new Color(255, 204, 0)); 
         nameLabel.setBounds(60, 20, 300, 40); 
         dialoguePanel.add(nameLabel);
 
-        // 3. บทสนทนา
         dialogueArea = new JLabel();
         dialogueArea.setFont(THAI_FONT_PLAIN);
         dialogueArea.setForeground(Color.WHITE);
@@ -102,25 +111,28 @@ public class part3 extends JFrame {
         dialogueArea.setBounds(60, 75, 800, 100); 
         dialoguePanel.add(dialogueArea);
         
-        // แสดงข้อความแรกทันที
         updateDialogueDisplay(dialogues[0]);
     }
 
     private void updateScene() {
-        // ป้องกัน Error กรณี Array มีขนาดไม่เท่ากัน
         if (currentIndex < names.length) {
             nameLabel.setText(names[currentIndex]);
         } else {
-            nameLabel.setText(names[names.length - 1]); // ใช้ชื่อสุดท้ายถ้าข้อมูลหมด
+            nameLabel.setText(names[names.length - 1]);
         }
         
         if (currentIndex < dialogues.length) {
             updateDialogueDisplay(dialogues[currentIndex]);
         }
 
-        // อัปเดตภาพพื้นหลัง (วนลูปใช้ภาพที่มี)
+        // อัปเดตพื้นหลัง
         int bgIdx = currentIndex % imagePaths.length;
         backgroundLabel.setIcon(scaleImage(imagePaths[bgIdx], 1000, 800));
+
+        // --- แก้ไขส่วนการอัปเดตตัวละคร ---
+        // รักษาขนาดภาพ 850x1100 ไว้เพื่อให้ตำแหน่งคงที่ทุกครั้งที่เปลี่ยนรูปหน้า
+        int charIdx = currentIndex % charPaths.length;
+        characterLabel.setIcon(scaleImage(charPaths[charIdx], 850, 1100));
     }
 
     private void updateDialogueDisplay(String text) {
