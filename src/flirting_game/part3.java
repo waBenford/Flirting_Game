@@ -3,14 +3,27 @@ package flirting_game;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.swing.*;
 
 public class part3 extends JFrame {
     private JLayeredPane layeredPane;
     private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
-    private RoundedPanel dialoguePanel;
+    private JPanel dialoguePanel; // เปลี่ยนเป็น JPanel ทั่วไปเพื่อรองรับ Class ลูก
     private int currentIndex = 0;
-    
+    private Timer typewriterTimer;
+    private int charIndex = 0;
+    private Clip bgmClip;
+    private Clip effectClip; 
+    private JButton choiceButton1, choiceButton2;
+    private boolean isChoosing = false;
+    private float alpha = 1.0f; 
+    private JPanel fadeOverlay;
+
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 24);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 24);
 
@@ -20,36 +33,78 @@ public class part3 extends JFrame {
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
-        "res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s3.png",
-        "res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s1.jpg", 
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s2.png", "res/scene3/s2.png", 
+        "res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s3.png", "res/scene3/s3.png", 
+        "res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
-        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
-        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
+        "res/scene3/s1.jpg",
+        
     };
-    
+
     private String[] charPaths = {
-        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
-        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
-        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
-        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
-        "res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png","res/scene3/gNormal.png",
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-        "res/empty.png", "res/empty.png", "res/scene3/gSad.png", "res/scene3/gSad.png",
-        "res/scene3/gSad.png", "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png",
-        "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png",
-        "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png",
-        "res/scene3/gyim.png", "res/scene3/gyim.png", "res/scene3/gyim.png"
+        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png",
+        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png",
+        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png",
+        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png",
+        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png", 
+        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/empty.png", "res/empty.png","res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice-sad1.png","res/Charactor/Alice-sad1.png", 
+        "res/Charactor/Alice-sad1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png",
+        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png",
+        "res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png",
+        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png",
+        
     };
-    
-    private String[] names = { "" };
-    
+
+    private String[] names = {
+        "อริส", "ฉัน", "ฉัน", "อริส", "ฉัน", "อริส", "อริส", "อริส",
+        "อริส", "อริส", "อริส", "ฉัน", "อริส", "อริส", "อริส", "อริส",
+        "ฉัน", "ฉัน", "ฉัน", "อริส", "อริส", "ฉัน", "อริส", "อริส", "อริส", "อริส", "อริส", 
+        "อริส", "อริส","อริส"," ","ฉัน","อริส","อริส","อริส","อริส","อริส","อริส","อริส",
+        "อริส", "ฉัน", "ฉัน", "ฉัน", "ฉัน", "ฉัน", "อริส", "อริส", "ฉัน",
+    };
+            
     private String[] dialogues = {
-        "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
-        "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
-        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
-        "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
-        "41", "42", "43", "44"
+        "เมื่อกี้เธอทําอะไรหรอ??", "..ไม่รู้สิ..", "มันเหมือนว่าฉันจะใช้พลังเวทย์ได้เลย..", 
+        "เห้ออ..ฉันนึกว่ามีปีศาจมาโจมตีซะอีก", "..เอ๋..ปีศาจอะไรหรอ??", "..หาา..นี่เธอไม่รู้จริงๆหรอ??",
+        "เเต่ก็ช่างมันเถอะ เดี๋ยวฉันจะเล่าทุกอย่างให้ฟังละกัน??", "ในโลกนี้หนะ เป็นโลกที่ผู้คนก็ต่างใช้พลังเวทย์กันได้",
+        "เเต่ก็มีบางคนที่ไม่สามารถใช้มันได้", "เเต่ถึงอย่างงั้นก็มีคนที่สามารถไต่เต้าไปจนถึงระดับสูง",
+        "เเม้จะไม่มีพลังเวทย์ก็ตาม", "..เอ่อ..เเล้วปีศาจหละ??", "อ้อ..จริงด้วยเกือบลืมไปเลย",
+        "โลกนี้จะมีสองเผ่าอยู่หลักๆ", "เผ่ามนุษย์เเละเผ่าปีศาจ", // Index 14
+        "ไม่เหมือนกันสักหน่อย ปีศาจหน่ะเป็นเผ่าที่ชั่วร้าย", // ผลลัพธ์ Choice 1 (Index 15)
+        "อันนี้ฉันก็ไม่รู้เหมือนกัน",// ผลลัพธ์ Choice 2 (Index 16)
+        "เเล้วเธออยู่บ้านคนเดียวหรอ??",//17
+        "..พ่อกับเเม่เธอหละ??", //18
+        "ฉันอยู่คนเดียวมาตั้งเเต่เด็กๆเเล้วหละ",
+        "พ่อกับเเม่ของฉันท่านเสียไปนานเเล้ว",
+        "เอ่อ..เธอพอจะเล่าให้ฉันฟังได้มั้ย",
+        "..มันเป็นเรื่องเมื่อ6ปีที่เเล้ว",
+        "หมู่บ้านของฉัน พวกเราอยู่กันอย่างมีความสุข",
+        "ผู้คนก็ต่างอยู่ด้วยกันอย่างเอื้อเฟื้อ เเละพอเพียง",
+        "จนกระทั่ง",
+        "มีปีศาจที่เเข็งเเกร่งตัวนึง ได้มาทําลายหมู่บ้านของพวกเรา",
+        "มันพรากชีวิตของผู้คนไปมากมาย หนึ่งในนั้นก็มีพ่อเเม่ของฉันด้วย",
+        "พ่อเเม่ของฉันปกป้องฉันจนวินาทีสุดท้าย..",
+        "จากเหตุการณ์ครั้งนั้น ฉันเลยรอดมาได้..",
+        "อริสกําลังเศร้า..",
+        "ขอโทษนะที่ถามอะไรเเบบนั้น",
+        "ไม่เป็นไรหรอก", //เริ่ม index 32
+        "ขอบคุณนะ..", //choice 1 index 33
+        "...", //choice 2 index 34
+        "ฉันเลยคิดว่าสักวันนึง ฉันจะต้องออกเดินทาง",
+        "ฝึกฝนตัวเองให้เเข็งเเกร่งมากขึ้น",
+        "เพื่อที่ฉันจะได้เเก้เเค้นให้พ่อกับเเม่",
+        "นี่...", //38
+        "เธออยากจะร่วมเดินทางกับฉันมั้ย?",
+        "เธอเป็นคนที่จิตใจดี เเละอ่อนโยนมาก",//40
+        "เพราะอย่างงั้นฉันเลยอยากที่จะปกป้องเธอ",
+        "ไม่มีเหตุผลเลยที่ฉันปฏิเสธเธอ",
+        "เเน่นอน!! ฉันจะออกเดินทางกับเธอ",
+        "ฉันจะต้องเเข็งเเกร่งขึ้นให้ได้เหมือนกัน", //44
+        "ขอบคุณนะ …",
+        "เออ..ว่าเเต่เธอชื่ออะไรกันเเน่",
+        "ฉันชื่อ...",
     };
 
     public part3() {
@@ -60,31 +115,78 @@ public class part3 extends JFrame {
 
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
+        
+        // 1. เริ่มเล่น BGM
+        playSE("res/sound/soundtrack3.wav", true, -5.0f); 
 
-        // พื้นหลัง
+        // 2. วาดพื้นหลังและตัวละคร
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
         backgroundLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        // --- แก้ไขส่วนตัวละครให้แสดงครึ่งตัว ---
-        // ปรับขนาดภาพให้ใหญ่ขึ้น (กว้าง 850 สูง 1100) เพื่อให้เห็นรายละเอียดชัด
-        characterLabel = new JLabel(scaleImage(charPaths[0], 850, 1100));
-        // ขยับ x ไปที่ 75 (เพื่อให้ภาพกว้าง 850 อยู่กลางจอ 1000)
-        // ขยับ y ลงไปที่ 50 เพื่อให้ส่วนขาจมหายไปจากขอบจอด้านล่าง
-        characterLabel.setBounds(75, 50, 850, 1100); 
+        characterLabel = new JLabel(scaleImage(charPaths[0], 900, 1100));
+        characterLabel.setBounds(75, 50, 900, 1100); 
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
+        // 3. สร้างระบบ Dialogue
         setupDialogueUI();
 
+        // 4. แผ่นดำ Fade In
+        fadeOverlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(new Color(0, 0, 0, (int)(alpha * 255)));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        fadeOverlay.setBounds(0, 0, 1000, 800);
+        fadeOverlay.setOpaque(false);
+        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+
+        // 5. เริ่มต้นการทำงาน (Fade -> พิมพ์ประโยคแรก)
+        startFadeIn();
+
+        // 6. ระบบคลิกดำเนินเรื่อง
         layeredPane.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (isChoosing) return;
+
+                // ตรวจสอบการเปลี่ยน BGM ที่ฉาก 19
+                if (currentIndex == 19) {
+                    stopBGM();
+                }
+
+                // --- จัดการทางแยก 1 (Index 14 -> 15/16 -> 17) ---
+                if (currentIndex == 15 || currentIndex == 16) {
+                    currentIndex = 17;
+                    updateScene();
+                    return;
+                }
+                if (currentIndex == 14) {
+                    showChoices("..ปีศาจนี่เหมือนผีรึเปล่า??", "..เอ่อ..แล้วเผ่าอื่นๆหละ??", 15, 16);
+                    return;
+                }
+
+                // --- จัดการทางแยก 2 (Index 32 -> 33/34 -> 35) ---
+                if (currentIndex == 33 || currentIndex == 34) {
+                    currentIndex = 35; 
+                    updateScene();
+                    return; 
+                }
+                if (currentIndex == 32) {
+                    showChoices("เข้าไปปลอบอริส", "นั่งอยู่เฉยๆ", 33, 34);
+                    return;
+                }
+
+                // ดำเนินเรื่องปกติ
                 if (currentIndex < dialogues.length - 1) {
                     currentIndex++;
+                    handleSoundEffects(currentIndex);
                     updateScene();
                 } else {
-                    UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
-                    JOptionPane.showMessageDialog(null, "จบPart3");
+                    JOptionPane.showMessageDialog(null, "จบ Part 3");
                     System.exit(0); 
                 }
             }
@@ -92,64 +194,206 @@ public class part3 extends JFrame {
     }
 
     private void setupDialogueUI() {
-        dialoguePanel = new RoundedPanel(40);
-        dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(50, 550, 900, 180); 
-        dialoguePanel.setBackground(new Color(20, 20, 25, 215));
-        layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
+    // 1. กล่องข้อความหลัก
+    dialoguePanel = new RoundedPanel(40);
+    dialoguePanel.setLayout(null);
+    dialoguePanel.setBounds(50, 550, 900, 180); // ปรับความสูงเป็น 180 เพื่อให้มีพื้นที่พอ
+    dialoguePanel.setBackground(new Color(20, 20, 25, 215));
+    layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
-        nameLabel = new JLabel(names[0]);
-        nameLabel.setFont(THAI_FONT_BOLD);
-        nameLabel.setForeground(new Color(255, 204, 0)); 
-        nameLabel.setBounds(60, 20, 300, 40); 
-        dialoguePanel.add(nameLabel);
+    // 2. ชื่อตัวละคร (ขยับขึ้นไปด้านบนของกล่อง)
+    nameLabel = new JLabel(names[0]);
+    nameLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
+    nameLabel.setForeground(new Color(255, 204, 0)); // ใช้สีเหลืองทองตามแบบที่คุณชอบ
+    
+    // x: 60 (เขยิบจากซ้าย), y: 20 (อยู่ที่ขอบบนสุดของกล่อง)
+    nameLabel.setBounds(60, 20, 300, 40); 
+    dialoguePanel.add(nameLabel);
 
-        dialogueArea = new JLabel();
-        dialogueArea.setFont(THAI_FONT_PLAIN);
-        dialogueArea.setForeground(Color.WHITE);
-        dialogueArea.setVerticalAlignment(SwingConstants.TOP);
-        dialogueArea.setBounds(60, 75, 800, 100); 
-        dialoguePanel.add(dialogueArea);
-        
-        updateDialogueDisplay(dialogues[0]);
-    }
+    // 3. บทสนทนา (ขยับลงมาข้างล่างชื่อ)
+    dialogueArea = new JLabel();
+    dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 24));
+    dialogueArea.setForeground(Color.WHITE);
+    dialogueArea.setVerticalAlignment(SwingConstants.TOP);
+    
+    // x: 60 (ตรงกับชื่อ), y: 75 (อยู่ต่ำกว่าชื่อ 55 พิกเซล จะได้ไม่ทับกัน)
+    dialogueArea.setBounds(60, 75, 800, 100); 
+    dialoguePanel.add(dialogueArea);
+    
+}
 
     private void updateScene() {
-        if (currentIndex < names.length) {
-            nameLabel.setText(names[currentIndex]);
-        } else {
-            nameLabel.setText(names[names.length - 1]);
-        }
+        nameLabel.setText(names[currentIndex]);
+        updateDialogueDisplay(dialogues[currentIndex]);
         
-        if (currentIndex < dialogues.length) {
-            updateDialogueDisplay(dialogues[currentIndex]);
-        }
-
-        // อัปเดตพื้นหลัง
-        int bgIdx = currentIndex % imagePaths.length;
-        backgroundLabel.setIcon(scaleImage(imagePaths[bgIdx], 1000, 800));
-
-        // --- แก้ไขส่วนการอัปเดตตัวละคร ---
-        // รักษาขนาดภาพ 850x1100 ไว้เพื่อให้ตำแหน่งคงที่ทุกครั้งที่เปลี่ยนรูปหน้า
-        int charIdx = currentIndex % charPaths.length;
-        characterLabel.setIcon(scaleImage(charPaths[charIdx], 850, 1100));
+        backgroundLabel.setIcon(scaleImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1000, 800));
+        characterLabel.setIcon(scaleImage(charPaths[Math.min(currentIndex, charPaths.length-1)], 900, 1100));
+        
+        layeredPane.repaint();
     }
 
     private void updateDialogueDisplay(String text) {
-        dialogueArea.setText("<html><body style='width: 750px;'>" + text + "</body></html>");
+        if (typewriterTimer != null && typewriterTimer.isRunning()) {
+            typewriterTimer.stop();
+        }
+
+        charIndex = 0;
+        dialogueArea.setText(""); 
+
+        typewriterTimer = new Timer(35, e -> {
+            if (charIndex < text.length()) {
+                charIndex++;
+                String currentText = text.substring(0, charIndex);
+                dialogueArea.setText("<html><body style='width: 750px;'>" + currentText + "</body></html>");
+            } else {
+                typewriterTimer.stop();
+            }
+        });
+        typewriterTimer.start();
+    }
+
+    private void startFadeIn() {
+        Timer fadeTimer = new Timer(50, e -> {
+            alpha -= 0.05f;
+            if (alpha <= 0) {
+                alpha = 0;
+                ((Timer)e.getSource()).stop();
+                layeredPane.remove(fadeOverlay);
+                updateDialogueDisplay(dialogues[0]); // เริ่มพิมพ์ข้อความแรกหลัง Fade เสร็จ
+            }
+            fadeOverlay.repaint();
+        });
+        fadeTimer.start();
+    }
+
+    private void handleSoundEffects(int index) {
+        if (index == 20){
+            playSE("res/sound/soundtrack4.wav", true, -5.0f);
+        }
+    }
+
+    private void playSE(String path, boolean loop, float volume) {
+        try {
+            File soundFile = new File(path);
+            if (!soundFile.exists()) return;
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            gainControl.setValue(volume);
+            if (loop) clip.loop(Clip.LOOP_CONTINUOUSLY);
+            clip.start();
+            if (loop) this.bgmClip = clip; else this.effectClip = clip;
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void stopBGM() {
+        if (bgmClip != null && bgmClip.isRunning()) {
+            bgmClip.stop();
+            bgmClip.close();
+        }
+    }
+
+    private void showChoices(String text1, String text2, int target1, int target2) {
+        isChoosing = true;
+        choiceButton1 = createChoiceButton(text1, 350, target1);
+        choiceButton2 = createChoiceButton(text2, 420, target2); 
+        layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+        layeredPane.repaint();
+    }
+
+    private JButton createChoiceButton(String text, int y, int targetIndex) {
+        JButton btn = new JButton(text);
+        btn.setBounds(580, y, 350, 60); 
+        btn.setFont(new Font("Tahoma", Font.BOLD, 18));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(new Color(30, 30, 30, 220));
+        btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2));
+        btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false);
+        btn.setOpaque(false);
+
+        btn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(new Color(70, 70, 70, 240));
+                btn.setBounds(570, y, 360, 60);
+                btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(new Color(30, 30, 30, 220));
+                btn.setBounds(580, y, 350, 60);
+            }
+        });
+
+        btn.addActionListener(e -> {
+            layeredPane.remove(choiceButton1);
+            layeredPane.remove(choiceButton2);
+            isChoosing = false;
+            currentIndex = targetIndex;
+            updateScene();
+        });
+
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(c.getBackground());
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 15, 15);
+                super.paint(g, c);
+            }
+        });
+        return btn;
     }
 
     public ImageIcon scaleImage(String path, int width, int height) {
         try {
             ImageIcon icon = new ImageIcon(path);
-            Image img = icon.getImage();
-            return new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH));
-        } catch (Exception e) {
-            return null;
-        }
+            return new ImageIcon(icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
+        } catch (Exception e) { return null; }
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part3().setVisible(true));
+    }
+}
+// --- เพิ่มคลาสที่ขาดหายไปเพื่อให้ Error หาย ---
+class RoundedPanel extends JPanel {
+    private int cornerRadius;
+    public RoundedPanel(int radius) {
+        this.cornerRadius = radius;
+        setOpaque(false); 
+    }
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(getBackground());
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
+    }
+}
+
+class TopLeftRoundedPanel extends JPanel {
+    private int cornerRadius;
+    public TopLeftRoundedPanel(int radius) {
+        this.cornerRadius = radius;
+        setOpaque(false);
+    }
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(getBackground());
+        int w = getWidth();
+        int h = getHeight();
+        java.awt.geom.Area area = new java.awt.geom.Area(new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h, cornerRadius, cornerRadius));
+        area.add(new java.awt.geom.Area(new java.awt.Rectangle(cornerRadius, 0, w - cornerRadius, h)));
+        area.add(new java.awt.geom.Area(new java.awt.Rectangle(0, cornerRadius, w, h - cornerRadius)));
+        g2.fill(area);
     }
 }
