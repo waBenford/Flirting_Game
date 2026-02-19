@@ -3,6 +3,11 @@ package flirting_game;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.swing.*;
 
 public class part2 extends JFrame {
@@ -13,6 +18,8 @@ public class part2 extends JFrame {
     private Timer typewriterTimer;
     private int charIndex = 0;
     private boolean isAnimating = false;
+    private Clip bgmClip;    // สำหรับเพลงพื้นหลัง (วนลูป)
+    private Clip effectClip; // สำหรับเสียงเอฟเฟกต์ (เล่นครั้งเดียว)
     private JButton choiceButton1, choiceButton2;
     private boolean isChoosing = false; // ล็อกไม่ให้คลิกเมาส์เปลี่ยนฉากขณะมีตัวเลือก
     private float alpha = 1.0f; 
@@ -22,20 +29,21 @@ public class part2 extends JFrame {
     private String[] imagePaths = {
             "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png",
             "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png",
-            "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s2.png", "res/scene2/s2.png",
+            "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s2.png", 
             "res/scene2/s2.png", "res/scene2/s2.png", "res/scene2/s2.png", "res/scene2/s3.png", 
-            "res/scene2/s3.png", "res/scene2/s4.png", "res/scene2/s4.png", "res/scene2/s5.png", 
+            "res/scene2/s3.png", "res/scene2/s3.png", "res/scene2/s4.png", "res/scene2/s4.png", 
             "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", 
             "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", 
-            "res/scene2/s6.png", "res/scene2/s6.png", "res/scene2/s6.png",
+            "res/scene2/s6.png", "res/scene2/s6.png",   
+    
     };
     
     private String[] charPaths = {
             "res/scene2/s1g.png", "res/scene2/s1g.png", "res/scene2/s1sitdown.png",  
             "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png",
             "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", 
-            "res/scene2/s1sitdown.png", "res/empty.png", "res/empty.png","res/empty.png",
-             "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png","res/empty.png",
+            "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png","res/empty.png", "res/empty.png",
+            "res/empty.png","res/empty.png", "res/empty.png", "res/empty.png","res/empty.png","res/empty.png",
             "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
             "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
             "res/empty.png", "res/empty.png", "res/empty.png"
@@ -59,7 +67,7 @@ public class part2 extends JFrame {
     "ฉันชื่อว่า อริส เป็นลูกของชาวนาในหมู่บ้านเเถวนี้", // 6
     "เเล้วเธอหละ?", // 7 (จุดขึ้น Choice)
     // --- ทางเลือกที่ 1 (Index 8) ---
-    "ยินดีที่ได้รู้จักนะ! ชื่อของเธอฟังดูดีจัง", // 8 
+    "งั้นหรอ...ไม่เป็นไร", // 8 
     // --- ทางเลือกที่ 2 (Index 9) ---
     "อ้าว... จำชื่อไม่ได้หรอ? ไม่เป็นไรนะ ค่อยๆ นึกไปก็ได้", // 9
     // --- จุดรวมพล (Index 10) ---
@@ -95,6 +103,8 @@ public class part2 extends JFrame {
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
+        playSE("res/sound/soundtrack1.wav", true, -5.0f);
+
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
         backgroundLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
@@ -122,15 +132,22 @@ public class part2 extends JFrame {
             startFadeIn();
             animateText(dialogues[0]);
 
-        layeredPane.addMouseListener(new MouseAdapter() {
-    @Override
-    public void mouseClicked(MouseEvent e) {
+    layeredPane.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
         if (isChoosing) return;
         if (isAnimating) {
             stopAnimation();
             updateDialogueDisplay(dialogues[currentIndex]);
             return;
         }
+
+        if (currentIndex == 17) {
+                    if (bgmClip != null && bgmClip.isRunning()) {
+                        bgmClip.stop();
+                        bgmClip.close();
+                    }
+                }
 
         // ส่วนที่แก้ไขเพิ่ม: ถ้าคุยจบประโยค "ชื่อเธอฟังดูดีจัง" (Index 8)
         if (currentIndex == 8) {
@@ -142,12 +159,15 @@ public class part2 extends JFrame {
         // เมื่อคุยถึง "เเล้วเธอหละ?" (Index 7) และกดคลิก
         if (currentIndex == 7) {
             // โชว์ตัวเลือก และกำหนดว่าถ้าเลือกข้อไหนจะให้กระโดดไป Index อะไรใน Array
-            showChoices("ฉันชื่อ…", "ฉันจําชื่อตัวเองไม่ได้", 8,9); 
+            showChoices("ฉันไม่รู้ (ฉันยังไม่ไว้ใจใคร)", "ฉันจําชื่อตัวเองไม่ได้", 8,9); 
             return; 
         }
 
         currentIndex++;
         if (currentIndex < dialogues.length) {
+
+            handleSoundEffects(currentIndex);
+
             updateScene();
         } else {
             JOptionPane.showMessageDialog(null, "end Part 2");
@@ -156,7 +176,7 @@ public class part2 extends JFrame {
     }
 });
     }
-    
+
     private void setupDialogueUI() {
     // 1. กล่องข้อความหลัก
     dialoguePanel = new RoundedPanel(40);
@@ -200,7 +220,89 @@ public class part2 extends JFrame {
     // อัปเดตภาพพื้นหลังและตัวละคร
     if (currentIndex < imagePaths.length) backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1000, 800));
     if (currentIndex < charPaths.length) characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 800));
+
 }
+
+    // แยกฟังก์ชันจัดการเสียงเพื่อให้โค้ดอ่านง่าย
+    private void handleSoundEffects(int index) {
+    // เมื่อเข้าสู่ฉากที่ 18 ให้เริ่มเล่นเสียงใหม่
+    if (index == 18) {
+        playEffect("res/sound/soundtrack2.wav", -5.0f);
+    }
+    if (index == 29){
+        if (effectClip != null && effectClip.isRunning()) {
+            effectClip.stop();
+        }
+    }
+    // หากต้องการให้เสียงหยุดเมื่อจบฉากที่ 29 (เข้าสู่ฉาก 30)
+    if (index == 30) {
+        if (effectClip != null && effectClip.isRunning()) {
+            effectClip.stop();
+        }
+    }
+    if (index == 15){
+        playEffect("res/sound/water.wav", 5.0f);
+    } 
+    if (index == 18){
+        if (effectClip != null && effectClip.isRunning()) {
+            effectClip.stop();
+        }
+    }
+
+    if (index == 11){
+        playEffect("res/sound/fireplace.wav", 5.0f);
+    }
+    if (index == 14){
+        if (effectClip != null && effectClip.isRunning()) {
+            effectClip.stop();
+        }
+    }
+    if (index == 28){
+        playEffect("res/sound/winddash.wav", 0.0f);
+    }
+    if (index == 29){
+        if (effectClip != null && effectClip.isRunning()) {
+            effectClip.stop();
+        }
+    }
+}
+
+    // --- ฟังก์ชันเล่นเสียงเอฟเฟกต์ (เล่นครั้งเดียว/ป้องกันเสียงซ้อน) ---
+    public void playEffect(String path, float volume) {
+        try {
+            if (effectClip != null && effectClip.isRunning()) {
+                effectClip.stop();
+            }
+            File soundFile = new File(path); 
+            if (soundFile.exists()) {
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+                effectClip = AudioSystem.getClip(); 
+                effectClip.open(audioIn);
+                FloatControl gainControl = (FloatControl) effectClip.getControl(FloatControl.Type.MASTER_GAIN);
+                gainControl.setValue(volume); 
+                effectClip.start();
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // --- ฟังก์ชันเล่นเสียง BGM (วนลูป) ---
+    public void playSE(String path, boolean isLoop, float volume) {
+        try {
+            File soundFile = new File(path); 
+            if (soundFile.exists()) {
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+                Clip clip = AudioSystem.getClip(); 
+                clip.open(audioIn);
+                FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                gainControl.setValue(volume); 
+                if (isLoop) {
+                    bgmClip = clip;
+                    clip.loop(Clip.LOOP_CONTINUOUSLY);
+                }
+                clip.start();
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
 
     private void animateText(String fullText) {
         isAnimating = true; charIndex = 0; dialogueArea.setText(""); 
@@ -248,41 +350,97 @@ public class part2 extends JFrame {
         }
     }
 
-    private void showChoices(String text1, String text2, int nextIndex1, int nextIndex2) {
-    isChoosing = true; // ล็อกไม่ให้คลิกเมาส์ผ่านจอปกติได้
+    private void showChoices(String text1, String text2, int target1, int target2) {
+    // ลบปุ่มเดิมออกจากการแสดงผล (ถ้ามี)
+    if (choiceButton1 != null) {
+        layeredPane.remove(choiceButton1);
+        choiceButton1 = null; // คืนค่าว่างเพื่อความสะอาด
+    }
+    if (choiceButton2 != null) {
+        layeredPane.remove(choiceButton2);
+        choiceButton2 = null; // คืนค่าว่างเพื่อความสะอาด
+    }
     
-    // สร้างปุ่มที่ 1
-    choiceButton1 = createChoiceButton(text1, 350, nextIndex1);
-    // สร้างปุ่มที่ 2
-    choiceButton2 = createChoiceButton(text2, 430, nextIndex2);
+    layeredPane.repaint(); // สั่งวาดใหม่ทันทีเพื่อล้างภาพค้าง
 
-    layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER); // นำไปวางเลเยอร์บนสุด
+    isChoosing = true;
+    
+    // สร้างปุ่มใหม่พร้อมย้ายไปทางขวา
+    choiceButton1 = createChoiceButton(text1, 350, target1); // x จะถูกตั้งในฟังก์ชันสร้างปุ่ม
+    choiceButton2 = createChoiceButton(text2, 420, target2); 
+    
+    layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
     layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+    
+    layeredPane.revalidate();
     layeredPane.repaint();
 }
 
-    private JButton createChoiceButton(String text, int yPos, int targetIndex) {
+    private JButton createChoiceButton(String text, int y, int targetIndex) {
     JButton btn = new JButton(text);
-    btn.setBounds(200, yPos, 600, 60);
-    btn.setFont(new Font("Tahoma", Font.BOLD, 22));
+    
+    // ตั้งค่าพื้นฐาน (ย้ายไปทางขวาตามที่คุณต้องการ)
+    btn.setBounds(580, y, 350, 60); 
+    btn.setFont(new Font("Tahoma", Font.BOLD, 18));
     btn.setForeground(Color.WHITE);
-    
-    // ตั้งสีพื้นหลังให้เข้มเหมือน dialoguePanel และมีเส้นขอบสีทอง
-    btn.setBackground(new Color(30, 30, 40, 230)); 
+    btn.setBackground(new Color(30, 30, 30, 220));
     btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2));
-    
     btn.setFocusPainted(false);
-    btn.setContentAreaFilled(true);
+    btn.setContentAreaFilled(false); // ทำให้วาดสีพื้นหลังเองเพื่อความลื่นไหล
+    btn.setOpaque(false);
 
+    // --- ส่วนของ Animation ---
+    btn.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            // 1. Animation ตอนเมาส์ชี้: เปลี่ยนสีพื้นหลังให้สว่างขึ้นและขยับปุ่มไปทางซ้ายนิดหน่อย
+            btn.setBackground(new Color(70, 70, 70, 240));
+            btn.setBounds(570, y, 360, 60); // ขยับมาทางซ้าย 10px และขยายกว้างขึ้นนิดนึง
+            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            // 2. คืนค่าเดิมเมื่อเอาเมาส์ออก
+            btn.setBackground(new Color(30, 30, 30, 220));
+            btn.setBounds(580, y, 350, 60);
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            // 3. Animation ตอนกด: ย่อขนาดปุ่มลงเล็กน้อยให้ดูเหมือนโดนกดจริง
+            btn.setBounds(585, y + 2, 340, 56);
+            // เล่นเสียงคลิก (ถ้ามีไฟล์เสียง)
+            // playEffect("res/sound/click_sound.wav", -5.0f); 
+        }
+    });
+
+    // ส่วนของคำสั่งเมื่อคลิก (ActionListener)
     btn.addActionListener(e -> {
+        // ล้างปุ่มเพื่อกันตัวหนังสือจางค้าง
         layeredPane.remove(choiceButton1);
         layeredPane.remove(choiceButton2);
+        choiceButton1 = null;
+        choiceButton2 = null;
         isChoosing = false;
         
         currentIndex = targetIndex;
-        updateScene(); 
+        updateScene();
         layeredPane.repaint();
     });
+
+    // ต้อง Override การวาดปุ่มนิดหน่อยเพื่อให้สีพื้นหลังที่เราตั้งค่าไว้แสดงผล
+    btn.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+        @Override
+        public void paint(Graphics g, JComponent c) {
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(c.getBackground());
+            g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 15, 15);
+            super.paint(g, c);
+        }
+    });
+
     return btn;
 }
 
