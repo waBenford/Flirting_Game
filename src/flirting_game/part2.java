@@ -24,6 +24,8 @@ public class part2 extends JFrame {
     private boolean isChoosing = false; // ล็อกไม่ให้คลิกเมาส์เปลี่ยนฉากขณะมีตัวเลือก
     private float alpha = 1.0f; 
     private JPanel fadeOverlay;
+    private JLabel affinityLabel; 
+    private JLabel statusLabel;
     
 
     private String[] imagePaths = {
@@ -114,6 +116,23 @@ public class part2 extends JFrame {
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
+
+        JPanel relPanel = new JPanel();
+        relPanel.setLayout(new GridLayout(2, 1));
+        relPanel.setBounds(20, 20, 250, 60);
+        relPanel.setOpaque(false);
+
+        affinityLabel = new JLabel("ความสนิท: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        affinityLabel.setForeground(Color.WHITE);
+
+        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        statusLabel.setForeground(new Color(255, 204, 0)); // สีเหลืองทอง
+
+        relPanel.add(affinityLabel);
+        relPanel.add(statusLabel);
+        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
 
         // สร้างแผ่นดำสำหรับทำ Fade In
         fadeOverlay = new JPanel() {
@@ -417,12 +436,16 @@ public class part2 extends JFrame {
 
     // ส่วนของคำสั่งเมื่อคลิก (ActionListener)
     btn.addActionListener(e -> {
-        // ล้างปุ่มเพื่อกันตัวหนังสือจางค้าง
         layeredPane.remove(choiceButton1);
         layeredPane.remove(choiceButton2);
         choiceButton1 = null;
         choiceButton2 = null;
         isChoosing = false;
+
+        // แสดง Log ใน Console เพื่อตรวจสอบ (Optional)
+        affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
+        statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+        System.out.println("Status: " + relationdata.aliceRel.getStatus() + " (" + relationdata.aliceRel.getAffinity() + ")");
         
         currentIndex = targetIndex;
         updateScene();
