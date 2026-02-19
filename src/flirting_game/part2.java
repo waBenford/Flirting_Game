@@ -104,6 +104,7 @@ public class part2 extends JFrame {
         setContentPane(layeredPane);
 
         playSE("res/sound/soundtrack1.wav", true, -5.0f);
+        playSE("res/sound/Sono.wav", false, 0.0f);
 
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
         backgroundLabel.setBounds(0, 0, 1000, 800);
@@ -225,7 +226,14 @@ public class part2 extends JFrame {
 
     // แยกฟังก์ชันจัดการเสียงเพื่อให้โค้ดอ่านง่าย
     private void handleSoundEffects(int index) {
-    // เมื่อเข้าสู่ฉากที่ 18 ให้เริ่มเล่นเสียงใหม่
+        if (index == 8 || index == 9) {
+        playEffect("res/sound/Soudesuka.wav", 0.0f);
+    } 
+    else if (index == 10) {
+        if (effectClip != null && effectClip.isRunning()) {
+            effectClip.stop();
+        }
+    }
     if (index == 18) {
         playEffect("res/sound/soundtrack2.wav", -5.0f);
     }
@@ -234,7 +242,6 @@ public class part2 extends JFrame {
             effectClip.stop();
         }
     }
-    // หากต้องการให้เสียงหยุดเมื่อจบฉากที่ 29 (เข้าสู่ฉาก 30)
     if (index == 30) {
         if (effectClip != null && effectClip.isRunning()) {
             effectClip.stop();
@@ -248,7 +255,6 @@ public class part2 extends JFrame {
             effectClip.stop();
         }
     }
-
     if (index == 11){
         playEffect("res/sound/fireplace.wav", 5.0f);
     }
@@ -423,8 +429,10 @@ public class part2 extends JFrame {
         choiceButton1 = null;
         choiceButton2 = null;
         isChoosing = false;
-        
+
         currentIndex = targetIndex;
+        handleSoundEffects(currentIndex);
+        
         updateScene();
         layeredPane.repaint();
     });
