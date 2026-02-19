@@ -47,7 +47,7 @@ public class menu {
             // ตรวจสอบว่าคุณมีไฟล์ part1.java หรือคลาส part1 แล้ว
             try {
                 new part1().setVisible(true);
-                frame.dispose(); // ปิดหน้าเมนู
+                frame.dispose(); // ปิดหน้าเมนู            
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "ยังไม่ได้สร้างคลาส part1 หรือมีข้อผิดพลาด");
             }
@@ -83,11 +83,30 @@ public class menu {
     }
 
     private static JButton createImageButton(String path, int w, int h) {
-        JButton button = new JButton(getScaledIcon(path, w, h));
+        ImageIcon normalIcon = getScaledIcon(path, w, h);
+        // สร้างรูปที่ใหญ่ขึ้นเล็กน้อยสำหรับตอน Hover
+        ImageIcon hoverIcon = getScaledIcon(path, w + 10, h + 10); 
+
+        JButton button = new JButton(normalIcon);
         button.setBorder(BorderFactory.createEmptyBorder());
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                button.setIcon(hoverIcon);
+                // ขยับตำแหน่งเล็กน้อยเพื่อให้ดูเหมือนขยายจากจุดศูนย์กลาง
+                button.setBounds(button.getX() - 5, button.getY() - 5, w + 15, h + 15);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                button.setIcon(normalIcon);
+                button.setBounds(button.getX() + 5, button.getY() + 5, w, h);
+            }
+        });
         return button;
     }
 }
