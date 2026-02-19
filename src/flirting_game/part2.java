@@ -189,9 +189,22 @@ public class part2 extends JFrame {
             handleSoundEffects(currentIndex);
 
             updateScene();
+         // ค้นหาส่วนนี้ใน MouseListener ของ part2.java
         } else {
-            JOptionPane.showMessageDialog(null, "end Part 2");
-            System.exit(0);
+            // 1. หยุด BGM ของ Part 2 ก่อนไป Part 3
+            if (bgmClip != null && bgmClip.isRunning()) {
+                bgmClip.stop();
+                bgmClip.close();
+            }
+            UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 18));
+            UIManager.put("OptionPane.buttonFont", new Font("Tahoma", Font.PLAIN, 18));
+
+            JOptionPane.showMessageDialog(null, "จบ part 2 แล้ว! กำลังเข้าสู่บทถัดไป...");
+            JOptionPane.showMessageDialog(null, "กำลังเข้าสู่เนื้อเรื่องบทที่ 3...");
+            
+            new part3().setVisible(true);
+            
+            dispose(); 
         }
     }
 });
