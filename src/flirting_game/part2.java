@@ -41,10 +41,10 @@ public class part2 extends JFrame {
     };
     
     private String[] charPaths = {
-            "res/scene2/s1g.png", "res/scene2/s1g.png", "res/scene2/s1sitdown.png",  
-            "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png",
-            "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png", 
-            "res/scene2/s1sitdown.png", "res/scene2/s1sitdown.png","res/empty.png", "res/empty.png",
+            "res/scene2/alice1.png", "res/scene2/alice1.png", "res/scene2/alice1.png",  
+            "res/scene2/alice2.png", "res/scene2/alice1.png", "res/scene2/alice2.png",
+            "res/scene2/alice1.png", "res/scene2/alice2.png", "res/scene2/alice1.png", 
+            "res/scene2/alice2.png", "res/scene2/alice1.png","res/empty.png", "res/empty.png",
             "res/empty.png","res/empty.png", "res/empty.png", "res/empty.png","res/empty.png","res/empty.png",
             "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
             "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",

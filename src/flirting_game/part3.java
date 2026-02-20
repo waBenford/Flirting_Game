@@ -1,5 +1,4 @@
 package flirting_game;
-
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -13,12 +12,12 @@ import javax.swing.*;
 public class part3 extends JFrame {
     private JLayeredPane layeredPane;
     private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
-    private JPanel dialoguePanel; // เปลี่ยนเป็น JPanel ทั่วไปเพื่อรองรับ Class ลูก
+    private JPanel dialoguePanel; 
     private int currentIndex = 0;
     private Timer typewriterTimer;
     private int charIndex = 0;
-    private Clip bgmClip;
-    private Clip effectClip; 
+    private Clip bgmClip;      // ใช้สำหรับเสียงดนตรีประกอบหลัก (soundtrack)
+    private Clip effectClip;   // ใช้สำหรับเสียงสภาพแวดล้อม (fireplace)
     private JButton choiceButton1, choiceButton2;
     private boolean isChoosing = false;
     private float alpha = 1.0f; 
@@ -39,7 +38,6 @@ public class part3 extends JFrame {
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg",
-        
     };
 
     private String[] charPaths = {
@@ -48,13 +46,12 @@ public class part3 extends JFrame {
         "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png",
         "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png",
         "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png", 
-        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/empty.png", "res/empty.png","res/empty.png", "res/empty.png", 
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice-sad1.png","res/Charactor/Alice-sad1.png", 
-        "res/Charactor/Alice-sad1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png",
-        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png",
-        "res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png",
-        "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png",
-        
+        "res/Charactor/Alice-sad2_1.png","res/Charactor/Alice-sad1_1.png","res/empty.png", "res/empty.png","res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice-cry1_1.png","res/Charactor/Alice-cry2_1.png", 
+        "res/Charactor/Alice-cry1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad2_1.png", 
+        "res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png",
+        "res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png",
+        "res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile2_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png",
     };
 
     private String[] names = {
@@ -71,37 +68,37 @@ public class part3 extends JFrame {
         "เเต่ก็ช่างมันเถอะ เดี๋ยวฉันจะเล่าทุกอย่างให้ฟังละกัน??", "ในโลกนี้หนะ เป็นโลกที่ผู้คนก็ต่างใช้พลังเวทย์กันได้",
         "เเต่ก็มีบางคนที่ไม่สามารถใช้มันได้", "เเต่ถึงอย่างงั้นก็มีคนที่สามารถไต่เต้าไปจนถึงระดับสูง",
         "เเม้จะไม่มีพลังเวทย์ก็ตาม", "..เอ่อ..เเล้วปีศาจหละ??", "อ้อ..จริงด้วยเกือบลืมไปเลย",
-        "โลกนี้จะมีสองเผ่าอยู่หลักๆ", "เผ่ามนุษย์เเละเผ่าปีศาจ", // Index 14
-        "ไม่เหมือนกันสักหน่อย ปีศาจหน่ะเป็นเผ่าที่ชั่วร้าย", // ผลลัพธ์ Choice 1 (Index 15)
-        "อันนี้ฉันก็ไม่รู้เหมือนกัน",// ผลลัพธ์ Choice 2 (Index 16)
-        "เเล้วเธออยู่บ้านคนเดียวหรอ??",//17
-        "..พ่อกับเเม่เธอหละ??", //18
+        "โลกนี้จะมีสองเผ่าอยู่หลักๆ", "เผ่ามนุษย์เเละเผ่าปีศาจ", 
+        "ไม่เหมือนกันสักหน่อย ปีศาจหน่ะเป็นเผ่าที่ชั่วร้าย", 
+        "อันนี้ฉันก็ไม่รู้เหมือนกัน",
+        "เเล้วเธออยู่บ้านคนเดียวหรอ??",
+        "..พ่อกับเเม่เธอหละ??", 
         "ฉันอยู่คนเดียวมาตั้งเเต่เด็กๆเเล้วหละ",
         "พ่อกับเเม่ของฉันท่านเสียไปนานเเล้ว",
         "เอ่อ..เธอพอจะเล่าให้ฉันฟังได้มั้ย",
-        "..มันเป็นเรื่องเมื่อ6ปีที่เเล้ว",
+        "..มันเป็นเรื่องเมื่อ6ปีที่เเล้ว", //22
         "หมู่บ้านของฉัน พวกเราอยู่กันอย่างมีความสุข",
         "ผู้คนก็ต่างอยู่ด้วยกันอย่างเอื้อเฟื้อ เเละพอเพียง",
-        "จนกระทั่ง",
+        "จนกระทั่ง", //25
         "มีปีศาจที่เเข็งเเกร่งตัวนึง ได้มาทําลายหมู่บ้านของพวกเรา",
         "มันพรากชีวิตของผู้คนไปมากมาย หนึ่งในนั้นก็มีพ่อเเม่ของฉันด้วย",
         "พ่อเเม่ของฉันปกป้องฉันจนวินาทีสุดท้าย..",
         "จากเหตุการณ์ครั้งนั้น ฉันเลยรอดมาได้..",
         "อริสกําลังเศร้า..",
         "ขอโทษนะที่ถามอะไรเเบบนั้น",
-        "ไม่เป็นไรหรอก", //เริ่ม index 32
-        "ขอบคุณนะ..", //choice 1 index 33
-        "...", //choice 2 index 34
+        "ไม่เป็นไรหรอก", 
+        "ขอบคุณนะ..", 
+        "...", 
         "ฉันเลยคิดว่าสักวันนึง ฉันจะต้องออกเดินทาง",
         "ฝึกฝนตัวเองให้เเข็งเเกร่งมากขึ้น",
         "เพื่อที่ฉันจะได้เเก้เเค้นให้พ่อกับเเม่",
-        "นี่...", //38
+        "นี่...", 
         "เธออยากจะร่วมเดินทางกับฉันมั้ย?",
-        "เธอเป็นคนที่จิตใจดี เเละอ่อนโยนมาก",//40
+        "เธอเป็นคนที่จิตใจดี เเละอ่อนโยนมาก",
         "เพราะอย่างงั้นฉันเลยอยากที่จะปกป้องเธอ",
         "ไม่มีเหตุผลเลยที่ฉันปฏิเสธเธอ",
         "เเน่นอน!! ฉันจะออกเดินทางกับเธอ",
-        "ฉันจะต้องเเข็งเเกร่งขึ้นให้ได้เหมือนกัน", //44
+        "ฉันจะต้องเเข็งเเกร่งขึ้นให้ได้เหมือนกัน", 
         "ขอบคุณนะ …",
         "เออ..ว่าเเต่เธอชื่ออะไรกันเเน่",
         "ฉันชื่อ...",
@@ -116,8 +113,10 @@ public class part3 extends JFrame {
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
         
-        // 1. เริ่มเล่น BGM
-        playSE("res/sound/soundtrack3.wav", true, -5.0f); 
+        // 1. เริ่มเล่น BGM (bgmClip) และเสียงสภาพแวดล้อม (effectClip)
+        playSE("res/sound/soundtrack3.wav", true, -10.0f); 
+        playSE("res/sound/fireplace.wav", true, 0.0f); 
+        playSE("res/sound/Doushitano.wav", false, 5.0f); 
 
         // 2. วาดพื้นหลังและตัวละคร
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
@@ -128,10 +127,8 @@ public class part3 extends JFrame {
         characterLabel.setBounds(75, 50, 900, 1100); 
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
-        // 3. สร้างระบบ Dialogue
         setupDialogueUI();
 
-        // 4. แผ่นดำ Fade In
         fadeOverlay = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -144,21 +141,25 @@ public class part3 extends JFrame {
         fadeOverlay.setOpaque(false);
         layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
-        // 5. เริ่มต้นการทำงาน (Fade -> พิมพ์ประโยคแรก)
         startFadeIn();
 
-        // 6. ระบบคลิกดำเนินเรื่อง
         layeredPane.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (isChoosing) return;
 
-                // ตรวจสอบการเปลี่ยน BGM ที่ฉาก 19
-                if (currentIndex == 19) {
-                    stopBGM();
+                if (currentIndex < dialogues.length - 1) {
+                    currentIndex++;
+                    
+
+                    handleSoundEffects(currentIndex); 
+                    updateScene();
+                } else {
+                    JOptionPane.showMessageDialog(null, "จบ Part 3");
+                    System.exit(0); 
                 }
 
-                // --- จัดการทางแยก 1 (Index 14 -> 15/16 -> 17) ---
+                // --- จัดการทางแยก (โค้ดเดิม) ---
                 if (currentIndex == 15 || currentIndex == 16) {
                     currentIndex = 17;
                     updateScene();
@@ -168,8 +169,6 @@ public class part3 extends JFrame {
                     showChoices("..ปีศาจนี่เหมือนผีรึเปล่า??", "..เอ่อ..แล้วเผ่าอื่นๆหละ??", 15, 16);
                     return;
                 }
-
-                // --- จัดการทางแยก 2 (Index 32 -> 33/34 -> 35) ---
                 if (currentIndex == 33 || currentIndex == 34) {
                     currentIndex = 35; 
                     updateScene();
@@ -179,56 +178,36 @@ public class part3 extends JFrame {
                     showChoices("เข้าไปปลอบอริส", "นั่งอยู่เฉยๆ", 33, 34);
                     return;
                 }
-
-                // ดำเนินเรื่องปกติ
-                if (currentIndex < dialogues.length - 1) {
-                    currentIndex++;
-                    handleSoundEffects(currentIndex);
-                    updateScene();
-                } else {
-                    JOptionPane.showMessageDialog(null, "จบ Part 3");
-                    System.exit(0); 
-                }
             }
         });
     }
 
     private void setupDialogueUI() {
-    // 1. กล่องข้อความหลัก
-    dialoguePanel = new RoundedPanel(40);
-    dialoguePanel.setLayout(null);
-    dialoguePanel.setBounds(50, 550, 900, 180); // ปรับความสูงเป็น 180 เพื่อให้มีพื้นที่พอ
-    dialoguePanel.setBackground(new Color(20, 20, 25, 215));
-    layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
+        dialoguePanel = new RoundedPanel(40);
+        dialoguePanel.setLayout(null);
+        dialoguePanel.setBounds(50, 550, 900, 180);
+        dialoguePanel.setBackground(new Color(20, 20, 25, 215));
+        layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
-    // 2. ชื่อตัวละคร (ขยับขึ้นไปด้านบนของกล่อง)
-    nameLabel = new JLabel(names[0]);
-    nameLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
-    nameLabel.setForeground(new Color(255, 204, 0)); // ใช้สีเหลืองทองตามแบบที่คุณชอบ
-    
-    // x: 60 (เขยิบจากซ้าย), y: 20 (อยู่ที่ขอบบนสุดของกล่อง)
-    nameLabel.setBounds(60, 20, 300, 40); 
-    dialoguePanel.add(nameLabel);
+        nameLabel = new JLabel(names[0]);
+        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
+        nameLabel.setForeground(new Color(255, 204, 0));
+        nameLabel.setBounds(60, 20, 300, 40); 
+        dialoguePanel.add(nameLabel);
 
-    // 3. บทสนทนา (ขยับลงมาข้างล่างชื่อ)
-    dialogueArea = new JLabel();
-    dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 24));
-    dialogueArea.setForeground(Color.WHITE);
-    dialogueArea.setVerticalAlignment(SwingConstants.TOP);
-    
-    // x: 60 (ตรงกับชื่อ), y: 75 (อยู่ต่ำกว่าชื่อ 55 พิกเซล จะได้ไม่ทับกัน)
-    dialogueArea.setBounds(60, 75, 800, 100); 
-    dialoguePanel.add(dialogueArea);
-    
-}
+        dialogueArea = new JLabel();
+        dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 24));
+        dialogueArea.setForeground(Color.WHITE);
+        dialogueArea.setVerticalAlignment(SwingConstants.TOP);
+        dialogueArea.setBounds(60, 75, 800, 100); 
+        dialoguePanel.add(dialogueArea);
+    }
 
     private void updateScene() {
         nameLabel.setText(names[currentIndex]);
         updateDialogueDisplay(dialogues[currentIndex]);
-        
         backgroundLabel.setIcon(scaleImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1000, 800));
         characterLabel.setIcon(scaleImage(charPaths[Math.min(currentIndex, charPaths.length-1)], 900, 1100));
-        
         layeredPane.repaint();
     }
 
@@ -236,10 +215,8 @@ public class part3 extends JFrame {
         if (typewriterTimer != null && typewriterTimer.isRunning()) {
             typewriterTimer.stop();
         }
-
         charIndex = 0;
         dialogueArea.setText(""); 
-
         typewriterTimer = new Timer(35, e -> {
             if (charIndex < text.length()) {
                 charIndex++;
@@ -259,38 +236,119 @@ public class part3 extends JFrame {
                 alpha = 0;
                 ((Timer)e.getSource()).stop();
                 layeredPane.remove(fadeOverlay);
-                updateDialogueDisplay(dialogues[0]); // เริ่มพิมพ์ข้อความแรกหลัง Fade เสร็จ
+                updateDialogueDisplay(dialogues[0]); 
             }
             fadeOverlay.repaint();
         });
         fadeTimer.start();
     }
 
-    private void handleSoundEffects(int index) {
-        if (index == 20){
-            playSE("res/sound/soundtrack4.wav", true, -5.0f);
+    // --- 1. ฟังก์ชันหยุดเพลงประกอบหลัก (BGM) ---
+    private void stopBGM() {
+        if (bgmClip != null) {
+            if (bgmClip.isRunning()) {
+                bgmClip.stop();
+            }
+            bgmClip.close();
+            bgmClip = null;
         }
     }
 
+    // --- 2. ฟังก์ชันหยุดเสียงเอฟเฟกต์บรรยากาศ (Effect) ---
+    private void stopEffect() {
+        if (effectClip != null) {
+            if (effectClip.isRunning()) {
+                effectClip.stop();
+            }
+            effectClip.close();
+            effectClip = null; // คืนค่าเพื่อให้พร้อมรับค่า Clip ตัวใหม่
+        }
+    }
+
+    // --- 3. ฟังก์ชันจัดการเสียงตาม Index (คงเดิมตาม Logic ของคุณ) ---
+    private void handleSoundEffects(int index) {
+        // จัดการ Soundtrack หลัก
+        if (index == 20) {
+            stopBGM(); 
+            playSE("res/sound/soundtrack4.wav", true, -5.0f);
+        }
+
+        // จัดการ Sound Effect (เสียงบรรยากาศ)
+        if (index == 22) {
+            stopEffect(); // หยุด fireplace เริ่ม village
+            playSE("res/sound/village.wav", true, -5.0f); 
+        }
+
+        if (index == 26) {
+            stopEffect(); // หยุด village เริ่ม monster
+            playSE("res/sound/monster.wav", false, -10.0f);
+
+            playSE("res/sound/housefire.wav",false, -10.0f); 
+        }
+
+        if (index == 30) {
+            stopEffect(); // พ้นช่วงเล่าเรื่อง อริสหายเศร้า ให้หยุดเสียง monster
+            playSE("res/sound/fireplace.wav", true, 0.0f); 
+        }
+        if (index == 30) {
+        System.out.println("Playing cry at Index 33");
+        playEffect("res/sound/cry.wav", 5.0f);
+        }
+        if (index == 33) {
+        System.out.println("Playing Arigato at Index 33");
+        playEffect("res/sound/Arigato.wav", 5.0f);
+        }
+    }
+
+    public void playEffect(String path, float volume) {
+    try {
+        File soundFile = new File(path); 
+        if (soundFile.exists()) {
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+            // สร้าง Clip ใหม่ทุกครั้งที่เรียก เพื่อให้เล่นซ้อนกันได้หลายเลเยอร์
+            Clip temporaryClip = AudioSystem.getClip(); 
+            temporaryClip.open(audioIn);
+            FloatControl gainControl = (FloatControl) temporaryClip.getControl(FloatControl.Type.MASTER_GAIN);
+            gainControl.setValue(volume); 
+            temporaryClip.start();
+            
+            // ปล่อยให้มันเล่นจนจบแล้วปิดตัวเองเพื่อคืน RAM
+            temporaryClip.addLineListener(event -> {
+                if (event.getType() == javax.sound.sampled.LineEvent.Type.STOP) {
+                    temporaryClip.close();
+                }
+            });
+        } else {
+            System.out.println("หาไฟล์ไม่เจอ: " + path); // ช่วยเช็คว่า Path ถูกไหม
+        }
+    } catch (Exception e) { e.printStackTrace(); }
+}
+    // --- 4. ฟังก์ชัน playSE ที่ปรับปรุงให้แยกประเภทไฟล์อัตโนมัติ ---
     private void playSE(String path, boolean loop, float volume) {
         try {
             File soundFile = new File(path);
-            if (!soundFile.exists()) return;
+            if (!soundFile.exists()) {
+                System.err.println("Sound file not found: " + path);
+                return;
+            }
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
             Clip clip = AudioSystem.getClip();
             clip.open(audioStream);
+            
             FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
             gainControl.setValue(volume);
+            
             if (loop) clip.loop(Clip.LOOP_CONTINUOUSLY);
             clip.start();
-            if (loop) this.bgmClip = clip; else this.effectClip = clip;
-        } catch (Exception e) { e.printStackTrace(); }
-    }
 
-    private void stopBGM() {
-        if (bgmClip != null && bgmClip.isRunning()) {
-            bgmClip.stop();
-            bgmClip.close();
+            // แยกเก็บ Clip ตามชื่อไฟล์: ถ้ามีคำว่า soundtrack จะเก็บที่ bgmClip นอกนั้นเก็บที่ effectClip
+            if (path.contains("soundtrack")) {
+                this.bgmClip = clip;
+            } else {
+                this.effectClip = clip;
+            }
+        } catch (Exception e) { 
+            e.printStackTrace(); 
         }
     }
 
@@ -333,6 +391,8 @@ public class part3 extends JFrame {
             layeredPane.remove(choiceButton2);
             isChoosing = false;
             currentIndex = targetIndex;
+
+            handleSoundEffects(currentIndex);
             updateScene();
         });
 
@@ -360,7 +420,7 @@ public class part3 extends JFrame {
         SwingUtilities.invokeLater(() -> new part3().setVisible(true));
     }
 }
-// --- เพิ่มคลาสที่ขาดหายไปเพื่อให้ Error หาย ---
+
 class RoundedPanel extends JPanel {
     private int cornerRadius;
     public RoundedPanel(int radius) {
@@ -374,26 +434,5 @@ class RoundedPanel extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(getBackground());
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
-    }
-}
-
-class TopLeftRoundedPanel extends JPanel {
-    private int cornerRadius;
-    public TopLeftRoundedPanel(int radius) {
-        this.cornerRadius = radius;
-        setOpaque(false);
-    }
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(getBackground());
-        int w = getWidth();
-        int h = getHeight();
-        java.awt.geom.Area area = new java.awt.geom.Area(new java.awt.geom.RoundRectangle2D.Float(0, 0, w, h, cornerRadius, cornerRadius));
-        area.add(new java.awt.geom.Area(new java.awt.Rectangle(cornerRadius, 0, w - cornerRadius, h)));
-        area.add(new java.awt.geom.Area(new java.awt.Rectangle(0, cornerRadius, w, h - cornerRadius)));
-        g2.fill(area);
     }
 }
