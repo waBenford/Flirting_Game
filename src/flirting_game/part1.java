@@ -178,6 +178,7 @@ public class part1 extends JFrame {
         } else if (index == 5) {
             playEffect("res/sound/traffic.wav", -10.0f);
         } else if (index == 7) {
+            screenShake(10, 1000);
             playEffect("res/sound/carcash.wav", -5.0f);
         } else if (index == 10) {
             playEffect("res/sound/bird.wav", -5.0f);
@@ -268,6 +269,25 @@ public class part1 extends JFrame {
         Image img = icon.getImage();
         Image scaledImg = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
         return new ImageIcon(scaledImg);
+    }
+
+    public void screenShake(int intensity, int duration) {
+        Point originalLoc = getLocation();
+        Timer shakeTimer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+
+        shakeTimer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - startTime;
+            if (elapsed < duration) {
+                int x = (int) (Math.random() * intensity * 2 - intensity);
+                int y = (int) (Math.random() * intensity * 2 - intensity);
+                setLocation(originalLoc.x + x, originalLoc.y + y);
+            } else {
+                setLocation(originalLoc);
+                ((Timer) e.getSource()).stop();
+            }
+        });
+        shakeTimer.start();
     }
 
     public static void main(String[] args) {
