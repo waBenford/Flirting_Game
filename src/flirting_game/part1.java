@@ -182,9 +182,9 @@ public class part1 extends JFrame {
         } else if (index == 10) {
             playEffect("res/sound/bird.wav", -5.0f);
         } else if (index == 12) {
-            playEffect("res/sound/Ano.wav", 0.0f); 
+            playEffect("res/sound/AAno.wav", 5.0f); 
         } else if (index == 13) {
-            playEffect("res/sound/nani.wav", 0.0f); 
+            playEffect("res/sound/huh.wav", 5.0f); 
         }
     }
 

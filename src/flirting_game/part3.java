@@ -115,7 +115,7 @@ public class part3 extends JFrame {
         
         // 1. เริ่มเล่น BGM (bgmClip) และเสียงสภาพแวดล้อม (effectClip)
         playSE("res/sound/soundtrack3.wav", true, -10.0f); 
-        playSE("res/sound/fireplace.wav", true, 0.0f); 
+        playSE("res/sound/fireplace.wav", true, -5.0f); 
         playSE("res/sound/Doushitano.wav", false, 5.0f); 
 
         // 2. วาดพื้นหลังและตัวละคร
@@ -297,6 +297,14 @@ public class part3 extends JFrame {
         if (index == 33) {
         System.out.println("Playing Arigato at Index 33");
         playEffect("res/sound/Arigato.wav", 5.0f);
+        }
+        if (index == 15) {
+        System.out.println("Playing chikauyo at Index 15");
+        playEffect("res/sound/chikauyo.wav", 5.0f);
+        }
+        if (index == 16) {
+        System.out.println("Playing wakarunai at Index 16");
+        playEffect("res/sound/wakarunai.wav", 5.0f);
         }
     }
 

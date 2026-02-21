@@ -106,7 +106,7 @@ public class part2 extends JFrame {
         setContentPane(layeredPane);
 
         playSE("res/sound/soundtrack1.wav", true, -5.0f);
-        playSE("res/sound/Sono.wav", false, 0.0f);
+        playSE("res/sound/soonoo.wav", false, 5.0f);
 
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
         backgroundLabel.setBounds(0, 0, 1000, 800);
@@ -259,7 +259,7 @@ public class part2 extends JFrame {
     // แยกฟังก์ชันจัดการเสียงเพื่อให้โค้ดอ่านง่าย
     private void handleSoundEffects(int index) {
         if (index == 8 || index == 9) {
-        playEffect("res/sound/Soudesuka.wav", 0.0f);
+        playEffect("res/sound/soudesukaa.wav", 5.0f);
     } 
     else if (index == 10) {
         if (effectClip != null && effectClip.isRunning()) {
