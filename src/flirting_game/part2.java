@@ -461,6 +461,12 @@ public class part2 extends JFrame {
         choiceButton2 = null;
         isChoosing = false;
 
+        if (targetIndex == 9) { 
+            relationdata.aliceRel.addAffinity(10); // เพิ่มค่าความสัมพันธ์ 10 คะแนน
+        } else if (targetIndex == 8) {
+            relationdata.aliceRel.decreaseAffinity(5); // หรือลดคะแนนถ้าเลือกข้อที่ไม่ดี
+        }
+
         // แสดง Log ใน Console เพื่อตรวจสอบ (Optional)
         affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
         statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());

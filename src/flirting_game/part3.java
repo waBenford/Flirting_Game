@@ -22,6 +22,8 @@ public class part3 extends JFrame {
     private boolean isChoosing = false;
     private float alpha = 1.0f; 
     private JPanel fadeOverlay;
+    private JLabel affinityLabel; 
+    private JLabel statusLabel;
 
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 24);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 24);
@@ -128,6 +130,23 @@ public class part3 extends JFrame {
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
+
+        JPanel relPanel = new JPanel();
+        relPanel.setLayout(new GridLayout(2, 1));
+        relPanel.setBounds(20, 20, 250, 60);
+        relPanel.setOpaque(false);
+
+        affinityLabel = new JLabel("ความสนิท: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        affinityLabel.setForeground(Color.WHITE);
+
+        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        statusLabel.setForeground(new Color(255, 204, 0)); // สีเหลืองทอง
+
+        relPanel.add(affinityLabel);
+        relPanel.add(statusLabel);
+        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
 
         fadeOverlay = new JPanel() {
             @Override
@@ -390,8 +409,20 @@ public class part3 extends JFrame {
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
             isChoosing = false;
-            currentIndex = targetIndex;
 
+            if (targetIndex == 33) { // ถ้าเลือก "เข้าไปปลอบอริส"
+                relationdata.aliceRel.addAffinity(10);
+            } else if (targetIndex == 34) { // ถ้าเลือก "นั่งอยู่เฉยๆ"
+                relationdata.aliceRel.decreaseAffinity(5);
+            }
+            
+            // อัปเดต UI แสดงคะแนนและสถานะใหม่ทันที
+            affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
+            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+            System.out.println("Status: " + relationdata.aliceRel.getStatus() + " (" + relationdata.aliceRel.getAffinity() + ")");
+            // -------------------------------------------
+
+            currentIndex = targetIndex;
             handleSoundEffects(currentIndex);
             updateScene();
         });
