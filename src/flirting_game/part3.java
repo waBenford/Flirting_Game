@@ -12,12 +12,12 @@ import javax.swing.*;
 public class part3 extends JFrame {
     private JLayeredPane layeredPane;
     private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
-    private JPanel dialoguePanel; 
+    private RoundedPanel dialoguePanel; // เปลี่ยนเป็น RoundedPanel ให้ตรงกับ class ข้างล่าง
     private int currentIndex = 0;
     private Timer typewriterTimer;
     private int charIndex = 0;
-    private Clip bgmClip;      // ใช้สำหรับเสียงดนตรีประกอบหลัก (soundtrack)
-    private Clip effectClip;   // ใช้สำหรับเสียงสภาพแวดล้อม (fireplace)
+    private Clip bgmClip;      
+    private Clip effectClip;   
     private JButton choiceButton1, choiceButton2;
     private boolean isChoosing = false;
     private float alpha = 1.0f; 
@@ -28,6 +28,7 @@ public class part3 extends JFrame {
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 24);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 24);
 
+    // --- Array ข้อมูล (คงเดิมตามที่คุณส่งมา) ---
     private String[] imagePaths = {
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
@@ -78,17 +79,17 @@ public class part3 extends JFrame {
         "ฉันอยู่คนเดียวมาตั้งเเต่เด็กๆเเล้วหละ",
         "พ่อกับเเม่ของฉันท่านเสียไปนานเเล้ว",
         "เอ่อ..เธอพอจะเล่าให้ฉันฟังได้มั้ย",
-        "..มันเป็นเรื่องเมื่อ6ปีที่เเล้ว", //22
+        "..มันเป็นเรื่องเมื่อ6ปีที่เเล้ว", 
         "หมู่บ้านของฉัน พวกเราอยู่กันอย่างมีความสุข",
         "ผู้คนก็ต่างอยู่ด้วยกันอย่างเอื้อเฟื้อ เเละพอเพียง",
-        "จนกระทั่ง", //25
+        "จนกระทั่ง", 
         "มีปีศาจที่เเข็งเเกร่งตัวนึง ได้มาทําลายหมู่บ้านของพวกเรา",
         "มันพรากชีวิตของผู้คนไปมากมาย หนึ่งในนั้นก็มีพ่อเเม่ของฉันด้วย",
         "พ่อเเม่ของฉันปกป้องฉันจนวินาทีสุดท้าย..",
         "จากเหตุการณ์ครั้งนั้น ฉันเลยรอดมาได้..",
         "อริสกําลังเศร้า..",
         "ขอโทษนะที่ถามอะไรเเบบนั้น",
-        "ไม่เป็นไรหรอก", 
+        "ไม่เป็นไรหหรอก", 
         "ขอบคุณนะ..", 
         "...", 
         "ฉันเลยคิดว่าสักวันนึง ฉันจะต้องออกเดินทาง",
@@ -115,12 +116,10 @@ public class part3 extends JFrame {
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
         
-        // 1. เริ่มเล่น BGM (bgmClip) และเสียงสภาพแวดล้อม (effectClip)
         playSE("res/sound/soundtrack3.wav", true, -10.0f); 
         playSE("res/sound/fireplace.wav", true, -5.0f); 
         playSE("res/sound/Doushitano.wav", false, 5.0f); 
 
-        // 2. วาดพื้นหลังและตัวละคร
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
         backgroundLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
@@ -142,7 +141,7 @@ public class part3 extends JFrame {
 
         statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
         statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        statusLabel.setForeground(new Color(255, 204, 0)); // สีเหลืองทอง
+        statusLabel.setForeground(new Color(255, 204, 0));
 
         relPanel.add(affinityLabel);
         relPanel.add(statusLabel);
@@ -167,32 +166,36 @@ public class part3 extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 if (isChoosing) return;
 
-                if (currentIndex < dialogues.length - 1) {
-                    currentIndex++;
-                    updateScene();
-                } else {
-                    JOptionPane.showMessageDialog(null, "จบ Part 3");
-                    System.exit(0); 
-                }
-
-                // --- จัดการทางแยก (โค้ดเดิม) ---
-                if (currentIndex == 15 || currentIndex == 16) {
-                    currentIndex = 17;
-                    updateScene();
-                    return;
-                }
+                // --- จุดที่แก้ไข: จัดลำดับเงื่อนไขใหม่ ---
+                
+                // 1. ตรวจสอบจุดขึ้นตัวเลือกก่อนเปลี่ยน Index
                 if (currentIndex == 14) {
                     showChoices("..ปีศาจนี่เหมือนผีรึเปล่า??", "..เอ่อ..แล้วเผ่าอื่นๆหละ??", 15, 16);
                     return;
                 }
-                if (currentIndex == 33 || currentIndex == 34) {
-                    currentIndex = 35; 
-                    updateScene();
-                    return; 
-                }
                 if (currentIndex == 32) {
                     showChoices("เข้าไปปลอบอริส", "นั่งอยู่เฉยๆ", 33, 34);
                     return;
+                }
+
+                // 2. ตรวจสอบทางแยกหลังจากกดปุ่ม Choice (กระโดดข้ามบท)
+                if (currentIndex == 15 || currentIndex == 16) {
+                    currentIndex = 17;
+                } else if (currentIndex == 33 || currentIndex == 34) {
+                    currentIndex = 35; 
+                } else {
+                    currentIndex++;
+                }
+
+                // 3. ตรวจสอบว่าจบ Part หรือยัง
+                if (currentIndex < dialogues.length) {
+                    handleSoundEffects(currentIndex);
+                    updateScene();
+                } else {
+                    UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 18));
+                    JOptionPane.showMessageDialog(null, "จบ Part 3 แล้ว!");
+                    new part4().setVisible(true);
+                    dispose(); 
                 }
             }
         });
@@ -220,8 +223,9 @@ public class part3 extends JFrame {
     }
 
     private void updateScene() {
-        nameLabel.setText(names[currentIndex]);
-        updateDialogueDisplay(dialogues[currentIndex]);
+        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+        if (currentIndex < dialogues.length) updateDialogueDisplay(dialogues[currentIndex]);
+        
         backgroundLabel.setIcon(scaleImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1000, 800));
         characterLabel.setIcon(scaleImage(charPaths[Math.min(currentIndex, charPaths.length-1)], 900, 1100));
         layeredPane.repaint();
@@ -259,44 +263,26 @@ public class part3 extends JFrame {
         fadeTimer.start();
     }
 
-    // --- 1. ฟังก์ชันหยุดเพลงประกอบหลัก (BGM) ---
     private void stopBGM() {
         if (bgmClip != null) {
-            if (bgmClip.isRunning()) {
-                bgmClip.stop();
-            }
+            if (bgmClip.isRunning()) bgmClip.stop();
             bgmClip.close();
             bgmClip = null;
         }
     }
 
-    // --- 2. ฟังก์ชันหยุดเสียงเอฟเฟกต์บรรยากาศ (Effect) ---
     private void stopEffect() {
         if (effectClip != null) {
-            if (effectClip.isRunning()) {
-                effectClip.stop();
-            }
+            if (effectClip.isRunning()) effectClip.stop();
             effectClip.close();
-            effectClip = null; // คืนค่าเพื่อให้พร้อมรับค่า Clip ตัวใหม่
+            effectClip = null; 
         }
     }
 
     private void handleSoundEffects(int index) {
-        // --- ส่วนที่ 1: จัดการเสียงดนตรีและบรรยากาศ (เหมือนเดิม) ---
         if (index == 20) {
-        stopBGM(); 
-        playSE("res/sound/soundtrack4.wav", true, -5.0f);
-        }
-        if (index == 15) {
-        System.out.println("Playing chikauyo (Choice 1)");
-        playEffect("res/sound/chikauyo.wav", 5.0f);
-        } 
-        else if (index == 16) {
-        System.out.println("Playing wakarunai (Choice 2)");
-        playEffect("res/sound/wakarunai.wav", 5.0f);
-        } 
-        else if (index == 17) {
-        System.out.println("Entering Index 17: Silent Transition");
+            stopBGM(); 
+            playSE("res/sound/soundtrack4.wav", true, -5.0f);
         }
         if (index == 22) {
             stopEffect(); 
@@ -318,55 +304,36 @@ public class part3 extends JFrame {
     }
 
     public void playEffect(String path, float volume) {
-    try {
-        File soundFile = new File(path); 
-        if (soundFile.exists()) {
-            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
-            // สร้าง Clip ใหม่ทุกครั้งที่เรียก เพื่อให้เล่นซ้อนกันได้หลายเลเยอร์
-            Clip temporaryClip = AudioSystem.getClip(); 
-            temporaryClip.open(audioIn);
-            FloatControl gainControl = (FloatControl) temporaryClip.getControl(FloatControl.Type.MASTER_GAIN);
-            gainControl.setValue(volume); 
-            temporaryClip.start();
-            
-            // ปล่อยให้มันเล่นจนจบแล้วปิดตัวเองเพื่อคืน RAM
-            temporaryClip.addLineListener(event -> {
-                if (event.getType() == javax.sound.sampled.LineEvent.Type.STOP) {
-                    temporaryClip.close();
-                }
-            });
-        } else {
-            System.out.println("หาไฟล์ไม่เจอ: " + path); // ช่วยเช็คว่า Path ถูกไหม
-        }
-    } catch (Exception e) { e.printStackTrace(); }
-}
-    // --- 4. ฟังก์ชัน playSE ที่ปรับปรุงให้แยกประเภทไฟล์อัตโนมัติ ---
+        try {
+            File soundFile = new File(path); 
+            if (soundFile.exists()) {
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+                Clip temporaryClip = AudioSystem.getClip(); 
+                temporaryClip.open(audioIn);
+                FloatControl gainControl = (FloatControl) temporaryClip.getControl(FloatControl.Type.MASTER_GAIN);
+                gainControl.setValue(volume); 
+                temporaryClip.start();
+                temporaryClip.addLineListener(event -> {
+                    if (event.getType() == javax.sound.sampled.LineEvent.Type.STOP) temporaryClip.close();
+                });
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
     private void playSE(String path, boolean loop, float volume) {
         try {
             File soundFile = new File(path);
-            if (!soundFile.exists()) {
-                System.err.println("Sound file not found: " + path);
-                return;
-            }
+            if (!soundFile.exists()) return;
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
             Clip clip = AudioSystem.getClip();
             clip.open(audioStream);
-            
             FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
             gainControl.setValue(volume);
-            
             if (loop) clip.loop(Clip.LOOP_CONTINUOUSLY);
             clip.start();
-
-            // แยกเก็บ Clip ตามชื่อไฟล์: ถ้ามีคำว่า soundtrack จะเก็บที่ bgmClip นอกนั้นเก็บที่ effectClip
-            if (path.contains("soundtrack")) {
-                this.bgmClip = clip;
-            } else {
-                this.effectClip = clip;
-            }
-        } catch (Exception e) { 
-            e.printStackTrace(); 
-        }
+            if (path.contains("soundtrack")) this.bgmClip = clip;
+            else this.effectClip = clip;
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void showChoices(String text1, String text2, int target1, int target2) {
@@ -408,17 +375,14 @@ public class part3 extends JFrame {
             layeredPane.remove(choiceButton2);
             isChoosing = false;
 
-            if (targetIndex == 33) { // ถ้าเลือก "เข้าไปปลอบอริส"
+            if (targetIndex == 33) { 
                 relationdata.aliceRel.addAffinity(10);
-            } else if (targetIndex == 34) { // ถ้าเลือก "นั่งอยู่เฉยๆ"
+            } else if (targetIndex == 34) { 
                 relationdata.aliceRel.decreaseAffinity(5);
             }
             
-            // อัปเดต UI แสดงคะแนนและสถานะใหม่ทันที
             affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
-            System.out.println("Status: " + relationdata.aliceRel.getStatus() + " (" + relationdata.aliceRel.getAffinity() + ")");
-            // -------------------------------------------
 
             currentIndex = targetIndex;
             handleSoundEffects(currentIndex);
