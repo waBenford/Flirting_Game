@@ -115,7 +115,7 @@ public class part3 extends JFrame {
         
         // 1. เริ่มเล่น BGM (bgmClip) และเสียงสภาพแวดล้อม (effectClip)
         playSE("res/sound/soundtrack3.wav", true, -10.0f); 
-        playSE("res/sound/fireplace.wav", true, 0.0f); 
+        playSE("res/sound/fireplace.wav", true, -5.0f); 
         playSE("res/sound/Doushitano.wav", false, 5.0f); 
 
         // 2. วาดพื้นหลังและตัวละคร
@@ -150,9 +150,6 @@ public class part3 extends JFrame {
 
                 if (currentIndex < dialogues.length - 1) {
                     currentIndex++;
-                    
-
-                    handleSoundEffects(currentIndex); 
                     updateScene();
                 } else {
                     JOptionPane.showMessageDialog(null, "จบ Part 3");
@@ -265,38 +262,39 @@ public class part3 extends JFrame {
         }
     }
 
-    // --- 3. ฟังก์ชันจัดการเสียงตาม Index (คงเดิมตาม Logic ของคุณ) ---
     private void handleSoundEffects(int index) {
-        // จัดการ Soundtrack หลัก
+        // --- ส่วนที่ 1: จัดการเสียงดนตรีและบรรยากาศ (เหมือนเดิม) ---
         if (index == 20) {
-            stopBGM(); 
-            playSE("res/sound/soundtrack4.wav", true, -5.0f);
+        stopBGM(); 
+        playSE("res/sound/soundtrack4.wav", true, -5.0f);
         }
-
-        // จัดการ Sound Effect (เสียงบรรยากาศ)
+        if (index == 15) {
+        System.out.println("Playing chikauyo (Choice 1)");
+        playEffect("res/sound/chikauyo.wav", 5.0f);
+        } 
+        else if (index == 16) {
+        System.out.println("Playing wakarunai (Choice 2)");
+        playEffect("res/sound/wakarunai.wav", 5.0f);
+        } 
+        else if (index == 17) {
+        System.out.println("Entering Index 17: Silent Transition");
+        }
         if (index == 22) {
-            stopEffect(); // หยุด fireplace เริ่ม village
+            stopEffect(); 
             playSE("res/sound/village.wav", true, -5.0f); 
         }
-
         if (index == 26) {
-            stopEffect(); // หยุด village เริ่ม monster
+            stopEffect(); 
             playSE("res/sound/monster.wav", false, -10.0f);
-
-            playSE("res/sound/housefire.wav",false, -10.0f); 
+            playSE("res/sound/housefire.wav", false, -10.0f); 
         }
-
         if (index == 30) {
-            stopEffect(); // พ้นช่วงเล่าเรื่อง อริสหายเศร้า ให้หยุดเสียง monster
+            stopEffect(); 
             playSE("res/sound/fireplace.wav", true, 0.0f); 
-        }
-        if (index == 30) {
-        System.out.println("Playing cry at Index 33");
-        playEffect("res/sound/cry.wav", 5.0f);
+            playEffect("res/sound/cry.wav", 5.0f);
         }
         if (index == 33) {
-        System.out.println("Playing Arigato at Index 33");
-        playEffect("res/sound/Arigato.wav", 5.0f);
+            playEffect("res/sound/Arigato.wav", 5.0f);
         }
     }
 
