@@ -290,6 +290,7 @@ public class part3 extends JFrame {
         }
         if (index == 26) {
             stopEffect(); 
+            screenShake(10, 1000);
             playSE("res/sound/monster.wav", false, -10.0f);
             playSE("res/sound/housefire.wav", false, -10.0f); 
         }
@@ -407,6 +408,25 @@ public class part3 extends JFrame {
             ImageIcon icon = new ImageIcon(path);
             return new ImageIcon(icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
         } catch (Exception e) { return null; }
+    }
+
+    public void screenShake(int intensity, int duration) {
+        Point originalLoc = getLocation();
+        Timer shakeTimer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+
+        shakeTimer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - startTime;
+            if (elapsed < duration) {
+                int x = (int) (Math.random() * intensity * 2 - intensity);
+                int y = (int) (Math.random() * intensity * 2 - intensity);
+                setLocation(originalLoc.x + x, originalLoc.y + y);
+            } else {
+                setLocation(originalLoc);
+                ((Timer) e.getSource()).stop();
+            }
+        });
+        shakeTimer.start();
     }
 
     public static void main(String[] args) {
