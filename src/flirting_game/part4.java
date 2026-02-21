@@ -16,21 +16,21 @@ public class part4 extends JFrame {
 
     private String[] imagePaths = {
        "res/scene4/s1.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
-       "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", 
-       "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", 
-       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", 
-       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s4.png", "res/scene4/s4.png", 
-       "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png", 
-       "res/scene4/s4.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", 
-       "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", 
-       "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", 
-       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png",
-       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png",
-       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s7.png", "res/scene4/s7.png",
-       "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png",
-       "res/scene4/s7.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png",
+       "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
+       "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
        "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png",
-       "res/scene4/s3.png", "res/scene4/s3.png"
+       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s4.1.png","res/scene4/s4.png",
+       "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png",
+       "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s5.png", "res/scene4/s5.png",
+       "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png",
+       "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png",
+       "res/scene4/s5.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png",
+       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png",
+       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s7.png",
+       "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png",
+       "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s3.png", "res/scene4/s3.png",
+       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png",
+       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png"
     };
     
     private String[] charPaths = {
@@ -38,7 +38,7 @@ public class part4 extends JFrame {
        "res/scene4/body1.png", "res/scene4/alice1.png", "res/scene4/body2.png", "res/scene4/alice3.png",
        "res/scene4/alice1.png", "res/scene4/alice2.png", "res/scene4/alice1.png", "res/scene4/alice2.png", 
        "res/scene4/alice1.png", "res/scene4/alice2.png", "res/scene4/alice1.png", "res/scene4/alice2.png", 
-       "res/scene4/alice2.png", "res/scene4/alice2.png", "res/scene4/lung.png",  "res/scene4/alice1.png", 
+       "res/scene4/alice2.png", "res/scene4/alice2.png", "res/scene4/empty","res/scene4/lung.png", "res/scene4/alice1.png", 
        "res/scene4/lung.png",  "res/scene4/lung.png",  "res/scene4/alice1.png",  "res/scene4/alice2.png",
        "res/scene4/alice1.png", "res/scene4/gigi.png", "res/scene4/gigi.png", "res/scene4/gigi.png", 
        "res/scene4/gigi.png", "res/scene4/gigi.png", "res/scene4/gigi.png", "res/scene4/gigi.png", 
@@ -61,8 +61,8 @@ public class part4 extends JFrame {
         "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
         "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
         "41", "42", "43", "44", "45", "46", "47", "48", "49", "50",
-        "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", 
-        "61", "62"
+        "51", "52", "53", "54", "55", "56", "57", "58", "59", "60",
+        "61", "62", "63"
     };
 
     public part4() {
@@ -93,7 +93,7 @@ public class part4 extends JFrame {
                     updateScene();
                 } else {
                     JOptionPane.showMessageDialog(null, "End Part 4!");
-                    System.exit(0); 
+                    System.exit(0);
                 }
             }
         });
@@ -108,15 +108,15 @@ public class part4 extends JFrame {
 
         nameLabel = new JLabel(names[0]);
         nameLabel.setFont(THAI_FONT_BOLD);
-        nameLabel.setForeground(new Color(255, 204, 0)); 
-        nameLabel.setBounds(60, 20, 300, 40); 
+        nameLabel.setForeground(new Color(255, 204, 0));
+        nameLabel.setBounds(60, 20, 300, 40);
         dialoguePanel.add(nameLabel);
 
         dialogueArea = new JLabel();
         dialogueArea.setFont(THAI_FONT);
         dialogueArea.setForeground(Color.WHITE);
         dialogueArea.setVerticalAlignment(SwingConstants.TOP);
-        dialogueArea.setBounds(60, 75, 800, 100); 
+        dialogueArea.setBounds(60, 75, 800, 100);
         dialoguePanel.add(dialogueArea);
     }
 
@@ -132,6 +132,11 @@ public class part4 extends JFrame {
                 // ถ้าเป็นรูป body ให้ปรับขนาดเล็กลง (เช่น 500x700) และวางตำแหน่งกึ่งกลาง
                 characterLabel.setIcon(scaleImage(path, 500, 700));
                 characterLabel.setBounds(250, 50, 500, 700); 
+            } else if (path.contains("lung")) {
+                // ถ้าเป็นรูป Lung ให้ปรับขนาดเล็กลงและวางตำแหน่งกึ่งกลาง
+                characterLabel.setIcon(scaleImage(path, 800, 800));
+                characterLabel.setBounds(200, 50, 800, 800);
+                
             } else {
                 // ถ้าเป็นรูปตัวละครอื่น (Alice, Gigi ฯลฯ) ให้ใช้ขนาดปกติ
                 characterLabel.setIcon(scaleImage(path, 800, 800));
