@@ -170,8 +170,11 @@ public class part4 extends JFrame {
                     currentIndex++;
                     updateScene();
                 } else {
-                    JOptionPane.showMessageDialog(null, "End Part 4!");
-                    System.exit(0);
+                    
+                    UIManager.put("OptionPane.messageFont", THAI_FONT);
+                    JOptionPane.showMessageDialog(null, "จบ Part 4: การผจญภัยกำลังจะเริ่มขึ้น!");
+                    new part5().setVisible(true);
+                    dispose(); 
                 }
             }
         });
