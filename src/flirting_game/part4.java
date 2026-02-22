@@ -20,34 +20,34 @@ public class part4 extends JFrame {
 
     private String[] imagePaths = {
        "res/scene4/s1.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
-       "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", 
-       "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", 
-       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", 
-       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s4.png", "res/scene4/s4.png", 
-       "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png", 
-       "res/scene4/s4.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", 
-       "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", 
-       "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", 
-       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png",
-       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png",
-       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s7.png", "res/scene4/s7.png",
-       "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png",
-       "res/scene4/s7.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png",
+       "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
+       "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
        "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png",
-       "res/scene4/s3.png", "res/scene4/s3.png"
+       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s4.1.png","res/scene4/s4.png",
+       "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png",
+       "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s5.png", "res/scene4/s5.png",
+       "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png",
+       "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png",
+       "res/scene4/s5.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png",
+       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png",
+       "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s7.png",
+       "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png",
+       "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s3.png", "res/scene4/s3.png",
+       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png",
+       "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png"
     };
     
     private String[] charPaths = {
        "res/empty.png", "res/scene4/body1.png", "res/scene4/body2.png", "res/scene4/alice1.png",
        "res/scene4/body1.png", "res/scene4/alice1.png", "res/scene4/body2.png", "res/scene4/alice3.png",
+       "res/scene4/alice4.png", "res/scene4/alice2.png", "res/scene4/alice1.png", "res/scene4/alice2.png", 
        "res/scene4/alice1.png", "res/scene4/alice2.png", "res/scene4/alice1.png", "res/scene4/alice2.png", 
-       "res/scene4/alice1.png", "res/scene4/alice2.png", "res/scene4/alice1.png", "res/scene4/alice2.png", 
-       "res/scene4/alice2.png", "res/scene4/alice2.png", "res/scene4/lung.png",  "res/scene4/alice1.png", 
+       "res/scene4/alice1.png", "res/scene4/alice2.png", "res/scene4/empty","res/scene4/lung.png", "res/scene4/alice1.png", 
        "res/scene4/lung.png",  "res/scene4/lung.png",  "res/scene4/alice1.png",  "res/scene4/alice2.png",
        "res/scene4/alice1.png", "res/scene4/gigi.png", "res/scene4/gigi.png", "res/scene4/gigi.png", 
        "res/scene4/gigi.png", "res/scene4/gigi.png", "res/scene4/gigi.png", "res/scene4/gigi.png", 
        "res/scene4/alice1.png", "res/scene4/alice2.png", "res/scene4/gigi.png", "res/scene4/alice1.png",
-       "res/scene4/aliceatk.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/scene4/aliceatk.png",
+       "res/scene4/aliceatk1.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/scene4/aliceatk2.png",
        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
        "res/scene4/gigi2.png", "res/scene4/gigi2.png", "res/scene4/gigi2.png", "res/scene4/gigi2.png", 
        "res/scene4/gigi2.png", "res/scene4/gigi2.png", "res/scene4/gigi2.png", "res/scene4/alice1.png",
@@ -171,7 +171,7 @@ public class part4 extends JFrame {
                     updateScene();
                 } else {
                     JOptionPane.showMessageDialog(null, "End Part 4!");
-                    System.exit(0); 
+                    System.exit(0);
                 }
             }
         });
@@ -220,6 +220,11 @@ public class part4 extends JFrame {
             if (path.contains("body")) {
                 characterLabel.setIcon(scaleImage(path, 500, 700));
                 characterLabel.setBounds(250, 50, 500, 700); 
+            } else if (path.contains("lung")) {
+                // ถ้าเป็นรูป Lung ให้ปรับขนาดเล็กลงและวางตำแหน่งกึ่งกลาง
+                characterLabel.setIcon(scaleImage(path, 800, 800));
+                characterLabel.setBounds(200, 50, 800, 800);
+                
             } else {
                 characterLabel.setIcon(scaleImage(path, 800, 800));
                 characterLabel.setBounds(100, 0, 800, 800);

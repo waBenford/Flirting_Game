@@ -297,6 +297,7 @@ public class part2 extends JFrame {
     }
     if (index == 28){
         playEffect("res/sound/winddash.wav", 0.0f);
+        screenShake(10, 1000);
     }
     if (index == 29){
         if (effectClip != null && effectClip.isRunning()) {
@@ -493,6 +494,25 @@ public class part2 extends JFrame {
 
     return btn;
 }
+
+    public void screenShake(int intensity, int duration) {
+        Point originalLoc = getLocation();
+        Timer shakeTimer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+
+        shakeTimer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - startTime;
+            if (elapsed < duration) {
+                int x = (int) (Math.random() * intensity * 2 - intensity);
+                int y = (int) (Math.random() * intensity * 2 - intensity);
+                setLocation(originalLoc.x + x, originalLoc.y + y);
+            } else {
+                setLocation(originalLoc);
+                ((Timer) e.getSource()).stop();
+            }
+        });
+        shakeTimer.start();
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part2().setVisible(true));
