@@ -1,5 +1,4 @@
 package flirting_game;
-
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -8,8 +7,15 @@ import javax.swing.*;
 public class part5 extends JFrame {
     private JLayeredPane layeredPane;
     private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
-    private RoundedPanel dialoguePanel;
+    private RoundedPanel dialoguePanel; // บรรทัดนี้จะไม่แดงแล้วเพราะมี class ด้านล่าง
+    private float alpha = 1.0f;
+    private JPanel fadeOverlay;
     private int currentIndex = 0;
+    private JButton choiceButton1, choiceButton2;
+    private boolean isChoosing = false;
+    private Timer typewriterTimer;
+    private int charIndex = 0;
+    private boolean isTyping = false;
     
     // --- ฟอนต์ภาษาไทยมาตรฐาน ---
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 24);
@@ -33,7 +39,7 @@ public class part5 extends JFrame {
     };
 
     private String[] charPaths = {
-       "res/empty.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", 
+       "res/empty.png","res/empty.png","res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", 
        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", 
        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-shy1.png", 
        "res/scene5/Alice-shy2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/empty.png",
@@ -47,19 +53,39 @@ public class part5 extends JFrame {
        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", 
        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-shower1.png", "res/scene5/Alice-shower1.png",
        "res/scene5/Alice-shower2.png", 
-       
-       
     };
     
-    private String[] names = { "อริส" };
+    private String[] names = { 
+        " ", " ", "ฉัน", "ฉัน", "อริส", "อริส", "ฉัน", "อริส",
+        "ฉัน", "อริส", "อริส", "อริส", "อริส", "ฉัน", "อริส", "ฉัน",
+        "ฉัน", "ฉัน", "ฉัน", " ", "ฉัน", "ฉัน","ปีศาจเดโม", "ปีศาจเดโม",
+        "อริส", "ฉัน", "อริส", "อริส", "อริส", "ปีศาจเดโม", "ปีศาจเดโม", "ฉัน",
+        "อริส", "อริส", "ปีศาจเดโม", "ฉัน", "อริส", "ฉัน", "อริส", " ",
+        " ", " ", " ", " ", "ฉัน", "อริส", "ฉัน", "ฉัน", 
+        "อริส", " ", "อริส", "ฉัน", "อริส", "อริส", "อริส", " ", " ",
+    };
     
     private String[] dialogues = {
-        "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
-        "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
-        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
-        "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
-        "41", "42", "43", "44", "45", "46", "47", "48", "49", "50",
-        "51", "52", "53", "54"
+        "ตัวเรากับอริสที่กําลังอยู่ในป่า", "ตัวเรากับอริสได้เดินทางออกจากหมู่บ้านมา 1 อาทิตย์เเล้ว",
+        "ฉันคิดว่าเราน่าจะออกมาไกลพอสมควรละนะ", "ดีนะที่ก่อนหน้านี้ได้เเผนที่มาจากคนในหมู่บ้าน",
+        "อืออ", "นายหิวรึยัง?", "ก็..นิดหน่อยนะ","งั้นเรานั่งพักกินข้าวตรงนี้ก่อนมั้ย?",
+        "ก็ดีเหมือนกันนะ", "นายอยากกินอะไรมั้ย?", "ฉันกินได้หมดเลย ขอเเค่เป็นอาหารที่เธอทํา",
+        "ฉันยังไงก็ได้", "นายนี่ละก็..", "อื้อโอเค", "เดี๋ยวฉันจะไปหาของเเถวนี้ก่อนนะ", //0-14
+        "ให้ฉันไปด้วยมั้ย?", "ไม่เป็นไรหรอก นายนั่งรออยู่ตรงนี้แหละ", "อือ..ก็ได้",
+        "ตอนนี้เราน่าจะยังอยู่ในเขตป่าLifeอยู่นะ", "คงต้องใช้เวลาอีกนานเลยกว่าถึงจุดหมาย",
+        "ดีเลย เราจะได้ใช้เวลานี้อยู่กับอริสมากขึ้น", "อร๊ายยยย", "..นั่นมัน..เสียงอริสนี่!!",
+        "เกิดอะไรขึ้น อริส!!", "กะจะเดินเล่นเฉยๆ ดันมาเจอมนุษย์ซะงั้น", "เเต่ก็ดี ข้ากําลังหิวได้ที่เลย",
+        "…(ชื่อตัวละครเรา)!!", "นี่เธอบาดเจ็บตรงไหนรึปล่าว?", "ไม่ ฉันไม่เป็นไร",
+        "อยู่ๆปีศาจมันก็เข้ามาโจมตีเเบบกระทันหัน", "เเต่ก็พอหลบได้ เลยมีเเผลถลอกนิดหน่อยหนะ", //15-30
+        "นี่พ่อหนุ่ม ข้าขอเเม่หนูตรงนั้นได้ไหม?", "เเล้วข้าจะไว้ชีวิตเจ้า", "ไม่มีทาง!!",
+        "(เขิน)", "มันใช่เวลามั้ย!! ไอ่บ้า!!", "ยังไงข้าก็จะกินพวกเจ้าทั้งสองอยู่ดี",
+        "อริส ครั้งนี้ให้ฉันเป็นคนจัดการเอง", "จะไม่เป็นไรหรอ?", "เเค่นี้สบายมาก",
+        "งั้นฝากด้วยนะ", "ตัวเราได้ใช้เวทย์โจมตี ปีศาจเดโมก่อน", "ปีศาจเดโมหลบได้ เเละพุ่งโจมตีใส่เราทันที", //31-42
+        "เรากระโดดหลบ เเละปล่อยพลังเวทย์ที่รุนเเรงใส่ ปีศาจเดโม", "ปีศาจเดโมโดนพลังเวทย์เต็มๆ",
+        "ปีศาจเดโม กลัวจะถูกกําจัด เลยใช้ม่านควันสีดําเเละหลบหนี", "พลาดท่าจนได้", "เเต่อย่างน้อยตอนนี้ก็คงจะปลอดภัยเเล้ว",
+        "ฉันคิดว่าปีศาจตัวเมื่อกี้ต้องเกี่ยวข้องกับจอมมารเเน่เลย","นี่เรา..ยังไม่ได้กินข้าวกันเลยนี่หน่า","จริงด้วย! งั้นเดี๋ยวฉันรีบไปทําให้นะ",
+        "หลังจากพักผ่อนเเละกินอะไรกันเสร็จเเล้ว","ฉันรู้สึกร้อนมากเลย..","จะไปอาบนํ้าไหมละ ดูเหมือนว่าจะมีลําธารใกล้ๆนะ", //43-53
+        "จริงหรอ งั้นฉันขอไปอาบนํ้าก่อน","คนลามก!!...","โอเค เดี๋ยวมานะ","เเต่จู่ๆ ก็มีเสียง เเปลกๆที่พุ่มไม้","อริสเห็นเงาคนอยู่หลังพุ่มไม้..", //54-58
     };
 
     public part5() {
@@ -71,33 +97,104 @@ public class part5 extends JFrame {
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
-        // 1. พื้นหลัง (Layer ล่างสุด)
-        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
+        backgroundLabel = new JLabel();
         backgroundLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        // 2. เพิ่มตัวละครตรงกลาง (Layer กลาง)
-        // ขนาด 600x750 วางที่ x=200 เพื่อให้อยู่ตรงกลางจอพอดี
-        characterLabel = new JLabel(scaleImage(charPaths[0], 600, 800));
+        characterLabel = new JLabel();
         characterLabel.setBounds(200, 50, 600, 800);
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
         updateScene();
+        
+        fadeOverlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(new Color(0, 0, 0, (int)(alpha * 255)));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        fadeOverlay.setBounds(0, 0, 1000, 800);
+        fadeOverlay.setOpaque(false);
+        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+
+        startFadeIn();
 
         layeredPane.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (currentIndex < dialogues.length - 1) {
-                    currentIndex++;
-                    updateScene();
-                } else {
-                    UIManager.put("OptionPane.messageFont", THAI_FONT);
-                    JOptionPane.showMessageDialog(null, "End Part5");
-                    System.exit(0); 
-                }
+                handleNext(); // ใช้ handleNext ตัวเดียวเพื่อคุมการไหลของเกม
             }
         });
+    }
+
+    private void handleNext() {
+        if (isChoosing) return;
+
+        if (isTyping) {
+            typewriterTimer.stop();
+            isTyping = false;
+            dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
+            return;
+        }
+
+        // --- Choice Logic ---
+        if (currentIndex == 11) { 
+            showChoices("ฉันกินได้หมดเลย ขอเเค่เป็นอาหารที่เธอทํา", "ฉันยังไงก็ได้", 12, 13);
+            return; 
+        }
+        if (currentIndex == 11 || currentIndex == 12) {
+            currentIndex = 13;
+            updateScene();
+            return;
+        }
+
+        if (currentIndex == 17) { 
+            showChoices("ฉันชอบอาหารฝีมือเธอที่สุดเลย", "ก็อร่อยดีนะ", 18, 19);
+            return; 
+        }
+        if (currentIndex == 18 || currentIndex == 19) {
+            currentIndex = 20;
+            updateScene();
+            return; 
+        }
+
+        if (currentIndex == 38) { 
+            showChoices("พุ่งเข้าไปปกป้องอริส", "บอกให้อริสหลบเอง", 39, 40);
+            return; 
+        }
+        if (currentIndex == 39 || currentIndex == 40) {
+            currentIndex = 41;
+            updateScene();
+            return; 
+        }
+
+        if (currentIndex == 57) { 
+            showChoices("เราจะไปเดทกันไงละจ๊ะ อริสจัง", "ที่อยู่ของจอมมารยังไงหละ ", 58, 59);
+            return; 
+        }
+        if (currentIndex == 58 || currentIndex == 59) {
+            currentIndex = 60;
+            updateScene();
+            return; 
+        }
+
+        // --- Normal Progression ---
+        if (currentIndex < dialogues.length - 1) {
+            currentIndex++;
+            updateScene();
+        } else {
+            finishGame();
+        }
+    }
+
+    private void finishGame() {
+        UIManager.put("OptionPane.messageFont", THAI_FONT);
+        JOptionPane.showMessageDialog(null, "จบ Part 5: การผจญภัยกำลังจะเริ่มขึ้น!");
+        // new part5().setVisible(true); // ปลดคอมเมนต์เมื่อมีไฟล์ part5
+        dispose();
     }
 
     private void setupDialogueUI() {
@@ -122,7 +219,6 @@ public class part5 extends JFrame {
     }
 
     private void updateScene() {
-        // ป้องกัน Error กรณีลืมใส่ชื่อหรือรูปให้ครบเท่า dialogues
         if (currentIndex < names.length) {
             nameLabel.setText(names[currentIndex]);
         } else {
@@ -142,6 +238,40 @@ public class part5 extends JFrame {
         }
     }
 
+        private void showChoices(String text1, String text2, int t1, int t2) {
+        isChoosing = true; 
+        // ปุ่มแรก Y=450, ปุ่มสอง Y=540 (ห่างกัน 90 หน่วย และอยู่ค่อนลงมาด้านล่าง)
+        choiceButton1 = createChoiceButton(text1, 450, t1); 
+        choiceButton2 = createChoiceButton(text2, 540, t2); 
+    
+        layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+        layeredPane.repaint();
+    }
+
+    private JButton createChoiceButton(String text, int y, int target) {
+        JButton btn = new JButton(text);
+        // x=325 (กึ่งกลางโดยประมาณ), y=ความสูงที่ส่งมา, width=350, height=65
+        btn.setBounds(325, y, 350, 65); 
+        btn.setFont(new Font("Tahoma", Font.BOLD, 18));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(new Color(30, 30, 30, 220)); 
+        btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2)); 
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));  
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2)); 
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    
+        btn.addActionListener(e -> {
+            layeredPane.remove(choiceButton1);
+            layeredPane.remove(choiceButton2);
+            isChoosing = false; 
+            currentIndex = target; 
+            updateScene(); 
+        });
+        return btn;
+    }
+
     public ImageIcon scaleImage(String path, int width, int height) {
         try {
             ImageIcon icon = new ImageIcon(path);
@@ -149,7 +279,40 @@ public class part5 extends JFrame {
         } catch (Exception e) { return null; }
     }
 
+    private void startFadeIn() {
+        Timer fadeTimer = new Timer(45, e -> {
+            alpha -= 0.05f;
+            if (alpha <= 0) {
+                alpha = 0;
+                ((Timer)e.getSource()).stop();
+                layeredPane.remove(fadeOverlay);
+                updateScene(); 
+            }
+            fadeOverlay.repaint();
+        });
+        fadeTimer.start();
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part5().setVisible(true));
+    }
+}
+
+// --- เพิ่ม Class นี้เพื่อให้โค้ดไม่แดง ---
+class RoundedPanel extends JPanel {
+    private int cornerRadius;
+
+    public RoundedPanel(int radius) {
+        this.cornerRadius = radius;
+        setOpaque(false);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D graphics = (Graphics2D) g;
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setColor(getBackground());
+        graphics.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
     }
 }
