@@ -15,9 +15,11 @@ public class part4 extends JFrame {
     private Timer typewriterTimer;
     private int charIndex = 0;
     
-    private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 24);
-    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 24);
+    // --- ฟอนต์ภาษาไทยมาตรฐาน (ปรับขนาดให้เข้ากับจอ 1280) ---
+    private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 28);
+    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
 
+    // ... (imagePaths, charPaths, names, dialogues คงเดิมตามที่คุณให้มา) ...
     private String[] imagePaths = {
        "res/scene4/s1.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
        "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
@@ -103,7 +105,7 @@ public class part4 extends JFrame {
         "ชีวิตของพวกเเกก็มีไว้ให้พวกข้าสนุกเท่านั้น", 
         "เลวที่สุด..", 
         "ฉันจะไม่ให้อภัยพวกเเกเด็ดขาด!! ",
-        "เเน่จริงก็เข้ามา!!", 
+        "เเเน่จริงก็เข้ามา!!", 
         "เวทย์นํ้าเเข็ง Ice shot!!", 
         "ขอบคุณที่ช่วยนะ..(ชื่อตัวละครเรา)", 
         "อริสหลบการโจมตีได้", 
@@ -130,34 +132,36 @@ public class part4 extends JFrame {
     };
 
     public part4() {
-        setTitle("ISEKAI DEMO - Part 4");
-        setSize(1000, 800);
+        setTitle("ISEKAI DEMO - Part 4: The First Magic");
+        setSize(1280, 800); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
 
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
         fadeOverlay = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g;
-        g2d.setColor(new Color(0, 0, 0, (int)(alpha * 255))); // วาดสีดำตามค่า alpha
-        g2d.fillRect(0, 0, getWidth(), getHeight());
-    }
-    };
-        fadeOverlay.setBounds(0, 0, 1000, 800);
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(new Color(0, 0, 0, (int)(alpha * 255)));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        fadeOverlay.setBounds(0, 0, 1280, 800); 
         fadeOverlay.setOpaque(false);
-        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER); // อยู่ชั้นบนสุด
+        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
-        startFadeIn(); // เรียกฟังก์ชันให้เริ่มจางลง
+        startFadeIn();
 
-        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
-        backgroundLabel.setBounds(0, 0, 1000, 800);
+        backgroundLabel = new JLabel();
+        backgroundLabel.setBounds(0, 0, 1280, 800); 
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
         characterLabel = new JLabel();
-        characterLabel.setBounds(0, 0, 1000, 800); 
+        // ปรับตำแหน่งตัวละคร (x, y, width, height) ให้อยู่กึ่งกลางหน้าจอที่กว้างขึ้น
+        characterLabel.setBounds(340, 20, 600, 780); 
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
@@ -170,10 +174,9 @@ public class part4 extends JFrame {
                     currentIndex++;
                     updateScene();
                 } else {
-                    
                     UIManager.put("OptionPane.messageFont", THAI_FONT);
                     JOptionPane.showMessageDialog(null, "จบ Part 4: การผจญภัยกำลังจะเริ่มขึ้น!");
-                    new part5().setVisible(true);
+                    // new part5().setVisible(true); // ปลดคอมเมนต์เมื่อมีไฟล์ part5
                     dispose(); 
                 }
             }
@@ -181,31 +184,27 @@ public class part4 extends JFrame {
     }
 
     private void setupDialogueUI() {
-        // สร้างกล่องข้อความจาก Class VisualNovelBox ที่ประกาศไว้ด้านล่าง
         dialoguePanel = new VisualNovelBox(); 
         dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(50, 550, 900, 180);
+        dialoguePanel.setBounds(90, 520, 1100, 220); 
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
-        // ปรับสีชื่อเป็นสีน้ำเงินเข้มตามสไตล์ VN
         nameLabel = new JLabel("");
-        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26));
+        nameLabel.setFont(THAI_FONT_BOLD);
         nameLabel.setForeground(new Color(180, 40, 90)); 
-        nameLabel.setBounds(60, 10, 300, 40);
+        nameLabel.setBounds(60, 20, 400, 45);
         dialoguePanel.add(nameLabel);
 
-        // ปรับสีบทสนทนา
         dialogueArea = new JLabel();
-        dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22));
+        dialogueArea.setFont(THAI_FONT);
         dialogueArea.setForeground(new Color(45, 65, 115)); 
-        dialogueArea.setBounds(60, 40, 800, 100);
+        dialogueArea.setBounds(60, 80, 980, 110);
         dialoguePanel.add(dialogueArea);
 
-        // เพิ่มลูกศรฟ้ากะพริบมุมขวาล่าง
         JLabel nextArrow = new JLabel("▼");
         nextArrow.setFont(new Font("Arial", Font.BOLD, 20));
         nextArrow.setForeground(new Color(0, 153, 255));
-        nextArrow.setBounds(850, 130, 30, 30);
+        nextArrow.setBounds(1040, 170, 30, 30); 
         dialoguePanel.add(nextArrow);
         Timer arrowTimer = new Timer(500, ev -> nextArrow.setVisible(!nextArrow.isVisible()));
         arrowTimer.start();
@@ -213,59 +212,58 @@ public class part4 extends JFrame {
 
     private void updateScene() {
         if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
-        if (currentIndex < imagePaths.length) backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1000, 800));
+        if (currentIndex < imagePaths.length) backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1280, 800));
         if (currentIndex < dialogues.length) {
-        updateDialogueDisplay(dialogues[currentIndex]); 
-    }
+            updateDialogueDisplay(dialogues[currentIndex]); 
+        }
 
         if (currentIndex < charPaths.length) {
             String path = charPaths[currentIndex];
             if (path.contains("body")) {
+                // ปรับขนาดรูป Body ให้เล็กลง (กว้าง 500 สูง 700)
                 characterLabel.setIcon(scaleImage(path, 500, 700));
-                characterLabel.setBounds(250, 50, 500, 700); 
+                characterLabel.setBounds(390, 80, 500, 700); 
             } else if (path.contains("lung")) {
-                // ถ้าเป็นรูป Lung ให้ปรับขนาดเล็กลงและวางตำแหน่งกึ่งกลาง
-                characterLabel.setIcon(scaleImage(path, 800, 800));
-                characterLabel.setBounds(200, 50, 800, 800);
-                
+                // ปรับขนาดรูปตัวละครอื่นๆ (กว้าง 600 สูง 800)
+                characterLabel.setIcon(scaleImage(path, 600, 800));
+                characterLabel.setBounds(340, 20, 600, 800);
             } else {
-                characterLabel.setIcon(scaleImage(path, 800, 800));
-                characterLabel.setBounds(100, 0, 800, 800);
+                // รูปตัวละครปกติย่อขนาดลงมาให้สมส่วน
+                characterLabel.setIcon(scaleImage(path, 900, 900));
+                characterLabel.setBounds(190, 0, 900, 900);
             }
         }
     }
 
     private void startFadeIn() {
-    Timer fadeTimer = new Timer(50, e -> {
-        alpha -= 0.05f; // ค่อยๆ ลดความดำลงทีละ 0.05
-        if (alpha <= 0) {
-            alpha = 0;
-            ((Timer)e.getSource()).stop();
-            layeredPane.remove(fadeOverlay); // ลบหน้ากากออกเมื่อใสแล้ว
-            updateDialogueDisplay(dialogues[0]); // เริ่มพิมพ์ข้อความบรรทัดแรก
-        }
-        fadeOverlay.repaint();
-    });
-    fadeTimer.start();
+        Timer fadeTimer = new Timer(50, e -> {
+            alpha -= 0.05f;
+            if (alpha <= 0) {
+                alpha = 0;
+                ((Timer)e.getSource()).stop();
+                layeredPane.remove(fadeOverlay);
+                updateDialogueDisplay(dialogues[0]);
+            }
+            fadeOverlay.repaint();
+        });
+        fadeTimer.start();
     }
 
     private void updateDialogueDisplay(String text) {
         if (typewriterTimer != null && typewriterTimer.isRunning()) {
-        typewriterTimer.stop();
+            typewriterTimer.stop();
         }
         charIndex = 0;
-        dialogueArea.setText(""); // ล้างข้อความเก่าออก
-
-        // ตั้งเวลาให้ทำงานทุกๆ 35 มิลลิวินาที (ปรับตัวเลขได้ ยิ่งน้อยยิ่งไว)
+        dialogueArea.setText(""); 
         typewriterTimer = new Timer(30, e -> {
-        if (charIndex < text.length()) {
-            charIndex++;
-            String currentText = text.substring(0, charIndex);
-            dialogueArea.setText("<html><body style='width: 750px;'>" + currentText + "</body></html>");
-        } else {
-            typewriterTimer.stop(); 
-        }
-    });
+            if (charIndex < text.length()) {
+                charIndex++;
+                String currentText = text.substring(0, charIndex);
+                dialogueArea.setText("<html><body style='width: 950px;'>" + currentText + "</body></html>");
+            } else {
+                typewriterTimer.stop(); 
+            }
+        });
         typewriterTimer.start();
     }
 
@@ -282,7 +280,6 @@ public class part4 extends JFrame {
     }
 }
 
-// Class สำหรับวาด Textbox สไตล์ Visual Novel
 class VisualNovelBox extends JPanel {
     private int cornerRadius = 25;
 
@@ -294,16 +291,12 @@ class VisualNovelBox extends JPanel {
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // วาดพื้นหลังไล่สี ขาว -> ชมพูอ่อน
         GradientPaint gradient = new GradientPaint(
             0, 0, new Color(255, 255, 255, 150), 
             0, getHeight(), new Color(255, 230, 240, 245)
         );
         g2.setPaint(gradient);
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
-
-        // วาดเส้นขอบสีชมพูเข้ม
         g2.setColor(new Color(255, 120, 180));
         g2.setStroke(new BasicStroke(3)); 
         g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, cornerRadius, cornerRadius);

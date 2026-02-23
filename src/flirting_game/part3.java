@@ -12,7 +12,7 @@ import javax.swing.*;
 public class part3 extends JFrame {
     private JLayeredPane layeredPane;
     private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
-    private RoundedPanel dialoguePanel; // เปลี่ยนเป็น RoundedPanel ให้ตรงกับ class ข้างล่าง
+    private RoundedPanel dialoguePanel; 
     private int currentIndex = 0;
     private Timer typewriterTimer;
     private int charIndex = 0;
@@ -25,10 +25,11 @@ public class part3 extends JFrame {
     private JLabel affinityLabel; 
     private JLabel statusLabel;
 
-    private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 24);
-    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 24);
+    // --- ฟอนต์ภาษาไทย (ปรับขนาดให้เข้ากับจอ 1280) ---
+    private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
+    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
 
-    // --- Array ข้อมูล (คงเดิมตามที่คุณส่งมา) ---
+    // --- Array ข้อมูล ---
     private String[] imagePaths = {
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
@@ -109,9 +110,10 @@ public class part3 extends JFrame {
 
     public part3() {
         setTitle("ISEKAI DEMO - Part 3");
-        setSize(1000, 800);
+        setSize(1280, 800); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
 
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
@@ -120,27 +122,28 @@ public class part3 extends JFrame {
         playSE("res/sound/fireplace.wav", true, -5.0f); 
         playSE("res/sound/Doushitano.wav", false, 5.0f); 
 
-        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
-        backgroundLabel.setBounds(0, 0, 1000, 800);
+        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1280, 800));
+        backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        characterLabel = new JLabel(scaleImage(charPaths[0], 900, 1100));
-        characterLabel.setBounds(75, 50, 900, 1100); 
+        // ปรับพิกัดเริ่มต้น (190, 100) และขนาด (900, 900)
+        characterLabel = new JLabel(scaleImage(charPaths[0], 900, 900));
+        characterLabel.setBounds(190, 100, 900, 900); 
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
 
         JPanel relPanel = new JPanel();
         relPanel.setLayout(new GridLayout(2, 1));
-        relPanel.setBounds(20, 20, 250, 60);
+        relPanel.setBounds(20, 20, 300, 70);
         relPanel.setOpaque(false);
 
         affinityLabel = new JLabel("ความสนิท: " + relationdata.aliceRel.getAffinity());
-        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
         affinityLabel.setForeground(Color.WHITE);
 
         statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
-        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
         statusLabel.setForeground(new Color(255, 204, 0));
 
         relPanel.add(affinityLabel);
@@ -155,7 +158,7 @@ public class part3 extends JFrame {
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        fadeOverlay.setBounds(0, 0, 1000, 800);
+        fadeOverlay.setBounds(0, 0, 1280, 800);
         fadeOverlay.setOpaque(false);
         layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
@@ -166,9 +169,6 @@ public class part3 extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 if (isChoosing) return;
 
-                // --- จุดที่แก้ไข: จัดลำดับเงื่อนไขใหม่ ---
-                
-                // 1. ตรวจสอบจุดขึ้นตัวเลือกก่อนเปลี่ยน Index
                 if (currentIndex == 14) {
                     showChoices("..ปีศาจนี่เหมือนผีรึเปล่า??", "..เอ่อ..แล้วเผ่าอื่นๆหละ??", 15, 16);
                     return;
@@ -178,7 +178,6 @@ public class part3 extends JFrame {
                     return;
                 }
 
-                // 2. ตรวจสอบทางแยกหลังจากกดปุ่ม Choice (กระโดดข้ามบท)
                 if (currentIndex == 15 || currentIndex == 16) {
                     currentIndex = 17;
                 } else if (currentIndex == 33 || currentIndex == 34) {
@@ -187,12 +186,11 @@ public class part3 extends JFrame {
                     currentIndex++;
                 }
 
-                // 3. ตรวจสอบว่าจบ Part หรือยัง
                 if (currentIndex < dialogues.length) {
                     handleSoundEffects(currentIndex);
                     updateScene();
                 } else {
-                    UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 18));
+                    UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
                     JOptionPane.showMessageDialog(null, "จบ Part 3 แล้ว!");
                     new part4().setVisible(true);
                     dispose(); 
@@ -202,23 +200,23 @@ public class part3 extends JFrame {
     }
 
     private void setupDialogueUI() {
-        dialoguePanel = new RoundedPanel(40);
+        dialoguePanel = new RoundedPanel(50);
         dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(50, 550, 900, 180);
-        dialoguePanel.setBackground(new Color(20, 20, 25, 215));
+        dialoguePanel.setBounds(90, 520, 1100, 220); 
+        dialoguePanel.setBackground(new Color(20, 20, 25, 220));
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         nameLabel = new JLabel(names[0]);
-        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
+        nameLabel.setFont(THAI_FONT_BOLD);
         nameLabel.setForeground(new Color(255, 204, 0));
-        nameLabel.setBounds(60, 20, 300, 40); 
+        nameLabel.setBounds(60, 25, 400, 45); 
         dialoguePanel.add(nameLabel);
 
         dialogueArea = new JLabel();
-        dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 24));
+        dialogueArea.setFont(THAI_FONT_PLAIN);
         dialogueArea.setForeground(Color.WHITE);
         dialogueArea.setVerticalAlignment(SwingConstants.TOP);
-        dialogueArea.setBounds(60, 75, 800, 100); 
+        dialogueArea.setBounds(60, 85, 980, 110); 
         dialoguePanel.add(dialogueArea);
     }
 
@@ -226,8 +224,12 @@ public class part3 extends JFrame {
         if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
         if (currentIndex < dialogues.length) updateDialogueDisplay(dialogues[currentIndex]);
         
-        backgroundLabel.setIcon(scaleImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1000, 800));
-        characterLabel.setIcon(scaleImage(charPaths[Math.min(currentIndex, charPaths.length-1)], 900, 1100));
+        backgroundLabel.setIcon(scaleImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1280, 800));
+        
+        // --- ปรับพิกัด (190, 100) และขนาด (900, 900) ในทุกครั้งที่อัปเดตฉาก ---
+        characterLabel.setIcon(scaleImage(charPaths[Math.min(currentIndex, charPaths.length-1)], 900, 900));
+        characterLabel.setBounds(190, 100, 900, 900);
+        
         layeredPane.repaint();
     }
 
@@ -241,7 +243,7 @@ public class part3 extends JFrame {
             if (charIndex < text.length()) {
                 charIndex++;
                 String currentText = text.substring(0, charIndex);
-                dialogueArea.setText("<html><body style='width: 750px;'>" + currentText + "</body></html>");
+                dialogueArea.setText("<html><body style='width: 950px;'>" + currentText + "</body></html>");
             } else {
                 typewriterTimer.stop();
             }
@@ -340,7 +342,7 @@ public class part3 extends JFrame {
     private void showChoices(String text1, String text2, int target1, int target2) {
         isChoosing = true;
         choiceButton1 = createChoiceButton(text1, 350, target1);
-        choiceButton2 = createChoiceButton(text2, 420, target2); 
+        choiceButton2 = createChoiceButton(text2, 450, target2); 
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
@@ -348,8 +350,8 @@ public class part3 extends JFrame {
 
     private JButton createChoiceButton(String text, int y, int targetIndex) {
         JButton btn = new JButton(text);
-        btn.setBounds(580, y, 350, 60); 
-        btn.setFont(new Font("Tahoma", Font.BOLD, 18));
+        btn.setBounds(415, y, 450, 75); 
+        btn.setFont(new Font("Tahoma", Font.BOLD, 22));
         btn.setForeground(Color.WHITE);
         btn.setBackground(new Color(30, 30, 30, 220));
         btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2));
@@ -361,13 +363,11 @@ public class part3 extends JFrame {
             @Override
             public void mouseEntered(MouseEvent e) {
                 btn.setBackground(new Color(70, 70, 70, 240));
-                btn.setBounds(570, y, 360, 60);
                 btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
             }
             @Override
             public void mouseExited(MouseEvent e) {
                 btn.setBackground(new Color(30, 30, 30, 220));
-                btn.setBounds(580, y, 350, 60);
             }
         });
 

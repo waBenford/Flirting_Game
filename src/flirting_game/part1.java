@@ -15,8 +15,8 @@ public class part1 extends JFrame {
     private Timer typewriterTimer;
     private int charIndex = 0;
     private boolean isAnimating = false;
-    private Clip bgmClip;    // สำหรับเพลงพื้นหลัง (วนลูป)
-    private Clip effectClip; // สำหรับเสียงเอฟเฟกต์ (เล่นครั้งเดียว)
+    private Clip bgmClip;    
+    private Clip effectClip; 
 
     // --- Game Components ---
     private JLabel backgroundLabel; 
@@ -26,6 +26,10 @@ public class part1 extends JFrame {
     private RoundedPanel dialoguePanel; 
     private int currentIndex = 0; 
     
+    // --- ฟอนต์ภาษาไทย (ปรับขนาดให้เข้ากับจอ 1280) ---
+    private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
+    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
+
     private String[] imagePaths = {
         "res/scene1/s1.png", "res/scene1/s2.png", "res/scene1/s3.png", "res/scene1/s4.png",
         "res/scene1/s5.png", "res/scene1/s6.png", "res/scene1/s7.png", "res/scene1/s8.png",
@@ -63,53 +67,31 @@ public class part1 extends JFrame {
     };
 
     public part1() {
-        setTitle("ISEKAI DEMO - Layered Scene");
-        setSize(1000, 800);
+        setTitle("ISEKAI DEMO - Part 1");
+        setSize(1280, 800); // แก้ขนาดเฟรม
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
         
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
-        // --- เริ่มเล่นเพลงบรรยากาศเมือง (BGM) ---
         playSE("res/sound/city_sound.wav", true, -10.0f); 
 
-        // Background
-        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
-        backgroundLabel.setBounds(0, 0, 1000, 800);
+        // Background ปรับเป็น 1280x800
+        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1280, 800));
+        backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        // Character
-        characterLabel = new JLabel(scaleImage(charPaths[0], 1000, 800));
-        characterLabel.setBounds(0, 0, 1000, 800);
+        // Character ปรับพิกัดมาตรฐานเหมือน Part อื่นๆ
+        characterLabel = new JLabel(scaleImage(charPaths[0], 900, 900));
+        characterLabel.setBounds(190, 100, 900, 900); 
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
-        // Dialogue UI (RoundedPanel)
-        dialoguePanel = new RoundedPanel(40); 
-        dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(50, 550, 900, 180);
-        dialoguePanel.setBackground(new Color(20, 20, 25, 215));
-        layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
+        setupDialogueUI();
+        updateScene();
 
-        // Name Label
-        nameLabel = new JLabel();
-        updateNameLabel(names[0]);
-        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
-        nameLabel.setForeground(new Color(255, 204, 0)); 
-
-        nameLabel.setBounds(60, 20, 300, 40); 
-        dialoguePanel.add(nameLabel);
-
-        // Dialogue Area
-        dialogueArea = new JLabel();
-        dialogueArea.setFont(new Font("Tahoma", Font.PLAIN, 24));
-        dialogueArea.setForeground(new Color(230, 230, 230));
-        dialogueArea.setVerticalAlignment(SwingConstants.TOP); 
-
-        dialogueArea.setBounds(60, 70, 800, 100); 
-        dialoguePanel.add(dialogueArea);
-
-        // Fade Overlay
+        // Fade Overlay ปรับเป็น 1280x800
         fadeOverlay = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -118,14 +100,12 @@ public class part1 extends JFrame {
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        fadeOverlay.setBounds(0, 0, 1000, 800);
+        fadeOverlay.setBounds(0, 0, 1280, 800);
         fadeOverlay.setOpaque(false);
         layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
         startFadeIn();
-        animateText(dialogues[0]);
 
-        // Mouse Listener สำหรับเปลี่ยนฉากและจัดการเสียง
         layeredPane.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -135,7 +115,6 @@ public class part1 extends JFrame {
                     return;
                 }
 
-                // สั่งหยุดเพลงบรรยากาศเมื่อถึงฉากอุบัติเหตุ (Index 7)
                 if (currentIndex == 7) {
                     if (bgmClip != null && bgmClip.isRunning()) {
                         bgmClip.stop();
@@ -145,56 +124,65 @@ public class part1 extends JFrame {
 
                 currentIndex++; 
                 if (currentIndex < dialogues.length) {
-                    // --- ส่วนจัดการเสียง Sound Effects ตามลำดับเหตุการณ์ ---
                     handleSoundEffects(currentIndex);
-
-                    updateNameLabel(names[currentIndex]);
-                    backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1000, 800));
-                    characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 800));
-                    
-                    animateText(dialogues[currentIndex]);
-                    layeredPane.repaint();
-                   } else {
-
-                    UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 18));
-
-                    JOptionPane.showMessageDialog(null, "จบpart1แล้ว! กำลังเข้าสู่บทถัดไป...");
-
+                    updateScene();
+                } else {
+                    UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
+                    JOptionPane.showMessageDialog(null, "จบ part 1 แล้ว! กำลังเข้าสู่บทถัดไป...");
                     new part2().setVisible(true);
-
                     dispose();
-
                 }
             }
         }); 
     } 
 
-    // แยกฟังก์ชันจัดการเสียงเพื่อให้โค้ดอ่านง่าย
-    private void handleSoundEffects(int index) {
-        if (index == 2 || index == 4) {
-            playEffect("res/sound/phone.wav", 0.0f);
-        } else if (index == 3) {
-            playEffect("res/sound/footsteps.wav", -5.0f);
-        } else if (index == 5) {
-            playEffect("res/sound/traffic.wav", -10.0f);
-        } else if (index == 7) {
-            screenShake(10, 1000);
-            playEffect("res/sound/carcash.wav", -5.0f);
-        } else if (index == 10) {
-            playEffect("res/sound/bird.wav", -5.0f);
-        } else if (index == 12) {
-            playEffect("res/sound/AAno.wav", 5.0f); 
-        } else if (index == 13) {
-            playEffect("res/sound/huh.wav", 5.0f); 
-        }
+    private void setupDialogueUI() {
+        dialoguePanel = new RoundedPanel(50); 
+        dialoguePanel.setLayout(null);
+        // ปรับตำแหน่งกึ่งกลางมาตรฐาน (90, 520, 1100, 220)
+        dialoguePanel.setBounds(90, 520, 1100, 220);
+        dialoguePanel.setBackground(new Color(20, 20, 25, 215));
+        layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
+
+        nameLabel = new JLabel();
+        nameLabel.setFont(THAI_FONT_BOLD);
+        nameLabel.setForeground(new Color(255, 204, 0)); 
+        nameLabel.setBounds(60, 25, 400, 45); 
+        dialoguePanel.add(nameLabel);
+
+        dialogueArea = new JLabel();
+        dialogueArea.setFont(THAI_FONT_PLAIN);
+        dialogueArea.setForeground(new Color(230, 230, 230));
+        dialogueArea.setVerticalAlignment(SwingConstants.TOP); 
+        dialogueArea.setBounds(60, 85, 980, 110); 
+        dialoguePanel.add(dialogueArea);
     }
 
-    // --- ฟังก์ชันเล่นเสียงเอฟเฟกต์ (เล่นครั้งเดียว/ป้องกันเสียงซ้อน) ---
+    private void updateScene() {
+        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+        if (currentIndex < imagePaths.length) 
+            backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1280, 800));
+        if (currentIndex < charPaths.length) {
+            characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 800));
+            characterLabel.setBounds(190, 0, 1000, 800);
+        }
+        if (currentIndex < dialogues.length) animateText(dialogues[currentIndex]);
+        layeredPane.repaint();
+    }
+
+    private void handleSoundEffects(int index) {
+        if (index == 2 || index == 4) playEffect("res/sound/phone.wav", 0.0f);
+        else if (index == 3) playEffect("res/sound/footsteps.wav", -5.0f);
+        else if (index == 5) playEffect("res/sound/traffic.wav", -10.0f);
+        else if (index == 7) { screenShake(15, 1000); playEffect("res/sound/carcash.wav", -5.0f); }
+        else if (index == 10) playEffect("res/sound/bird.wav", -5.0f);
+        else if (index == 12) playEffect("res/sound/AAno.wav", 5.0f); 
+        else if (index == 13) playEffect("res/sound/huh.wav", 5.0f); 
+    }
+
     public void playEffect(String path, float volume) {
         try {
-            if (effectClip != null && effectClip.isRunning()) {
-                effectClip.stop();
-            }
+            if (effectClip != null && effectClip.isRunning()) effectClip.stop();
             File soundFile = new File(path); 
             if (soundFile.exists()) {
                 AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
@@ -207,7 +195,6 @@ public class part1 extends JFrame {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // --- ฟังก์ชันเล่นเสียง BGM (วนลูป) ---
     public void playSE(String path, boolean isLoop, float volume) {
         try {
             File soundFile = new File(path); 
@@ -217,10 +204,7 @@ public class part1 extends JFrame {
                 clip.open(audioIn);
                 FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
                 gainControl.setValue(volume); 
-                if (isLoop) {
-                    bgmClip = clip;
-                    clip.loop(Clip.LOOP_CONTINUOUSLY);
-                }
+                if (isLoop) { bgmClip = clip; clip.loop(Clip.LOOP_CONTINUOUSLY); }
                 clip.start();
             }
         } catch (Exception e) { e.printStackTrace(); }
@@ -258,24 +242,22 @@ public class part1 extends JFrame {
     }
 
     private void updateDialogueDisplay(String text) {
-        dialogueArea.setText("<html><body style='width: 750px;'><span style='text-shadow: 1px 1px 2px black;'>" 
+        dialogueArea.setText("<html><body style='width: 950px;'><span style='text-shadow: 1px 1px 2px black;'>" 
                             + text + "</span></body></html>");
     }
 
-    private void updateNameLabel(String name) { nameLabel.setText(name); }
-
     public ImageIcon scaleImage(String path, int width, int height) {
-        ImageIcon icon = new ImageIcon(path);
-        Image img = icon.getImage();
-        Image scaledImg = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-        return new ImageIcon(scaledImg);
+        try {
+            ImageIcon icon = new ImageIcon(path);
+            Image img = icon.getImage();
+            return new ImageIcon(img.getScaledInstance(width, height, Image.SCALE_SMOOTH));
+        } catch (Exception e) { return null; }
     }
 
     public void screenShake(int intensity, int duration) {
         Point originalLoc = getLocation();
         Timer shakeTimer = new Timer(20, null);
         final long startTime = System.currentTimeMillis();
-
         shakeTimer.addActionListener(e -> {
             long elapsed = System.currentTimeMillis() - startTime;
             if (elapsed < duration) {
@@ -292,25 +274,5 @@ public class part1 extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part1().setVisible(true));
-    }
-}
-
-// --- คลาสสำหรับกล่องข้อความขอบมน ---
-class RoundedPanel extends JPanel {
-    private int cornerRadius;
-    public RoundedPanel(int radius) {
-        this.cornerRadius = radius;
-        setOpaque(false); 
-    }
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        GradientPaint gp = new GradientPaint(0, 0, new Color(30, 30, 30, 180), 0, getHeight(), new Color(60, 60, 60, 220));
-        g2.setPaint(gp);
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
-        g2.setColor(new Color(255, 255, 255, 50));
-        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, cornerRadius, cornerRadius);
     }
 }
