@@ -53,7 +53,7 @@ public class part1 extends JFrame {
 
     public part1() {
         setTitle("ISEKAI DEMO - Part 1 (Upgraded)");
-        setSize(1000, 800);
+        setSize(1280, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -64,8 +64,8 @@ public class part1 extends JFrame {
         playSE("res/sound/city_sound.wav", true, -10.0f);
 
         // UI เลเยอร์ตามโครงสร้าง Part 3
-        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1000, 800));
-        backgroundLabel.setBounds(0, 0, 1000, 800);
+        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1280, 800));
+        backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
         characterLabel = new JLabel(scaleImage(charPaths[0], 1000, 800));
@@ -73,6 +73,11 @@ public class part1 extends JFrame {
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI(); // เรียกใช้ฟังก์ชัน UI ที่อัปเกรดแล้ว
+
+
+
+
+
 
         // --- ระบบ Fade Out ตอนเริ่มเกม ---
         fadeOverlay = new JPanel() {
@@ -83,7 +88,7 @@ public class part1 extends JFrame {
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        fadeOverlay.setBounds(0, 0, 1000, 800);
+        fadeOverlay.setBounds(0, 0, 1280, 800);
         fadeOverlay.setOpaque(false);
         layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
@@ -97,6 +102,11 @@ public class part1 extends JFrame {
         });
     }
 
+
+
+
+
+    
     private void handleNext() {
         if (isAnimating) {
             stopAnimation();
@@ -133,7 +143,7 @@ public class part1 extends JFrame {
     private void setupDialogueUI() {
         dialoguePanel = new VisualNovelBox();
         dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(50, 550, 900, 180);
+        dialoguePanel.setBounds(180, 550, 900, 180);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         // ใช้ Tahoma เพราะรองรับภาษาไทยได้ดีที่สุดใน Java Swing
@@ -162,8 +172,8 @@ public class part1 extends JFrame {
 
     private void updateScene() {
         nameLabel.setText(names[currentIndex]);
-        backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1000, 800));
-        characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 800));
+        backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1280, 800));
+        characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1280, 800));
         animateText(dialogues[currentIndex]);
         layeredPane.repaint();
     }
