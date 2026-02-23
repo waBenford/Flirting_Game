@@ -20,6 +20,7 @@ public class part1 extends JFrame {
     private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
     private VisualNovelBox dialoguePanel; // เปลี่ยนมาใช้คลาส VisualNovelBox จาก Part 3
     private int currentIndex = 0;
+    private boolean isFading = false;
 
     private String[] imagePaths = {
         "res/scene1/s1.png", "res/scene1/s2.png", "res/scene1/s3.png", "res/scene1/s4.png",
@@ -98,6 +99,8 @@ public class part1 extends JFrame {
     }
 
     private void handleNext() {
+        // ป้องกันการกดระหว่างเล่น Animation หรือกำลัง Fade
+        if (isFading) return; 
         if (isAnimating) {
             stopAnimation();
             updateDialogueDisplay(dialogues[currentIndex]);
@@ -106,6 +109,25 @@ public class part1 extends JFrame {
 
         if (currentIndex == 7) {
             stopBGM();
+        }
+
+        // --- เพิ่มการ Fade ระหว่างเปลี่ยนโลกที่ Index 9 ---
+        if (currentIndex == 9) {
+            performSceneFade(() -> {
+                currentIndex++;
+                handleSoundEffects(currentIndex); // เริ่มเล่นเสียงนก (bird.wav) ตอนจอดำ
+                updateScene();
+            });
+            return;
+        }
+
+        if (currentIndex == 12) {
+            performSceneFade(() -> {
+                currentIndex++;
+                handleSoundEffects(currentIndex); // เริ่มเล่นเสียงนก (bird.wav) ตอนจอดำ
+                updateScene();
+            });
+            return;
         }
 
         currentIndex++;
@@ -161,10 +183,12 @@ public class part1 extends JFrame {
     }
 
     private void updateScene() {
-        nameLabel.setText(names[currentIndex]);
-        backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1000, 800));
-        characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 800));
-        animateText(dialogues[currentIndex]);
+        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+        if (currentIndex < imagePaths.length) backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1000, 800));
+        if (currentIndex < charPaths.length) characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 800));
+        if (currentIndex < dialogues.length) animateText(dialogues[currentIndex]);
+        
+        layeredPane.revalidate();
         layeredPane.repaint();
     }
 
@@ -184,29 +208,45 @@ public class part1 extends JFrame {
     }
 
     private void handleSoundEffects(int index) {
+        // ล้างเสียงเก่าออกก่อนเล่นเสียงใหม่ในทุกๆ step ที่มีเสียง
         if (index == 2 || index == 4) playEffect("res/sound/phone.wav", 0.0f);
         else if (index == 3) playEffect("res/sound/footsteps.wav", -5.0f);
         else if (index == 5) playEffect("res/sound/traffic.wav", -10.0f);
         else if (index == 7) {
-            screenShake(12, 1000); // เพิ่มแรงสั่นนิดนึงตอนชน
+            screenShake(12, 1000);
             playEffect("res/sound/carcash.wav", -5.0f);
-        } else if (index == 10) playEffect("res/sound/bird.wav", -5.0f);
+        } 
+        else if (index == 10) {
+            // เมื่อเข้าสู่ฉากป่า ให้หยุดเสียง Effect ทุกอย่างที่อาจค้างมาจากฉากเมือง
+            if (effectClip != null) { effectClip.stop(); effectClip.close(); }
+            playEffect("res/sound/bird.wav", -5.0f);
+        }
         else if (index == 12) playEffect("res/sound/AAno.wav", 5.0f);
         else if (index == 13) playEffect("res/sound/huh.wav", 5.0f);
     }
 
     public void playEffect(String path, float volume) {
         try {
+            // หากมีเสียง Effect เดิมเล่นอยู่ ให้หยุดและปิดก่อน
+            if (effectClip != null) {
+                effectClip.stop();
+                effectClip.close();
+            }
+
             File soundFile = new File(path);
             if (soundFile.exists()) {
                 AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
-                Clip clip = AudioSystem.getClip();
-                clip.open(audioIn);
-                FloatControl gc = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                effectClip = AudioSystem.getClip(); // ใช้ตัวแปรระดับคลาส effectClip
+                effectClip.open(audioIn);
+                
+                FloatControl gc = (FloatControl) effectClip.getControl(FloatControl.Type.MASTER_GAIN);
                 gc.setValue(volume);
-                clip.start();
+                
+                effectClip.start();
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+        }
     }
 
     public void playSE(String path, boolean isLoop, float volume) {
@@ -273,6 +313,49 @@ public class part1 extends JFrame {
             }
         });
         shakeTimer.start();
+    }
+
+    private void performSceneFade(Runnable onBlack) {
+        isFading = true; 
+        alpha = 0.0f;
+        if (fadeOverlay.getParent() == null) {
+            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        }
+
+        // Phase 1: ค่อยๆ ดำ (Fade Out)
+        Timer fadeOut = new Timer(30, null);
+        fadeOut.addActionListener(e -> {
+            alpha += 0.05f; 
+            if (alpha >= 1.0f) {
+                alpha = 1.0f;
+                fadeOut.stop();
+                
+                // เปลี่ยนข้อมูลฉากตอนจอดำสนิท
+                onBlack.run(); 
+                fadeOverlay.repaint();
+
+                // Phase 2: หยุดรอที่หน้าจอดำ 1 วินาที
+                Timer waitTimer = new Timer(500, ev -> {
+                    ((Timer)ev.getSource()).stop();
+                    
+                    // Phase 3: ค่อยๆ สว่าง (Fade In)
+                    Timer fadeIn = new Timer(30, eve -> {
+                        alpha -= 0.05f;
+                        if (alpha <= 0) {
+                            alpha = 0;
+                            ((Timer)eve.getSource()).stop();
+                            isFading = false; 
+                        }
+                        fadeOverlay.repaint();
+                    });
+                    fadeIn.start();
+                });
+                waitTimer.setRepeats(false);
+                waitTimer.start();
+            }
+            fadeOverlay.repaint();
+        });
+        fadeOut.start();
     }
 
     public static void main(String[] args) {

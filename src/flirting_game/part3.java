@@ -26,11 +26,15 @@ public class part3 extends JFrame {
     private float alpha = 1.0f; 
     private JPanel fadeOverlay;
     private JLabel affinityLabel, statusLabel;
+    private float charAlpha = 0.0f; 
+    private Timer charFadeTimer;
+    
+    // ตัวแปรควบคุมการ Fade ฉาก
+    private boolean isFading = false;
 
-    // ระบบ Cache เพื่อความ Smooth
     private Map<String, ImageIcon> imageCache = new HashMap<>();
 
-    // --- Array ข้อมูล (ใส่มาให้ครบตามไฟล์เดิม) ---
+    // --- Array ข้อมูล (เหมือนเดิม) ---
     private String[] imagePaths = {
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
@@ -102,16 +106,22 @@ public class part3 extends JFrame {
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
         
-        // Sound initialization
         playSE("res/sound/soundtrack3.wav", true, -10.0f); 
         playSE("res/sound/fireplace.wav", true, -5.0f); 
-        playSE("res/sound/Doushitano.wav", false, 5.0f); 
 
         backgroundLabel = new JLabel();
         backgroundLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        characterLabel = new JLabel();
+        characterLabel = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha));
+                super.paintComponent(g2d);
+                g2d.dispose();
+            }
+        };
         characterLabel.setBounds(75, 50, 900, 1100); 
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
@@ -141,9 +151,8 @@ public class part3 extends JFrame {
     }
 
     private void handleNext() {
-        if (isChoosing) return;
+        if (isChoosing || isFading) return; // ล็อคการกดถ้ากำลัง Fade
 
-        // Skip System
         if (isTyping) {
             typewriterTimer.stop();
             isTyping = false;
@@ -151,7 +160,6 @@ public class part3 extends JFrame {
             return;
         }
 
-        // Choices Check
         if (currentIndex == 14) {
             showChoices("..ปีศาจนี่เหมือนผีรึเปล่า??", "..เอ่อ..แล้วเผ่าอื่นๆหละ??", 15, 16);
             return;
@@ -161,13 +169,23 @@ public class part3 extends JFrame {
             return;
         }
 
-        // Logic Branching
-        if (currentIndex == 15 || currentIndex == 16) currentIndex = 17;
-        else if (currentIndex == 33 || currentIndex == 34) currentIndex = 35;
-        else currentIndex++;
+        int nextIndex = currentIndex;
+        if (currentIndex == 15 || currentIndex == 16) nextIndex = 17;
+        else if (currentIndex == 33 || currentIndex == 34) nextIndex = 35;
+        else nextIndex++;
 
-        if (currentIndex < dialogues.length) {
-            updateScene();
+        if (nextIndex < dialogues.length) {
+            String currentBG = imagePaths[Math.min(currentIndex, imagePaths.length-1)];
+            String nextBG = imagePaths[Math.min(nextIndex, imagePaths.length-1)];
+            
+            currentIndex = nextIndex;
+
+            // ตรวจสอบการเปลี่ยนภาพพื้นหลังเพื่อทำ Fade
+            if (!currentBG.equals(nextBG)) {
+                triggerSceneFade();
+            } else {
+                updateScene();
+            }
         } else {
             stopBGM();
             JOptionPane.showMessageDialog(null, "จบ Part 3 แล้ว!");
@@ -176,21 +194,81 @@ public class part3 extends JFrame {
         }
     }
 
+    // เมธอดสำหรับ Fade ให้สมูทและค้างหน้าจอดำ 2 วินาที
+    private void triggerSceneFade() {
+        isFading = true;
+        if (fadeOverlay.getParent() == null) {
+            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        }
+
+        // 1. Fade Out: ค่อยๆ ดำสนิท (ใช้เวลาประมาณ 0.5 วินาที)
+        Timer fadeOut = new Timer(15, null);
+        fadeOut.addActionListener(e -> {
+            alpha += 0.03f; // Step เล็กๆ เพื่อความสมูท
+            if (alpha >= 1.0f) {
+                alpha = 1.0f;
+                fadeOut.stop();
+                
+                updateScene(); // เปลี่ยนฉากขณะมืดสนิท
+                
+                // 2. Black Pause: ค้างไว้ 2 วินาที (2000 ms)
+                Timer pauseTimer = new Timer(750, ev -> {
+                    ((Timer)ev.getSource()).stop();
+                    
+                    // 3. Fade In: ค่อยๆ กลับมาสว่าง
+                    Timer fadeIn = new Timer(15, null);
+                    fadeIn.addActionListener(evt -> {
+                        alpha -= 0.03f;
+                        if (alpha <= 0) {
+                            alpha = 0;
+                            fadeIn.stop();
+                            isFading = false;
+                            layeredPane.remove(fadeOverlay);
+                        }
+                        fadeOverlay.repaint();
+                    });
+                    fadeIn.start();
+                });
+                pauseTimer.start();
+            }
+            fadeOverlay.repaint();
+        });
+        fadeOut.start();
+    }
+
+    private void updateScene() {
+        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+        backgroundLabel.setIcon(getOptimizedImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1000, 800));
+        
+        if (currentIndex < charPaths.length) {
+            String newPath = charPaths[currentIndex];
+            String oldPath = (currentIndex > 0) ? charPaths[currentIndex - 1] : "";
+            characterLabel.setIcon(getOptimizedImage(newPath, 900, 1100));
+
+            if (!newPath.equals(oldPath) || currentIndex == 0) {
+                startCharacterFadeIn();
+            }
+        }
+        
+        updateDialogueDisplay(dialogues[currentIndex]);
+        handleSoundEffects(currentIndex);
+        layeredPane.repaint();
+    }
+
+    // ... (ส่วนที่เหลือของเมธอด setupUI, Sound, Animation อื่นๆ คงเดิม) ...
+
     private void setupDialogueUI() {
-        // ใช้ดีไซน์ VisualNovelBox จาก Part 4
         dialoguePanel = new VisualNovelBox(); 
         dialoguePanel.setLayout(null);
         dialoguePanel.setBounds(50, 550, 900, 180);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
-        // ปรับสี NameLabel ให้เหมือน Part 4 (โทนชมพูเข้ม)
         nameLabel = new JLabel("");
         nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26));
         nameLabel.setForeground(new Color(180, 40, 90)); 
         nameLabel.setBounds(60, 10, 300, 40);
         dialoguePanel.add(nameLabel);
 
-        // ปรับสี DialogueArea ให้เหมือน Part 4 (โทนน้ำเงินเข้มอ่านง่าย)
         dialogueArea = new JLabel();
         dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22));
         dialogueArea.setForeground(new Color(45, 65, 115)); 
@@ -198,7 +276,6 @@ public class part3 extends JFrame {
         dialogueArea.setVerticalAlignment(SwingConstants.TOP);
         dialoguePanel.add(dialogueArea);
 
-        // เพิ่มตัวบ่งชี้การคลิก (ลูกศรขยับได้) เหมือน Part 4
         JLabel nextArrow = new JLabel("▼");
         nextArrow.setFont(new Font("Arial", Font.BOLD, 20));
         nextArrow.setForeground(new Color(0, 153, 255));
@@ -224,17 +301,6 @@ public class part3 extends JFrame {
         relPanel.add(affinityLabel);
         relPanel.add(statusLabel);
         layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
-    }
-
-    private void updateScene() {
-        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
-        
-        backgroundLabel.setIcon(getOptimizedImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1000, 800));
-        characterLabel.setIcon(getOptimizedImage(charPaths[Math.min(currentIndex, charPaths.length-1)], 900, 1100));
-        
-        updateDialogueDisplay(dialogues[currentIndex]);
-        handleSoundEffects(currentIndex);
-        layeredPane.repaint();
     }
 
     private void updateDialogueDisplay(String text) {
@@ -268,7 +334,6 @@ public class part3 extends JFrame {
         } catch (Exception e) { return null; }
     }
 
-    // --- Sound & Effects Methods (คงเดิมตามระบบคุณ) ---
     public void playEffect(String path, float volume) {
         try {
             File soundFile = new File(path); 
@@ -313,7 +378,6 @@ public class part3 extends JFrame {
     private void handleSoundEffects(int index) {
         if (index == 15) playEffect("res/sound/chikauyo.wav", 5.0f);
         else if (index == 16) playEffect("res/sound/wakarunai.wav", 5.0f);
-        
         if (index == 20) { stopBGM(); playSE("res/sound/soundtrack4.wav", true, -5.0f); }
         if (index == 22) { stopEffect(); playSE("res/sound/village.wav", true, -5.0f); }
         if (index == 26) { stopEffect(); screenShake(10, 1000); playSE("res/sound/monster.wav", false, -10.0f); playSE("res/sound/housefire.wav", false, -10.0f); }
@@ -384,35 +448,41 @@ public class part3 extends JFrame {
         shakeTimer.start();
     }
 
+    private void startCharacterFadeIn() {
+        charAlpha = 0.0f;
+        if (charFadeTimer != null && charFadeTimer.isRunning()) charFadeTimer.stop();
+        charFadeTimer = new Timer(30, e -> {
+            charAlpha += 0.05f;
+            if (charAlpha >= 1.0f) {
+                charAlpha = 1.0f;
+                ((Timer)e.getSource()).stop();
+            }
+            characterLabel.repaint();
+        });
+        charFadeTimer.start();
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part3().setVisible(true));
     }
 }
 
-    class VisualNovelBox extends JPanel {
+class VisualNovelBox extends JPanel {
     private int cornerRadius = 30;
-    public VisualNovelBox() {
-        setOpaque(false);
-    }
+    public VisualNovelBox() { setOpaque(false); }
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // ไล่เฉดสีพื้นหลัง (ขาวอมฟ้าใสๆ -> ชมพูอ่อน) แบบ Part 4 เป๊ะ
         GradientPaint gradient = new GradientPaint(
             0, 0, new Color(245, 250, 255, 180), 
             0, getHeight(), new Color(255, 235, 245, 230)
         );
         g2.setPaint(gradient);
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
-
-        // วาดเส้นขอบแบบ Soft Glow (สีชมพูสว่าง)
         g2.setColor(new Color(255, 150, 200, 200));
         g2.setStroke(new BasicStroke(3));
         g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, cornerRadius, cornerRadius);
-        
-        // เพิ่มเงาขาวด้านในเพื่อความมิติ
         g2.setColor(new Color(255, 255, 255, 100));
         g2.setStroke(new BasicStroke(1.5f));
         g2.drawRoundRect(6, 6, getWidth() - 12, getHeight() - 12, cornerRadius - 5, cornerRadius - 5);
