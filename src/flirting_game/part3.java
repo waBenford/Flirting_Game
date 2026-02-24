@@ -28,13 +28,15 @@ public class part3 extends JFrame {
     private JLabel affinityLabel, statusLabel;
     private float charAlpha = 0.0f; 
     private Timer charFadeTimer;
-    
-    // ตัวแปรควบคุมการ Fade ฉาก
     private boolean isFading = false;
 
     private Map<String, ImageIcon> imageCache = new HashMap<>();
 
-    // --- Array ข้อมูล (เหมือนเดิม) ---
+    // --- Fonts for 1280x800 ---
+    private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
+    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
+
+    // --- Array ข้อมูล ---
     private String[] imagePaths = {
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
@@ -58,7 +60,6 @@ public class part3 extends JFrame {
         "res/Charactor/Alice-sad2_1.png","res/Charactor/Alice-sad1_1.png","res/empty.png", "res/empty.png","res/empty.png", "res/empty.png", 
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice-cry1_1.png","res/Charactor/Alice-cry2_1.png", 
         "res/Charactor/Alice-cry1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad2_1.png", 
-        "res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png",
         "res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png",
         "res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile2_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png"
     };
@@ -99,9 +100,10 @@ public class part3 extends JFrame {
 
     public part3() {
         setTitle("ISEKAI DEMO - Part 3");
-        setSize(1000, 800);
+        setSize(1280, 800); // แก้ขนาดเฟรม
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
 
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
@@ -109,10 +111,12 @@ public class part3 extends JFrame {
         playSE("res/sound/soundtrack3.wav", true, -10.0f); 
         playSE("res/sound/fireplace.wav", true, -5.0f); 
 
-        backgroundLabel = new JLabel();
-        backgroundLabel.setBounds(0, 0, 1000, 800);
+        // พื้นหลังเต็มจอ 1280x800
+        backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1280, 800));
+        backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
+        // ปรับพิกัดตัวละครมาตรฐาน (190, 100) และขนาด (900, 900)
         characterLabel = new JLabel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -122,7 +126,7 @@ public class part3 extends JFrame {
                 g2d.dispose();
             }
         };
-        characterLabel.setBounds(75, 50, 900, 1100); 
+        characterLabel.setBounds(190, 100, 900, 900); 
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
@@ -136,7 +140,7 @@ public class part3 extends JFrame {
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        fadeOverlay.setBounds(0, 0, 1000, 800);
+        fadeOverlay.setBounds(0, 0, 1280, 800);
         fadeOverlay.setOpaque(false);
         layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
@@ -151,12 +155,12 @@ public class part3 extends JFrame {
     }
 
     private void handleNext() {
-        if (isChoosing || isFading) return; // ล็อคการกดถ้ากำลัง Fade
+        if (isChoosing || isFading) return; 
 
         if (isTyping) {
             typewriterTimer.stop();
             isTyping = false;
-            dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
+            dialogueArea.setText("<html><body style='width: 950px;'>" + dialogues[currentIndex] + "</body></html>");
             return;
         }
 
@@ -177,10 +181,8 @@ public class part3 extends JFrame {
         if (nextIndex < dialogues.length) {
             String currentBG = imagePaths[Math.min(currentIndex, imagePaths.length-1)];
             String nextBG = imagePaths[Math.min(nextIndex, imagePaths.length-1)];
-            
             currentIndex = nextIndex;
 
-            // ตรวจสอบการเปลี่ยนภาพพื้นหลังเพื่อทำ Fade
             if (!currentBG.equals(nextBG)) {
                 triggerSceneFade();
             } else {
@@ -188,43 +190,28 @@ public class part3 extends JFrame {
             }
         } else {
             stopBGM();
+            UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
             JOptionPane.showMessageDialog(null, "จบ Part 3 แล้ว!");
             new part4().setVisible(true);
             dispose(); 
         }
     }
 
-    // เมธอดสำหรับ Fade ให้สมูทและค้างหน้าจอดำ 2 วินาที
     private void triggerSceneFade() {
         isFading = true;
-        if (fadeOverlay.getParent() == null) {
-            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
-        }
-
-        // 1. Fade Out: ค่อยๆ ดำสนิท (ใช้เวลาประมาณ 0.5 วินาที)
+        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
         Timer fadeOut = new Timer(15, null);
         fadeOut.addActionListener(e -> {
-            alpha += 0.03f; // Step เล็กๆ เพื่อความสมูท
+            alpha += 0.03f;
             if (alpha >= 1.0f) {
-                alpha = 1.0f;
-                fadeOut.stop();
-                
-                updateScene(); // เปลี่ยนฉากขณะมืดสนิท
-                
-                // 2. Black Pause: ค้างไว้ 2 วินาที (2000 ms)
+                alpha = 1.0f; fadeOut.stop();
+                updateScene(); 
                 Timer pauseTimer = new Timer(750, ev -> {
                     ((Timer)ev.getSource()).stop();
-                    
-                    // 3. Fade In: ค่อยๆ กลับมาสว่าง
                     Timer fadeIn = new Timer(15, null);
                     fadeIn.addActionListener(evt -> {
                         alpha -= 0.03f;
-                        if (alpha <= 0) {
-                            alpha = 0;
-                            fadeIn.stop();
-                            isFading = false;
-                            layeredPane.remove(fadeOverlay);
-                        }
+                        if (alpha <= 0) { alpha = 0; fadeIn.stop(); isFading = false; layeredPane.remove(fadeOverlay); }
                         fadeOverlay.repaint();
                     });
                     fadeIn.start();
@@ -238,12 +225,13 @@ public class part3 extends JFrame {
 
     private void updateScene() {
         if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
-        backgroundLabel.setIcon(getOptimizedImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1000, 800));
+        backgroundLabel.setIcon(getOptimizedImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1280, 800));
         
         if (currentIndex < charPaths.length) {
             String newPath = charPaths[currentIndex];
             String oldPath = (currentIndex > 0) ? charPaths[currentIndex - 1] : "";
-            characterLabel.setIcon(getOptimizedImage(newPath, 900, 1100));
+            characterLabel.setIcon(getOptimizedImage(newPath, 900, 900));
+            characterLabel.setBounds(190, 100, 900, 900); // บังคับพิกัดมาตรฐาน
 
             if (!newPath.equals(oldPath) || currentIndex == 0) {
                 startCharacterFadeIn();
@@ -255,31 +243,30 @@ public class part3 extends JFrame {
         layeredPane.repaint();
     }
 
-    // ... (ส่วนที่เหลือของเมธอด setupUI, Sound, Animation อื่นๆ คงเดิม) ...
-
     private void setupDialogueUI() {
         dialoguePanel = new VisualNovelBox(); 
         dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(50, 550, 900, 180);
+        // ปรับตำแหน่งกล่องข้อความกึ่งกลางหน้าจอใหญ่
+        dialoguePanel.setBounds(90, 520, 1100, 220);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         nameLabel = new JLabel("");
-        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26));
+        nameLabel.setFont(THAI_FONT_BOLD);
         nameLabel.setForeground(new Color(180, 40, 90)); 
-        nameLabel.setBounds(60, 10, 300, 40);
+        nameLabel.setBounds(60, 25, 400, 45);
         dialoguePanel.add(nameLabel);
 
         dialogueArea = new JLabel();
-        dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22));
+        dialogueArea.setFont(THAI_FONT_PLAIN);
         dialogueArea.setForeground(new Color(45, 65, 115)); 
-        dialogueArea.setBounds(60, 60, 800, 110);
+        dialogueArea.setBounds(60, 85, 980, 110);
         dialogueArea.setVerticalAlignment(SwingConstants.TOP);
         dialoguePanel.add(dialogueArea);
 
         JLabel nextArrow = new JLabel("▼");
-        nextArrow.setFont(new Font("Arial", Font.BOLD, 20));
+        nextArrow.setFont(new Font("Tahoma", Font.BOLD, 22));
         nextArrow.setForeground(new Color(0, 153, 255));
-        nextArrow.setBounds(850, 130, 30, 30);
+        nextArrow.setBounds(1040, 170, 30, 30);
         dialoguePanel.add(nextArrow);
         Timer arrowTimer = new Timer(500, ev -> nextArrow.setVisible(!nextArrow.isVisible()));
         arrowTimer.start();
@@ -287,15 +274,15 @@ public class part3 extends JFrame {
 
     private void setupStatusUI() {
         JPanel relPanel = new JPanel(new GridLayout(2, 1));
-        relPanel.setBounds(20, 20, 250, 60);
+        relPanel.setBounds(25, 25, 300, 70);
         relPanel.setOpaque(false);
 
         affinityLabel = new JLabel("ความสนิท: " + relationdata.aliceRel.getAffinity());
-        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
         affinityLabel.setForeground(Color.WHITE);
 
         statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
-        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
         statusLabel.setForeground(new Color(255, 204, 0));
 
         relPanel.add(affinityLabel);
@@ -311,7 +298,7 @@ public class part3 extends JFrame {
         typewriterTimer = new Timer(30, e -> {
             if (charIndex < text.length()) {
                 charIndex++;
-                dialogueArea.setText("<html><body style='width: 750px;'>" + text.substring(0, charIndex) + "</body></html>");
+                dialogueArea.setText("<html><body style='width: 950px;'>" + text.substring(0, charIndex) + "</body></html>");
             } else {
                 ((Timer)e.getSource()).stop();
                 isTyping = false;
@@ -387,8 +374,8 @@ public class part3 extends JFrame {
 
     private void showChoices(String text1, String text2, int t1, int t2) {
         isChoosing = true;
-        choiceButton1 = createChoiceButton(text1, 350, t1);
-        choiceButton2 = createChoiceButton(text2, 420, t2);
+        choiceButton1 = createChoiceButton(text1, 380, t1);
+        choiceButton2 = createChoiceButton(text2, 480, t2);
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
@@ -396,8 +383,8 @@ public class part3 extends JFrame {
 
     private JButton createChoiceButton(String text, int y, int target) {
         JButton btn = new JButton(text);
-        btn.setBounds(580, y, 350, 60);
-        btn.setFont(new Font("Tahoma", Font.BOLD, 18));
+        btn.setBounds(415, y, 450, 75); 
+        btn.setFont(new Font("Tahoma", Font.BOLD, 22));
         btn.setForeground(Color.WHITE);
         btn.setBackground(new Color(30, 30, 30, 220));
         btn.setFocusPainted(false);
@@ -419,12 +406,7 @@ public class part3 extends JFrame {
     private void startFadeIn() {
         Timer fadeTimer = new Timer(50, e -> {
             alpha -= 0.05f;
-            if (alpha <= 0) {
-                alpha = 0;
-                ((Timer)e.getSource()).stop();
-                layeredPane.remove(fadeOverlay);
-                updateScene(); 
-            }
+            if (alpha <= 0) { alpha = 0; ((Timer)e.getSource()).stop(); layeredPane.remove(fadeOverlay); }
             fadeOverlay.repaint();
         });
         fadeTimer.start();
@@ -440,10 +422,7 @@ public class part3 extends JFrame {
                 int x = (int) (Math.random() * intensity * 2 - intensity);
                 int y = (int) (Math.random() * intensity * 2 - intensity);
                 setLocation(originalLoc.x + x, originalLoc.y + y);
-            } else {
-                setLocation(originalLoc);
-                ((Timer) e.getSource()).stop();
-            }
+            } else { setLocation(originalLoc); ((Timer) e.getSource()).stop(); }
         });
         shakeTimer.start();
     }
@@ -453,10 +432,7 @@ public class part3 extends JFrame {
         if (charFadeTimer != null && charFadeTimer.isRunning()) charFadeTimer.stop();
         charFadeTimer = new Timer(30, e -> {
             charAlpha += 0.05f;
-            if (charAlpha >= 1.0f) {
-                charAlpha = 1.0f;
-                ((Timer)e.getSource()).stop();
-            }
+            if (charAlpha >= 1.0f) { charAlpha = 1.0f; ((Timer)e.getSource()).stop(); }
             characterLabel.repaint();
         });
         charFadeTimer.start();
@@ -464,27 +440,5 @@ public class part3 extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part3().setVisible(true));
-    }
-}
-
-class VisualNovelBox extends JPanel {
-    private int cornerRadius = 30;
-    public VisualNovelBox() { setOpaque(false); }
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        GradientPaint gradient = new GradientPaint(
-            0, 0, new Color(245, 250, 255, 180), 
-            0, getHeight(), new Color(255, 235, 245, 230)
-        );
-        g2.setPaint(gradient);
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
-        g2.setColor(new Color(255, 150, 200, 200));
-        g2.setStroke(new BasicStroke(3));
-        g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, cornerRadius, cornerRadius);
-        g2.setColor(new Color(255, 255, 255, 100));
-        g2.setStroke(new BasicStroke(1.5f));
-        g2.drawRoundRect(6, 6, getWidth() - 12, getHeight() - 12, cornerRadius - 5, cornerRadius - 5);
     }
 }
