@@ -246,6 +246,7 @@ public class part4 extends JFrame {
         UIManager.put("OptionPane.messageFont", THAI_FONT);
         JOptionPane.showMessageDialog(null, "จบ Part 4: การผจญภัยกำลังจะเริ่มขึ้น!");
         // new part5().setVisible(true); // ปลดคอมเมนต์เมื่อมีไฟล์ part5
+        new part5().setVisible(true);
         dispose();
     }
 

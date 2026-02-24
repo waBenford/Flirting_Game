@@ -103,6 +103,11 @@ public class part1 extends JFrame {
         });
     }
 
+
+
+
+
+    
     private void handleNext() {
         if (isFading) return; 
         if (isAnimating) {
