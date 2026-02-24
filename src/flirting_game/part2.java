@@ -33,6 +33,10 @@ public class part2 extends JFrame {
     // ระบบ Cache เพื่อความ Smooth
     private Map<String, ImageIcon> imageCache = new HashMap<>();
 
+    private float charAlpha = 0.0f;
+    private Timer charFadeTimer;
+    private boolean isFading = false;
+
     // --- Data Arrays (คงเดิมตาม Part 2) ---
     private String[] imagePaths = {
         "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png",
@@ -94,7 +98,15 @@ public class part2 extends JFrame {
         backgroundLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        characterLabel = new JLabel(scaleImage(charPaths[0], 1000, 800));
+        characterLabel = new JLabel(scaleImage(charPaths[0], 1000, 800)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha));
+                super.paintComponent(g2d);
+                g2d.dispose();
+            }
+        };
         characterLabel.setBounds(0, 0, 1000, 800);
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
@@ -104,6 +116,7 @@ public class part2 extends JFrame {
         setupFadeOverlay();
 
         startFadeIn();
+        updateScene();
         animateText(dialogues[0]);
 
         layeredPane.addMouseListener(new MouseAdapter() {
@@ -176,24 +189,53 @@ public class part2 extends JFrame {
     }
 
     private void handleInteraction() {
-        if (isChoosing) return;
+        if (isChoosing || isFading) return; // ป้องกันการกดซ้ำระหว่าง Fade
         if (isAnimating) {
             stopAnimation();
             updateDialogueDisplay(dialogues[currentIndex]);
             return;
         }
 
-        if (currentIndex == 17) stopBGM();
-        if (currentIndex == 8) {
-            currentIndex = 10;
-            updateScene();
-            return;
-        }
-        if (currentIndex == 7) {
-            showChoices("ฉันไม่รู้ (ฉันยังไม่ไว้ใจใคร)", "ฉันจําชื่อตัวเองไม่ได้", 8, 9);
+        if (currentIndex == 10) {
+            performSceneFade(() -> {
+                currentIndex++; 
+                updateScene(); 
+            });
             return;
         }
 
+        if (currentIndex == 14) {
+            performSceneFade(() -> {
+                currentIndex++; 
+                updateScene(); 
+                // เล่นเสียงน้ำทับลงไปเลยโดยไม่ต้องสั่ง stopBGM()
+                playEffect("res/sound/water.wav", 5.0f); 
+            });
+            return;
+        }
+
+        if (currentIndex == 17) {
+            performSceneFade(() -> {
+                currentIndex++;
+                // หยุดเสียง effectClip (เสียงน้ำจากฉากที่แล้ว) ก่อนเริ่มเพลงใหม่
+                if (effectClip != null) effectClip.stop(); 
+                
+                handleSoundEffects(currentIndex); // จะไปเล่น soundtrack2 ที่ index 18
+                updateScene();
+            });
+            // ลบ stopBGM และ playSE ตรงนี้ออก เพราะเราย้ายไปไว้ใน Runnable ข้างบนแล้ว
+            return;
+        }
+
+        if (currentIndex == 19) {
+            performSceneFade(() -> {
+                currentIndex++; 
+                updateScene(); 
+            });
+            return;
+        }
+
+        // กรณีปกติ
         currentIndex++;
         if (currentIndex < dialogues.length) {
             handleSoundEffects(currentIndex);
@@ -215,21 +257,41 @@ public class part2 extends JFrame {
         if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
         if (currentIndex < dialogues.length) animateText(dialogues[currentIndex]);
         if (currentIndex < imagePaths.length) backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1000, 800));
-        if (currentIndex < charPaths.length) characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1000, 800));
+        
+        if (currentIndex < charPaths.length) {
+            ImageIcon nextIcon = scaleImage(charPaths[currentIndex], 1000, 800);
+            characterLabel.setIcon(nextIcon);
+            
+            // แก้ไขเงื่อนไขตรงนี้:
+            if (currentIndex == 0) {
+                startCharacterFadeIn(); // สั่งให้ Fade In ตั้งแต่เริ่มเกม
+            } 
+            else if (!charPaths[currentIndex].equals(charPaths[currentIndex-1])) {
+                startCharacterFadeIn(); // สั่ง Fade เมื่อเปลี่ยนรูปตัวละคร
+            }
+        }
     }
 
     private void handleSoundEffects(int index) {
         if (index == 8 || index == 9) playEffect("res/sound/soudesukaa.wav", 5.0f);
-        else if (index == 15) playEffect("res/sound/water.wav", 5.0f);
         else if (index == 11) playEffect("res/sound/fireplace.wav", 5.0f);
-        else if (index == 18) playSE("res/sound/soundtrack2.wav", true, -5.0f);
+        else if (index == 15) playEffect("res/sound/water.wav", 5.0f); // มั่นใจว่าเสียงน้ำทำงานที่ index นี้
+        else if (index == 18) {
+            stopBGM(); // ให้หยุดเพลง 1 และเริ่มเพลง 2 เฉพาะตอนอ่านหนังสือ (index 18) เท่านั้น
+            playSE("res/sound/soundtrack2.wav", true, -5.0f);
+        }
         else if (index == 28) {
             playEffect("res/sound/winddash.wav", 0.0f);
             screenShake(10, 1000);
         }
 
-        if (index == 10 || index == 14 || index == 18 || index >= 29) {
-            if (effectClip != null && effectClip.isRunning()) effectClip.stop();
+        // แก้ไขเงื่อนไขหยุด Effect: 
+        // - ลบ index 14 ออกเพื่อให้เสียงน้ำเล่นได้
+        // - ลบ index 18 ออกจากตรงนี้ เพราะเราสั่งหยุดในเงื่อนไขด้านบนแล้ว
+        if (index == 10 || index >= 29) {
+            if (effectClip != null && effectClip.isRunning()) {
+                effectClip.stop();
+            }
         }
     }
 
@@ -412,6 +474,64 @@ public class part2 extends JFrame {
         });
         shakeTimer.start();
     }
+
+    private void startCharacterFadeIn() {
+        charAlpha = 0.0f; // รีเซ็ตความชัด
+        if (charFadeTimer != null && charFadeTimer.isRunning()) charFadeTimer.stop();
+
+        charFadeTimer = new Timer(30, e -> {
+            charAlpha += 0.04f; // ความเร็วในการ Fade
+            if (charAlpha >= 1.0f) {
+                charAlpha = 1.0f;
+                ((Timer)e.getSource()).stop();
+            }
+            characterLabel.repaint();
+        });
+        charFadeTimer.start();
+    }
+
+    private void performSceneFade(Runnable onBlack) {
+    isFading = true; 
+    alpha = 0.0f;
+    if (fadeOverlay.getParent() == null) {
+        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+    }
+
+    // Phase 1: ค่อยๆ ดำ (Fade Out)
+    Timer fadeOut = new Timer(30, null);
+    fadeOut.addActionListener(e -> {
+        alpha += 0.05f; // ค่อยๆ มืดลง
+        if (alpha >= 1.0f) {
+            alpha = 1.0f;
+            fadeOut.stop();
+            
+            // ทำคำสั่งเปลี่ยนข้อมูลฉากตอนจอดำ
+            onBlack.run(); 
+            fadeOverlay.repaint();
+
+            // Phase 2: หยุดรอที่หน้าจอดำ 1 วินาที (1000 ms)
+            Timer waitTimer = new Timer(600, ev -> {
+                ((Timer)ev.getSource()).stop();
+                
+                // Phase 3: ค่อยๆ สว่าง (Fade In)
+                Timer fadeIn = new Timer(30, eve -> {
+                    alpha -= 0.05f;
+                    if (alpha <= 0) {
+                        alpha = 0;
+                        ((Timer)eve.getSource()).stop();
+                        isFading = false; 
+                    }
+                    fadeOverlay.repaint();
+                });
+                fadeIn.start();
+            });
+            waitTimer.setRepeats(false);
+            waitTimer.start();
+        }
+        fadeOverlay.repaint();
+    });
+    fadeOut.start();
+}
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part2().setVisible(true));

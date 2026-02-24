@@ -18,8 +18,13 @@ public class part1 extends JFrame {
     private Clip effectClip;
 
     private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
-    private VisualNovelBox dialoguePanel; // เปลี่ยนมาใช้คลาส VisualNovelBox จาก Part 3
+    private VisualNovelBox dialoguePanel; 
     private int currentIndex = 0;
+    private boolean isFading = false;
+
+    // --- ฟอนต์ภาษาไทยสำหรับจอ 1280 ---
+    private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
+    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
 
     private String[] imagePaths = {
         "res/scene1/s1.png", "res/scene1/s2.png", "res/scene1/s3.png", "res/scene1/s4.png",
@@ -32,7 +37,7 @@ public class part1 extends JFrame {
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-        "res/empty.png", "res/scene1/s11g.png"
+        "res/empty.png",  "res/scene1/s11g.png"
     };
 
     private String[] names = {
@@ -52,34 +57,30 @@ public class part1 extends JFrame {
     };
 
     public part1() {
-        setTitle("ISEKAI DEMO - Part 1 (Upgraded)");
-        setSize(1280, 800);
+        setTitle("ISEKAI DEMO - Part 1");
+        setSize(1280, 800); // แก้ขนาดเฟรม
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
 
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
-        // --- ระบบเสียง (BGM) ---
         playSE("res/sound/city_sound.wav", true, -10.0f);
 
-        // UI เลเยอร์ตามโครงสร้าง Part 3
+        // พื้นหลังปรับเป็น 1280x800
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1280, 800));
         backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        characterLabel = new JLabel(scaleImage(charPaths[0], 1000, 800));
-        characterLabel.setBounds(0, 0, 1000, 800);
+        // ปรับพิกัดตัวละครมาตรฐาน (190, 100, 900, 900)
+        characterLabel = new JLabel(scaleImage(charPaths[0], 900, 900));
+        characterLabel.setBounds(190, 100, 900, 900);
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
-        setupDialogueUI(); // เรียกใช้ฟังก์ชัน UI ที่อัปเกรดแล้ว
+        setupDialogueUI();
 
-
-
-
-
-
-        // --- ระบบ Fade Out ตอนเริ่มเกม ---
+        // แผ่นดำสำหรับ Fade In (1280x800)
         fadeOverlay = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -92,7 +93,7 @@ public class part1 extends JFrame {
         fadeOverlay.setOpaque(false);
         layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
-        startFadeIn(); // เริ่มฉากด้วยการจางสีดำออก
+        startFadeIn();
 
         layeredPane.addMouseListener(new MouseAdapter() {
             @Override
@@ -108,14 +109,22 @@ public class part1 extends JFrame {
 
     
     private void handleNext() {
+        if (isFading) return; 
         if (isAnimating) {
             stopAnimation();
             updateDialogueDisplay(dialogues[currentIndex]);
             return;
         }
 
-        if (currentIndex == 7) {
-            stopBGM();
+        if (currentIndex == 7) stopBGM();
+
+        if (currentIndex == 9 || currentIndex == 12) {
+            performSceneFade(() -> {
+                currentIndex++;
+                handleSoundEffects(currentIndex);
+                updateScene();
+            });
+            return;
         }
 
         currentIndex++;
@@ -124,17 +133,8 @@ public class part1 extends JFrame {
             updateScene();
         } else {
             stopBGM();
-            
-            // --- ส่วนที่แก้ไข: ตั้งค่าฟอนต์ให้ JOptionPane อ่านภาษาไทยออก ---
-            UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 16));
-            UIManager.put("Button.font", new Font("Tahoma", Font.PLAIN, 14));
-            
-            JOptionPane.showMessageDialog(null, 
-                "จบ Part 1 แล้ว! กำลังเข้าสู่บทถัดไป...", 
-                "System", 
-                JOptionPane.INFORMATION_MESSAGE);
-            
-            // ตรวจสอบว่ามีคลาส part2 อยู่จริงก่อนเรียกใช้
+            UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
+            JOptionPane.showMessageDialog(null, "จบ Part 1 แล้ว! กำลังเข้าสู่บทถัดไป...");
             new part2().setVisible(true);
             dispose();
         }
@@ -143,27 +143,27 @@ public class part1 extends JFrame {
     private void setupDialogueUI() {
         dialoguePanel = new VisualNovelBox();
         dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(180, 550, 900, 180);
+        // ปรับตำแหน่งกล่องข้อความให้อยู่กลางจอ (x=90, width=1100)
+        dialoguePanel.setBounds(90, 520, 1100, 220);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
-        // ใช้ Tahoma เพราะรองรับภาษาไทยได้ดีที่สุดใน Java Swing
         nameLabel = new JLabel(names[0]);
-        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26)); 
+        nameLabel.setFont(THAI_FONT_BOLD); 
         nameLabel.setForeground(new Color(180, 40, 90));
-        nameLabel.setBounds(60, 15, 300, 40);
+        nameLabel.setBounds(60, 25, 400, 45);
         dialoguePanel.add(nameLabel);
 
         dialogueArea = new JLabel();
-        dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22)); // ปรับเป็น Plain เพื่อให้อ่านง่ายขึ้น
+        dialogueArea.setFont(THAI_FONT_PLAIN);
         dialogueArea.setForeground(new Color(45, 65, 115));
-        dialogueArea.setBounds(60, 65, 800, 100);
+        dialogueArea.setBounds(60, 85, 980, 110);
         dialogueArea.setVerticalAlignment(SwingConstants.TOP);
         dialoguePanel.add(dialogueArea);
 
         JLabel nextArrow = new JLabel("▼");
-        nextArrow.setFont(new Font("Tahoma", Font.BOLD, 20));
+        nextArrow.setFont(new Font("Tahoma", Font.BOLD, 22));
         nextArrow.setForeground(new Color(0, 153, 255));
-        nextArrow.setBounds(850, 130, 30, 30);
+        nextArrow.setBounds(1040, 170, 30, 30);
         dialoguePanel.add(nextArrow);
         
         Timer arrowTimer = new Timer(500, ev -> nextArrow.setVisible(!nextArrow.isVisible()));
@@ -171,14 +171,17 @@ public class part1 extends JFrame {
     }
 
     private void updateScene() {
-        nameLabel.setText(names[currentIndex]);
-        backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1280, 800));
-        characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1280, 800));
-        animateText(dialogues[currentIndex]);
+        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+        if (currentIndex < imagePaths.length) backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1280, 800));
+        if (currentIndex < charPaths.length) {
+            characterLabel.setIcon(scaleImage(charPaths[currentIndex], 900, 900));
+            characterLabel.setBounds(190, 0, 900, 900);
+        }
+        if (currentIndex < dialogues.length) animateText(dialogues[currentIndex]);
+        
         layeredPane.repaint();
     }
 
-    // --- ฟังก์ชัน Fade In ตอนเริ่มฉาก ---
     private void startFadeIn() {
         Timer fadeTimer = new Timer(50, e -> {
             alpha -= 0.05f;
@@ -197,24 +200,26 @@ public class part1 extends JFrame {
         if (index == 2 || index == 4) playEffect("res/sound/phone.wav", 0.0f);
         else if (index == 3) playEffect("res/sound/footsteps.wav", -5.0f);
         else if (index == 5) playEffect("res/sound/traffic.wav", -10.0f);
-        else if (index == 7) {
-            screenShake(12, 1000); // เพิ่มแรงสั่นนิดนึงตอนชน
-            playEffect("res/sound/carcash.wav", -5.0f);
-        } else if (index == 10) playEffect("res/sound/bird.wav", -5.0f);
+        else if (index == 7) { screenShake(15, 1000); playEffect("res/sound/carcash.wav", -5.0f); } 
+        else if (index == 10) {
+            if (effectClip != null) { effectClip.stop(); effectClip.close(); }
+            playEffect("res/sound/bird.wav", -5.0f);
+        }
         else if (index == 12) playEffect("res/sound/AAno.wav", 5.0f);
         else if (index == 13) playEffect("res/sound/huh.wav", 5.0f);
     }
 
     public void playEffect(String path, float volume) {
         try {
+            if (effectClip != null) { effectClip.stop(); effectClip.close(); }
             File soundFile = new File(path);
             if (soundFile.exists()) {
                 AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
-                Clip clip = AudioSystem.getClip();
-                clip.open(audioIn);
-                FloatControl gc = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                effectClip = AudioSystem.getClip();
+                effectClip.open(audioIn);
+                FloatControl gc = (FloatControl) effectClip.getControl(FloatControl.Type.MASTER_GAIN);
                 gc.setValue(volume);
-                clip.start();
+                effectClip.start();
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
@@ -258,7 +263,7 @@ public class part1 extends JFrame {
     }
 
     private void updateDialogueDisplay(String text) {
-        dialogueArea.setText("<html><body style='width: 750px;'>" + text + "</body></html>");
+        dialogueArea.setText("<html><body style='width: 950px;'>" + text + "</body></html>");
     }
 
     public ImageIcon scaleImage(String path, int width, int height) {
@@ -285,12 +290,36 @@ public class part1 extends JFrame {
         shakeTimer.start();
     }
 
+    private void performSceneFade(Runnable onBlack) {
+        isFading = true; alpha = 0.0f;
+        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        Timer fadeOut = new Timer(30, null);
+        fadeOut.addActionListener(e -> {
+            alpha += 0.05f; 
+            if (alpha >= 1.0f) {
+                alpha = 1.0f; fadeOut.stop();
+                onBlack.run(); 
+                Timer waitTimer = new Timer(500, ev -> {
+                    ((Timer)ev.getSource()).stop();
+                    Timer fadeIn = new Timer(30, eve -> {
+                        alpha -= 0.05f;
+                        if (alpha <= 0) { alpha = 0; ((Timer)eve.getSource()).stop(); isFading = false; }
+                        fadeOverlay.repaint();
+                    });
+                    fadeIn.start();
+                });
+                waitTimer.setRepeats(false); waitTimer.start();
+            }
+            fadeOverlay.repaint();
+        });
+        fadeOut.start();
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part1().setVisible(true));
     }
 }
 
-// --- คลาส VisualNovelBox ที่ก๊อปมาจาก Part 3 เพื่อความสวยงาม ---
 class VisualNovelBox extends JPanel {
     private int cornerRadius = 30;
     public VisualNovelBox() { setOpaque(false); }

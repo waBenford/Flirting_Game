@@ -1,5 +1,6 @@
 package flirting_game;
 
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -124,16 +125,17 @@ public class part5 extends JFrame {
     };
 
     public part5() {
-        setTitle("ISEKAI DEMO - Part 5: The Journey Begins");
-        setSize(1000, 800);
+        setTitle("ISEKAI DEMO - Part 5");
+        setSize(1280, 800); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
 
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
         backgroundLabel = new JLabel();
-        backgroundLabel.setBounds(0, 0, 1000, 800);
+        backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
         characterLabel = new JLabel();
@@ -151,7 +153,7 @@ public class part5 extends JFrame {
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        fadeOverlay.setBounds(0, 0, 1000, 800);
+        fadeOverlay.setBounds(0, 0, 1280, 800);
         fadeOverlay.setOpaque(false);
         layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
@@ -161,17 +163,17 @@ public class part5 extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 handleNext();
+                handleNext();
             }
         });
     }
 
     private void handleNext() {
         if (isChoosing) return;
-
         if (isTyping) {
             if (typewriterTimer != null) typewriterTimer.stop();
             isTyping = false;
-            dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
+            dialogueArea.setText("<html><body style='width: 950px;'>" + dialogues[currentIndex] + "</body></html>");
             return;
         }
 
@@ -326,9 +328,7 @@ public class part5 extends JFrame {
         btn.addActionListener(e -> {
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
-            isChoosing = false; 
-            currentIndex = target; 
-            updateScene(); 
+            isChoosing = false; currentIndex = target; updateScene(); 
         });
         return btn;
     }
@@ -348,13 +348,11 @@ public class part5 extends JFrame {
     }
 
     private void startFadeIn() {
-        Timer fadeTimer = new Timer(45, e -> {
+        Timer fadeTimer = new Timer(40, e -> {
             alpha -= 0.05f;
             if (alpha <= 0) {
-                alpha = 0;
-                ((Timer)e.getSource()).stop();
-                layeredPane.remove(fadeOverlay);
-                updateScene(); 
+                alpha = 0; ((Timer)e.getSource()).stop();
+                layeredPane.remove(fadeOverlay); updateScene(); 
             }
             fadeOverlay.repaint();
         });
