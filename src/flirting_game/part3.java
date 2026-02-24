@@ -226,6 +226,7 @@ public class part3 extends JFrame {
     private void updateScene() {
         if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
         backgroundLabel.setIcon(getOptimizedImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1280, 800));
+
         
         if (currentIndex < charPaths.length) {
             String newPath = charPaths[currentIndex];
@@ -237,7 +238,7 @@ public class part3 extends JFrame {
                 startCharacterFadeIn();
             }
         }
-        
+
         updateDialogueDisplay(dialogues[currentIndex]);
         handleSoundEffects(currentIndex);
         layeredPane.repaint();
@@ -246,25 +247,24 @@ public class part3 extends JFrame {
     private void setupDialogueUI() {
         dialoguePanel = new VisualNovelBox(); 
         dialoguePanel.setLayout(null);
-        // ปรับตำแหน่งกล่องข้อความกึ่งกลางหน้าจอใหญ่
-        dialoguePanel.setBounds(90, 520, 1100, 220);
+        dialoguePanel.setBounds(225, 520, 800, 200);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         nameLabel = new JLabel("");
-        nameLabel.setFont(THAI_FONT_BOLD);
+        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26));
         nameLabel.setForeground(new Color(180, 40, 90)); 
         nameLabel.setBounds(60, 25, 400, 45);
         dialoguePanel.add(nameLabel);
 
         dialogueArea = new JLabel();
-        dialogueArea.setFont(THAI_FONT_PLAIN);
+        dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22));
         dialogueArea.setForeground(new Color(45, 65, 115)); 
         dialogueArea.setBounds(60, 85, 980, 110);
         dialogueArea.setVerticalAlignment(SwingConstants.TOP);
         dialoguePanel.add(dialogueArea);
 
         JLabel nextArrow = new JLabel("▼");
-        nextArrow.setFont(new Font("Tahoma", Font.BOLD, 22));
+        nextArrow.setFont(new Font("Tahoma", Font.BOLD, 20));
         nextArrow.setForeground(new Color(0, 153, 255));
         nextArrow.setBounds(1040, 170, 30, 30);
         dialoguePanel.add(nextArrow);
@@ -374,27 +374,57 @@ public class part3 extends JFrame {
 
     private void showChoices(String text1, String text2, int t1, int t2) {
         isChoosing = true;
-        choiceButton1 = createChoiceButton(text1, 380, t1);
-        choiceButton2 = createChoiceButton(text2, 480, t2);
+        choiceButton1 = createChoiceButton(text1, 380, t1); //y: ขึ้น=ลง
+        choiceButton2 = createChoiceButton(text2, 450, t2); //y: ขึ้น=ลง
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
     }
 
     private JButton createChoiceButton(String text, int y, int target) {
-        JButton btn = new JButton(text);
-        btn.setBounds(415, y, 450, 75); 
-        btn.setFont(new Font("Tahoma", Font.BOLD, 22));
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(new Color(30, 30, 30, 220));
+        JButton btn = new JButton(text) {
+            // Override paintComponent เพื่อวาดปุ่มให้มีขอบโค้งมน
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // วาดพื้นหลังโค้งมน
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+
+                // วาดเส้นขอบโค้งมน
+                g2.setColor(new Color(225, 105, 180)); // สีขอบเดิม
+                g2.setStroke(new BasicStroke(2));   // ความหนาขอบเดิม
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
+
+                g2.dispose();
+
+                // วาดข้อความและส่วนอื่นๆ ทับลงไป
+                super.paintComponent(g);
+            }
+        };
+
+        // เลื่อนปุ่มไปทางขวา
+        btn.setBounds(800, y, 350, 60);
+        btn.setFont(new Font("Tahoma", Font.BOLD, 20));
+        btn.setForeground(new Color(45,65,115));
+        btn.setBackground(new Color(255, 255, 255, 150));
+
+        // ตั้งค่าเพื่อให้วาดปุ่มแบบกำหนดเองได้
+        btn.setContentAreaFilled(false);
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2));
+        btn.setBorderPainted(false); // ปิดการวาดขอบสี่เหลี่ยมเดิม
+
         btn.addActionListener(e -> {
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
             isChoosing = false;
-            if (target == 33) relationdata.aliceRel.addAffinity(10);
-            else if (target == 34) relationdata.aliceRel.decreaseAffinity(5);
+            if (target == 33) {
+                relationdata.aliceRel.addAffinity(10);
+            } else if (target == 34) {
+                relationdata.aliceRel.decreaseAffinity(5);
+            }
             affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
             currentIndex = target;
