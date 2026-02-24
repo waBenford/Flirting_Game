@@ -1,11 +1,15 @@
 package flirting_game;
 
-
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.swing.*;
 
 public class part5 extends JFrame {
@@ -15,6 +19,8 @@ public class part5 extends JFrame {
     private float alpha = 1.0f;
     private JPanel fadeOverlay;
     private int currentIndex = 0;
+    private Clip bgmClip;      
+    private Clip effectClip;
     private JButton choiceButton1, choiceButton2;
     private boolean isChoosing = false;
     private Timer typewriterTimer;
@@ -23,7 +29,6 @@ public class part5 extends JFrame {
     private Map<String, ImageIcon> imageCache = new HashMap<>();
     
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 24);
-    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 24);
 
     private String[] imagePaths = {
        "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png",
@@ -43,18 +48,12 @@ public class part5 extends JFrame {
        "res/scene5/s5.png", "res/scene5/s5.png", 
     };
 
-    // Array ชุดที่ 1: รับหน้าที่แสดงตัวละครฝั่งซ้าย (อริสตอนแรก และ ปีศาจตอนหลัง)
     private String[] charPaths = {
-        // 0-15: อริส (จะแสดงผลตรงกลางหน้าจอตามเงื่อนไข logic ใน updateCharacterLayer)
         "res/empty.png", "res/empty.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", 
         "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", 
         "res/scene5/Alice-normal2.png", "res/scene5/Alice-shy1.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", 
         "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", 
-        
-        // 16-21: ฉากคุยก่อนเจอปีศาจ (ว่าง)
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-        
-        // 22 เป็นต้นไป: ปีศาจเดโมโผล่มา (ตัวนี้จะถูก setBounds ให้อยู่ทางซ้ายอัตโนมัติ)
         "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",
         "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",
         "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",
@@ -62,34 +61,22 @@ public class part5 extends JFrame {
         "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",
         "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/empty.png", "res/empty.png", 
         "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/empty.png",
-        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-shy1.png", //53
+        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-shy1.png",
         "res/scene5/Alice-normal2.png", "res/scene5/Alice-shower1.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower2.png",
-};
+    };
 
-    // Array ชุดที่ 2: รับหน้าที่แสดงตัวละครฝั่งขวา (อริสตอนสู้)
     private String[] charPaths2 = {
-        // 0-21: ใส่ empty ทั้งหมด เพราะอริสตัวหลักแสดงที่ charPaths อยู่แล้ว
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", // 0-4
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", // 5-9
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", // 10-14
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", // 15-19
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", // 20-24
-        // 25
-        "res/scene5/Alice-fight1.png",
-        "res/scene5/Alice-fight2.png",
-        "res/scene5/Alice-fight1.png",
-        "res/scene5/Alice-fight2.png",
-        "res/scene5/Alice-fight1.png",
-        "res/scene5/Alice-fight2.png",
-        "res/scene5/Alice-fight1.png",
-        "res/scene5/Alice-shy1.png",
-        "res/scene5/Alice-shy2.png",
-        "res/scene5/Alice-fight2.png",
-        "res/scene5/Alice-fight1.png",
-        "res/scene5/Alice-fight2.png",
-        "res/scene5/Alice-fight1.png",
-        "res/scene5/Alice-fight2.png",
-};
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png", "res/scene5/Alice-fight1.png",
+        "res/scene5/Alice-fight2.png", "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png",
+        "res/scene5/Alice-fight1.png", "res/scene5/Alice-shy1.png", "res/scene5/Alice-shy2.png",
+        "res/scene5/Alice-fight2.png", "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png",
+        "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png",
+    };
 
     private String[] names = { 
         " ", " ", "ฉัน", "ฉัน", "อริส", "อริส", "ฉัน", "อริส",
@@ -106,33 +93,44 @@ public class part5 extends JFrame {
         "ฉันคิดว่าเราน่าจะออกมาไกลพอสมควรละนะ", "ดีนะที่ก่อนหน้านี้ได้เเผนที่มาจากคนในหมู่บ้าน",
         "อืออ", "นายหิวรึยัง?", "ก็..นิดหน่อยนะ","งั้นเรานั่งพักกินข้าวตรงนี้ก่อนมั้ย?",
         "ก็ดีเหมือนกันนะ", "นายอยากกินอะไรมั้ย?",  "นายนี่ละก็..", "อื้อโอเค", 
-        "เดี๋ยวฉันจะไปหาของเเถวนี้ก่อนนะ", "ให้ฉันไปด้วยมั้ย?", "ไม่เป็นไรหรอก นายนั่งรออยู่ตรงนี้แหละ", //0-14
+        "เดี๋ยวฉันจะไปหาของเเถวนี้ก่อนนะ", "ให้ฉันไปด้วยมั้ย?", "ไม่เป็นไรหรอก นายนั่งรออยู่ตรงนี้แหละ",
         "อือ..ก็ได้", "ตอนนี้เราน่าจะยังอยู่ในเขตป่าLifeอยู่นะ", "คงต้องใช้เวลาอีกนานเลยกว่าถึงจุดหมาย",
         "ดีเลย เราจะได้ใช้เวลานี้อยู่กับอริสมากขึ้น", "อร๊ายยยย", "..นั่นมัน..เสียงอริสนี่!!",
         "เกิดอะไรขึ้น อริส!!", "กะจะเดินเล่นเฉยๆ ดันมาเจอมนุษย์ซะงั้น", "เเต่ก็ดี ข้ากําลังหิวได้ที่เลย",
-        "…(ชื่อตัวละครเรา)!!", "นี่เธอบาดเจ็บตรงไหนรึปล่าว?", "ไม่ ฉันไม่เป็นไร",
-        "อยู่ๆปีศาจมันก็เข้ามาโจมตีเเบบกระทันหัน", "เเต่ก็พอหลบได้ เลยมีเเผลถลอกนิดหน่อยหนะ", //15-28
+        "…(ชื่อตัวละครเรา)!!", "นี่เธอเบาดเจ็บตรงไหนรึปล่าว?", "ไม่ ฉันไม่เป็นไร",
+        "อยู่ๆปีศาจมันก็เข้ามาโจมตีเเบบกระทันหัน", "เเต่ก็พอหลบได้ เลยมีเเผลถลอกนิดหน่อยหนะ",
         "นี่พ่อหนุ่ม ข้าขอเเม่หนูตรงนั้นได้ไหม?", "เเล้วข้าจะไว้ชีวิตเจ้า", "ไม่มีทาง!!",
         "(เขิน)", "มันใช่เวลามั้ย!! ไอ่บ้า!!", "ยังไงข้าก็จะกินพวกเจ้าทั้งสองอยู่ดี",
         "อริส ครั้งนี้ให้ฉันเป็นคนจัดการเอง", "จะไม่เป็นไรหรอ?", "เเค่นี้สบายมาก",
-        "งั้นฝากด้วยนะ", "ตัวเราได้ใช้เวทย์โจมตี ปีศาจเดโมก่อน", "ปีศาจเดโมหลบได้ เเละพุ่งโจมตีใส่เราทันที", //29-40
+        "งั้นฝากด้วยนะ", "ตัวเราได้ใช้เวทย์โจมตี ปีศาจเดโมก่อน", "ปีศาจเดโมหลบได้ เเละพุ่งโจมตีใส่เราทันที",
         "เรากระโดดหลบ เเละปล่อยพลังเวทย์ที่รุนเเรงใส่ ปีศาจเดโม", "ปีศาจเดโมโดนพลังเวทย์เต็มๆ",
-        "ปีศาจเดโม กลัวจะถูกกําจัด เลยใช้ม่านควันสีดําเเละหลบหนี", "พลาดท่าจนได้", "เเต่อย่างน้อยตอนนี้ก็คงจะปลอดภัยเเล้ว", //41-45
+        "ปีศาจเดโม กลัวจะถูกกําจัด เลยใช้ม่านควันสีดําเเละหลบหนี", "พลาดท่าจนได้", "เเต่อย่างน้อยตอนนี้ก็คงจะปลอดภัยเเล้ว",
         "ฉันคิดว่าปีศาจตัวเมื่อกี้ต้องเกี่ยวข้องกับจอมมารเเน่เลย","นี่เรา..ยังไม่ได้กินข้าวกันเลยนี่หน่า","จริงด้วย! งั้นเดี๋ยวฉันรีบไปทําให้นะ",
-        "หลังจากพักผ่อนเเละกินอะไรกันเสร็จเเล้ว","ฉันรู้สึกร้อนมากเลย..","จะไปอาบนํ้าไหมละ ดูเหมือนว่าจะมีลําธารใกล้ๆนะ", //46-51
+        "หลังจากพักผ่อนเเละกินอะไรกันเสร็จเเล้ว","ฉันรู้สึกร้อนมากเลย..","จะไปอาบนํ้าไหมละ ดูเหมือนว่าจะมีลําธารใกล้ๆนะ",
         "จริงหรอ งั้นฉันขอไปอาบนํ้าก่อน","คนลามก!!...","โอเค เดี๋ยวมานะ","อริสกําลังอาบนํ้า",
-        "เเต่จู่ๆ ก็มีเสียง เเปลกๆที่พุ่มไม้", "อริสเห็นเงาคนอยู่หลังพุ่มไม้..", //52-57
+        "เเต่จู่ๆ ก็มีเสียง เเปลกๆที่พุ่มไม้", "อริสเห็นเงาคนอยู่หลังพุ่มไม้..",
     };
 
     public part5() {
-        setTitle("ISEKAI DEMO - Part 5");
+        setTitle("ISEKAI DEMO - Part 5: The Journey Begins");
         setSize(1280, 800); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
+        // แก้ปัญหา: ปิดหน้าต่างแล้วเพลงไม่หยุด
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                stopAllSounds(); 
+                System.exit(0);
+            }
+        });
+
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
+
+        playSE("res/sound/soundtrack8.wav", true, -10.0f);
 
         backgroundLabel = new JLabel();
         backgroundLabel.setBounds(0, 0, 1280, 800);
@@ -163,7 +161,6 @@ public class part5 extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 handleNext();
-                handleNext();
             }
         });
     }
@@ -177,7 +174,6 @@ public class part5 extends JFrame {
             return;
         }
 
-        // --- Logic ทางเลือก (Choices) ---
         if (currentIndex == 9) { 
             showChoices("ฉันกินได้หมดเลย ขอเเค่เป็นอาหารที่เธอทํา", "ฉันยังไงก็ได้", 10, 11);
             return; 
@@ -204,17 +200,38 @@ public class part5 extends JFrame {
         }
     }
 
-    private void updateScene() {
-        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
-        if (currentIndex < imagePaths.length) {
-            backgroundLabel.setIcon(getOptimizedImage(imagePaths[currentIndex], 1000, 800));
+    private void handleSoundEffects(int index) {
+        if (index == 10) playEffect("res/sound/antate.wav", 5.0f);
+        if (index == 19) playEffect("res/sound/jaaaaa.wav", 0.0f);
+        if (index == 22) {
+            stopBGM();
+            playSE("res/sound/soundtrack9.wav", false, -10.0f);
         }
-        updateDialogueDisplay(dialogues[currentIndex]);
+        if (index == 33) playEffect("res/sound/echi.wav", 5.0f);
+        if (index == 39) playEffect("res/sound/winddash.wav", 0.0f);
+        if (index == 46) {
+            stopBGM();
+            playSE("res/sound/soundrack11.wav", false, -10.0f);
+        } 
+        // แก้ไข: หยุด BGM ตั้งแต่ 56 เป็นต้นไป
+        if (index >= 56) {
+            stopBGM();
+        }
+        if (index == 57) playEffect("res/sound/ahhhhh.wav", 0.0f);
+    }
 
-        // เรียกอัปเดตทั้ง 2 เลเยอร์ตัวละคร
+    private void updateScene() {
+        if (currentIndex >= names.length) nameLabel.setText(names[names.length-1]);
+        else nameLabel.setText(names[currentIndex]);
+
+        if (currentIndex < imagePaths.length) {
+            backgroundLabel.setIcon(getOptimizedImage(imagePaths[currentIndex], 1280, 800));
+        }
+
+        handleSoundEffects(currentIndex);
+        updateDialogueDisplay(dialogues[currentIndex]);
         updateCharacterLayer(characterLabel2, charPaths2);
         updateCharacterLayer(characterLabel, charPaths);
-
         layeredPane.repaint();
     }
 
@@ -223,41 +240,19 @@ public class part5 extends JFrame {
             label.setIcon(null);
             return;
         }
-
         String path = paths[currentIndex];
-        
-        // จัดการตำแหน่งปีศาจ (Demogigi)
         if (path.contains("demogigi")) {
             label.setIcon(getOptimizedImage(path, 900, 800));
-            
-            if (currentIndex >= 39) {
-                // ฉากที่ 38 เป็นต้นไป: ปีศาจกลับมาอยู่ตรงกลาง
-                label.setBounds(100, 50, 900, 800); 
-            } else if (currentIndex >= 25) {
-                // ฉากที่ 25-37: ปีศาจขยับไปทางซ้าย
-                label.setBounds(-180, 50, 900, 800); 
-            } else {
-                // ฉากที่ 22-24: ปีศาจอยู่ตรงกลาง (ตอนเปิดตัว)
-                label.setBounds(100, 50, 900, 800); 
-            } 
+            if (currentIndex >= 39) label.setBounds(220, 70, 900, 800); 
+            else if (currentIndex >= 25) label.setBounds(-180, 50, 900, 800); 
+            else label.setBounds(100, 50, 900, 800); 
         }
-        // จัดการตำแหน่ง Alice
         else if (path.contains("Alice")) {
-            label.setIcon(getOptimizedImage(path, 950, 800));
-            
-            if (currentIndex >= 46) {
-                // ฉากที่ 46 เป็นต้นไป: อริสกลับมาอยู่ตรงกลาง
-                label.setBounds(50, 100, 950, 800); 
-            } else if (currentIndex >= 39) {
-                // ฉากที่ 39-45: ปีศาจกลับมาอยู่กลาง อริสหายไปชั่วคราวเพื่อให้ปีศาจเด่น
-                label.setIcon(null); 
-            } else if (currentIndex >= 25) {
-                // ฉากที่ 25-37: อริสยืนฝั่งขวาประจันหน้ากับปีศาจ
-                label.setBounds(230, 80, 950, 800); 
-            } else {
-                // ฉากที่ 0-24: อริสอยู่ตรงกลางปกติ
-                label.setBounds(50, 100, 950, 800); 
-            } 
+            label.setIcon(getOptimizedImage(path, 1200, 800));
+            if (currentIndex >= 46) label.setBounds(50, 100, 950, 800); 
+            else if (currentIndex >= 39) label.setIcon(null); 
+            else if (currentIndex >= 25) label.setBounds(230, 80, 950, 800); 
+            else label.setBounds(80, 100, 1200, 800); 
         }
     }
     
@@ -266,7 +261,6 @@ public class part5 extends JFrame {
         charIndex = 0;
         isTyping = true;
         dialogueArea.setText("");
-        
         typewriterTimer = new Timer(25, e -> {
             if (charIndex < text.length()) {
                 charIndex++;
@@ -279,10 +273,56 @@ public class part5 extends JFrame {
         typewriterTimer.start();
     }
 
+    public void playEffect(String path, float volume) {
+        try {
+            File soundFile = new File(path); 
+            if (soundFile.exists()) {
+                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
+                Clip temporaryClip = AudioSystem.getClip(); 
+                temporaryClip.open(audioIn);
+                FloatControl gainControl = (FloatControl) temporaryClip.getControl(FloatControl.Type.MASTER_GAIN);
+                gainControl.setValue(volume); 
+                temporaryClip.start();
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void playSE(String path, boolean loop, float volume) {
+        try {
+            File soundFile = new File(path);
+            if (!soundFile.exists()) return;
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            gainControl.setValue(volume);
+            if (loop) clip.loop(Clip.LOOP_CONTINUOUSLY);
+            clip.start();
+            if (path.contains("soundtrack")) this.bgmClip = clip;
+            else this.effectClip = clip;
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void stopBGM() {
+        try {
+            if (bgmClip != null) {
+                if (bgmClip.isRunning()) bgmClip.stop();
+                bgmClip.flush();
+                bgmClip.close();
+                bgmClip = null;
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void stopAllSounds() {
+        stopBGM();
+        if (effectClip != null) { effectClip.stop(); effectClip.close(); effectClip = null; }
+    }
+
     private void setupDialogueUI() {
         dialoguePanel = new VisualNovelBox(); 
         dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(50, 550, 900, 180);
+        dialoguePanel.setBounds(180, 550, 900, 180);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         nameLabel = new JLabel("");
@@ -318,13 +358,12 @@ public class part5 extends JFrame {
 
     private JButton createChoiceButton(String text, int y, int target) {
         JButton btn = new JButton(text);
-        btn.setBounds(510, y, 350, 50); // ปรับตำแหน่งปุ่มให้อยู่กลางจอ
+        btn.setBounds(465, y, 450, 50); 
         btn.setFont(new Font("Tahoma", Font.BOLD, 18));
         btn.setForeground(Color.WHITE);
         btn.setBackground(new Color(30, 30, 30, 220)); 
         btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2)); 
-        
         btn.addActionListener(e -> {
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
@@ -335,9 +374,7 @@ public class part5 extends JFrame {
 
     private ImageIcon getOptimizedImage(String path, int w, int h) {
         String key = path + w + h;
-        if (!imageCache.containsKey(key)) {
-            imageCache.put(key, scaleImage(path, w, h));
-        }
+        if (!imageCache.containsKey(key)) imageCache.put(key, scaleImage(path, w, h));
         return imageCache.get(key);
     }
 
@@ -360,16 +397,17 @@ public class part5 extends JFrame {
     }
 
     private void finishGame() {
+        stopAllSounds(); // หยุดทุกอย่างก่อนเด้งหน้าต่าง
         UIManager.put("OptionPane.messageFont", THAI_FONT);
         JOptionPane.showMessageDialog(null, "จบ Part 5: การผจญภัยกำลังจะเริ่มขึ้น!");
         dispose();
+        System.exit(0); // มั่นใจว่าโปรแกรมและ Thread ทั้งหมดถูกปิด
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part5().setVisible(true));
     }
 }
-
 
 class VisualNovelBox extends JPanel {
     private int cornerRadius = 30;
@@ -378,10 +416,7 @@ class VisualNovelBox extends JPanel {
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        GradientPaint gradient = new GradientPaint(
-            0, 0, new Color(245, 250, 255, 180), 
-            0, getHeight(), new Color(255, 235, 245, 230)
-        );
+        GradientPaint gradient = new GradientPaint(0, 0, new Color(245, 250, 255, 180), 0, getHeight(), new Color(255, 235, 245, 230));
         g2.setPaint(gradient);
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
         g2.setColor(new Color(255, 150, 200, 200));

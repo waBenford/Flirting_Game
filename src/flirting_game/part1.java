@@ -144,7 +144,7 @@ public class part1 extends JFrame {
         dialoguePanel = new VisualNovelBox();
         dialoguePanel.setLayout(null);
         // ปรับตำแหน่งกล่องข้อความให้อยู่กลางจอ (x=90, width=1100)
-        dialoguePanel.setBounds(90, 520, 1100, 220);
+        dialoguePanel.setBounds(90, 520, 900, 220);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         nameLabel = new JLabel(names[0]);
