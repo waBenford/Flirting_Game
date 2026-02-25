@@ -103,38 +103,36 @@ public class part1 extends JFrame {
         });
     }
 
-
-
     private void handleNext() {
         if (isFading) return; 
+        
+        // ถ้ากำลังพิมพ์ตัวอักษรอยู่ ให้หยุดและแสดงข้อความเต็มทันที
         if (isAnimating) {
             stopAnimation();
             updateDialogueDisplay(dialogues[currentIndex]);
             return;
         }
 
-        if (currentIndex == 7) stopBGM();
-
-        if (currentIndex == 9 || currentIndex == 12) {
-            performSceneFade(() -> {
-                currentIndex++;
-                handleSoundEffects(currentIndex);
-                updateScene();
-            });
-            return;
-        }
-
-        currentIndex++;
-        if (currentIndex < dialogues.length) {
-            handleSoundEffects(currentIndex);
-            updateScene();
-        } else {
+        // เช็คว่าจบเกมหรือยัง
+        if (currentIndex >= dialogues.length - 1) {
             stopBGM();
             UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
             JOptionPane.showMessageDialog(null, "จบ Part 1 แล้ว! กำลังเข้าสู่บทถัดไป...");
             new part2().setVisible(true);
             dispose();
+            return;
         }
+
+        // สั่ง Fade สำหรับทุกการเปลี่ยนหน้า
+        performSceneFade(() -> {
+            currentIndex++;
+            
+            // จัดการเสียง BGM พิเศษ
+            if (currentIndex == 7) stopBGM();
+            
+            handleSoundEffects(currentIndex);
+            updateScene();
+        });
     }
 
     private void setupDialogueUI() {
@@ -288,24 +286,43 @@ public class part1 extends JFrame {
     }
 
     private void performSceneFade(Runnable onBlack) {
-        isFading = true; alpha = 0.0f;
-        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
-        Timer fadeOut = new Timer(30, null);
+        isFading = true; 
+        alpha = 0.0f;
+        
+        // ตรวจสอบว่า fadeOverlay ถูกเพิ่มเข้าไปใน layeredPane หรือยัง
+        if (fadeOverlay.getParent() == null) {
+            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        }
+        
+        // ขั้นตอนที่ 1: Fade Out (ดำมืด)
+        Timer fadeOut = new Timer(20, null); // เร็วขึ้นเล็กน้อยเพื่อความกระฉับกระเฉง
         fadeOut.addActionListener(e -> {
-            alpha += 0.05f; 
+            alpha += 0.1f; // เพิ่มความเร็วการ Fade
             if (alpha >= 1.0f) {
-                alpha = 1.0f; fadeOut.stop();
+                alpha = 1.0f;
+                fadeOut.stop();
+                
+                // เปลี่ยนฉาก/เสียง ในขณะที่จอมืด
                 onBlack.run(); 
-                Timer waitTimer = new Timer(500, ev -> {
+                
+                // รอสักครู่ (100ms) แล้วค่อย Fade In
+                Timer waitTimer = new Timer(100, ev -> {
                     ((Timer)ev.getSource()).stop();
-                    Timer fadeIn = new Timer(30, eve -> {
-                        alpha -= 0.05f;
-                        if (alpha <= 0) { alpha = 0; ((Timer)eve.getSource()).stop(); isFading = false; }
+                    
+                    // ขั้นตอนที่ 2: Fade In (กลับมาสว่าง)
+                    Timer fadeIn = new Timer(20, eve -> {
+                        alpha -= 0.1f;
+                        if (alpha <= 0) {
+                            alpha = 0;
+                            ((Timer)eve.getSource()).stop();
+                            isFading = false;
+                        }
                         fadeOverlay.repaint();
                     });
                     fadeIn.start();
                 });
-                waitTimer.setRepeats(false); waitTimer.start();
+                waitTimer.setRepeats(false);
+                waitTimer.start();
             }
             fadeOverlay.repaint();
         });
