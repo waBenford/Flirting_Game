@@ -217,7 +217,7 @@ public class part5 extends JFrame {
         if (index >= 56) {
             stopBGM();
         }
-        if (index == 57) playEffect("res/sound/ahhhhh.wav", 0.0f);
+        if (index == 57) playEffect("res/sound/ahhhhh.wav", -5.0f);
     }
 
     private void updateScene() {
@@ -322,7 +322,7 @@ public class part5 extends JFrame {
     private void setupDialogueUI() {
         dialoguePanel = new VisualNovelBox(); 
         dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(180, 550, 900, 180);
+        dialoguePanel.setBounds(225, 520, 800, 200);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         nameLabel = new JLabel("");
@@ -349,20 +349,46 @@ public class part5 extends JFrame {
 
     private void showChoices(String text1, String text2, int t1, int t2) {
         isChoosing = true; 
-        choiceButton1 = createChoiceButton(text1, 420, t1); 
-        choiceButton2 = createChoiceButton(text2, 485, t2); 
+        choiceButton1 = createChoiceButton(text1, 380, t1); //y: ขึ้น=ลง
+        choiceButton2 = createChoiceButton(text2, 450, t2); //y: ขึ้น=ลง
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
     }
 
     private JButton createChoiceButton(String text, int y, int target) {
-        JButton btn = new JButton(text);
-        btn.setBounds(465, y, 450, 50); 
-        btn.setFont(new Font("Tahoma", Font.BOLD, 18));
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(new Color(30, 30, 30, 220)); 
+        JButton btn = new JButton(text) {
+            // Override paintComponent เพื่อวาดปุ่มให้มีขอบโค้งมน
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // วาดพื้นหลังโค้งมน
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+
+                // วาดเส้นขอบโค้งมน
+                g2.setColor(new Color(225, 105, 180)); // สีขอบเดิม
+                g2.setStroke(new BasicStroke(2));   // ความหนาขอบเดิม
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
+
+                g2.dispose();
+
+                // วาดข้อความและส่วนอื่นๆ ทับลงไป
+                super.paintComponent(g);
+            }
+        };
+
+        btn.setBounds(800, y, 350, 60); 
+        btn.setFont(new Font("Tahoma", Font.BOLD, 16));
+        btn.setForeground(new Color(45,65,115)); // สีข้อความ
+        btn.setBackground(new Color(255, 255, 255, 150));  
+        // ตั้งค่าเพื่อให้วาดปุ่มแบบกำหนดเองได้
+        btn.setContentAreaFilled(false);
         btn.setFocusPainted(false);
+        btn.setBorderPainted(false); // ปิดการวาดขอบสี่เหลี่ยมเดิม
+    
         btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2)); 
         btn.addActionListener(e -> {
             layeredPane.remove(choiceButton1);

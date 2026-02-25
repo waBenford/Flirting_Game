@@ -105,9 +105,6 @@ public class part1 extends JFrame {
 
 
 
-
-
-    
     private void handleNext() {
         if (isFading) return; 
         if (isAnimating) {
@@ -144,24 +141,24 @@ public class part1 extends JFrame {
         dialoguePanel = new VisualNovelBox();
         dialoguePanel.setLayout(null);
         // ปรับตำแหน่งกล่องข้อความให้อยู่กลางจอ (x=90, width=1100)
-        dialoguePanel.setBounds(90, 520, 900, 220);
+        dialoguePanel.setBounds(225, 520, 800, 200);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         nameLabel = new JLabel(names[0]);
-        nameLabel.setFont(THAI_FONT_BOLD); 
+        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26)); 
         nameLabel.setForeground(new Color(180, 40, 90));
         nameLabel.setBounds(60, 25, 400, 45);
         dialoguePanel.add(nameLabel);
 
         dialogueArea = new JLabel();
-        dialogueArea.setFont(THAI_FONT_PLAIN);
+        dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22));
         dialogueArea.setForeground(new Color(45, 65, 115));
         dialogueArea.setBounds(60, 85, 980, 110);
         dialogueArea.setVerticalAlignment(SwingConstants.TOP);
         dialoguePanel.add(dialogueArea);
 
         JLabel nextArrow = new JLabel("▼");
-        nextArrow.setFont(new Font("Tahoma", Font.BOLD, 22));
+        nextArrow.setFont(new Font("Tahoma", Font.BOLD, 20));
         nextArrow.setForeground(new Color(0, 153, 255));
         nextArrow.setBounds(1040, 170, 30, 30);
         dialoguePanel.add(nextArrow);

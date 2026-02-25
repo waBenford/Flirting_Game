@@ -55,11 +55,12 @@ public class part2 extends JFrame {
         "res/scene2/alice1.png", "res/scene2/alice1.png", "res/scene2/alice1.png",
         "res/scene2/alice2.png", "res/scene2/alice1.png", "res/scene2/alice2.png",
         "res/scene2/alice1.png", "res/scene2/alice2.png", "res/scene2/alice1.png",
-        "res/scene2/alice2.png", "res/scene2/alice1.png", "res/empty.png", "res/empty.png",
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-        "res/empty.png", "res/empty.png", "res/empty.png"
+        "res/scene2/alice2.png", "res/scene2/alice1.png", "res/scene2/alice1.png", 
+        "res/scene2/alice2.png","res/scene2/alice1.png", "res/scene2/alice2.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png","res/empty.png", "res/empty.png", "res/empty.png"
     };
 
     private String[] names = {
@@ -132,24 +133,24 @@ public class part2 extends JFrame {
         dialoguePanel = new VisualNovelBox();
         dialoguePanel.setLayout(null);
         // ปรับตำแหน่งกล่องข้อความกึ่งกลางหน้าจอใหญ่
-        dialoguePanel.setBounds(90, 520, 1100, 220);
+        dialoguePanel.setBounds(225, 520, 800, 200);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
         nameLabel = new JLabel();
-        nameLabel.setFont(THAI_FONT_BOLD);
+        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26));
         nameLabel.setForeground(new Color(180, 40, 90));
         nameLabel.setBounds(60, 25, 400, 45);
         dialoguePanel.add(nameLabel);
 
         dialogueArea = new JLabel();
-        dialogueArea.setFont(THAI_FONT_PLAIN);
+        dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22));
         dialogueArea.setForeground(new Color(45, 65, 115));
         dialogueArea.setVerticalAlignment(SwingConstants.TOP);
         dialogueArea.setBounds(60, 85, 980, 110);
         dialoguePanel.add(dialogueArea);
 
         JLabel nextArrow = new JLabel("▼");
-        nextArrow.setFont(new Font("Tahoma", Font.BOLD, 22));
+        nextArrow.setFont(new Font("Tahoma", Font.BOLD, 20));
         nextArrow.setForeground(new Color(0, 153, 255));
         nextArrow.setBounds(1040, 170, 30, 30);
         dialoguePanel.add(nextArrow);
@@ -246,7 +247,7 @@ public class part2 extends JFrame {
             backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1280, 800));
         
         if (currentIndex < charPaths.length) {
-            characterLabel.setIcon(scaleImage(charPaths[currentIndex], 900, 900));
+            characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1200, 900));
             characterLabel.setBounds(190, 0, 900, 900);
             if (currentIndex == 0 || !charPaths[currentIndex].equals(charPaths[Math.max(0, currentIndex-1)])) {
                 startCharacterFadeIn();
@@ -345,20 +346,44 @@ public class part2 extends JFrame {
 
     private void showChoices(String text1, String text2, int target1, int target2) {
         isChoosing = true;
-        choiceButton1 = createChoiceButton(text1, 380, target1);
-        choiceButton2 = createChoiceButton(text2, 480, target2);
+        choiceButton1 = createChoiceButton(text1, 380, target1); //y: ขึ้น=ลง
+        choiceButton2 = createChoiceButton(text2, 450, target2); //y: ขึ้น=ลง
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
     }
 
     private JButton createChoiceButton(String text, int y, int targetIndex) {
-        JButton btn = new JButton(text);
-        btn.setBounds(415, y, 450, 75); // ปรับปุ่มกึ่งกลางจอใหญ่
-        btn.setFont(new Font("Tahoma", Font.BOLD, 22));
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(new Color(30, 30, 30, 220));
+        JButton btn = new JButton(text) {
+            // Override paintComponent เพื่อวาดปุ่มให้มีขอบโค้งมน
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // วาดพื้นหลังโค้งมน
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+
+                // วาดเส้นขอบโค้งมน
+                g2.setColor(new Color(225, 105, 180)); // สีขอบเดิม
+                g2.setStroke(new BasicStroke(2));   // ความหนาขอบเดิม
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
+
+                g2.dispose();
+
+                // วาดข้อความและส่วนอื่นๆ ทับลงไป
+                super.paintComponent(g);
+            }
+        };
+
+        btn.setBounds(800, y, 350, 60); // ปรับปุ่มไปทางขวา
+        btn.setFont(new Font("Tahoma", Font.BOLD, 20));
+        btn.setForeground(new Color(45, 65, 115));
+        btn.setBackground(new Color(255, 255, 255, 150));
         btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2));
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
