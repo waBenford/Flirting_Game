@@ -411,7 +411,7 @@ public class part5 extends JFrame {
     }
 
     private void startFadeIn() {
-        Timer fadeTimer = new Timer(40, e -> {
+        Timer fadeTimer = new Timer(30, e -> {
             alpha -= 0.05f;
             if (alpha <= 0) {
                 alpha = 0; ((Timer)e.getSource()).stop();
