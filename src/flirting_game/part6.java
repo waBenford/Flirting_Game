@@ -188,7 +188,6 @@ public class part6 extends JFrame {
                 characterLabel.setIcon(scaleImage(path, 1200, 900));
             }
         }
-        stopEffect();
         handleSoundEffects(currentIndex);
         layeredPane.repaint();
     }
@@ -244,10 +243,10 @@ public class part6 extends JFrame {
         if (index == 14){
             playEffect("res/sound/Baka janai no.wav", 5.0f);
         }
-        if (index == 37){
-            playEffect("res/sound/wakaarunai.wav", 5.0f);
+        if (index == 36){
+            playEffect("res/sound/wakarunai.wav", 5.0f);
         }
-        if (index == 38){
+        if (index == 37){
             playEffect("res/sound/soredeiikedo.wav", 5.0f);
         }
         if (index == 44){
@@ -317,16 +316,23 @@ public class part6 extends JFrame {
             File soundFile = new File(path); 
             if (soundFile.exists()) {
                 AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
-                stopEffect();
+                
+                // สั่งหยุดเสียงเก่าที่เล่นค้างอยู่ก่อนจะเริ่มเสียงใหม่
+                stopEffect(); 
 
-                Clip temporaryClip = AudioSystem.getClip(); 
-                temporaryClip.open(audioIn);
+                // เปลี่ยนมาใช้ effectClip ของคลาส เพื่อให้ stopEffect() หาเจอและควบคุมได้
+                effectClip = AudioSystem.getClip(); 
+                effectClip.open(audioIn);
 
-                FloatControl gainControl = (FloatControl) temporaryClip.getControl(FloatControl.Type.MASTER_GAIN);
+                FloatControl gainControl = (FloatControl) effectClip.getControl(FloatControl.Type.MASTER_GAIN);
                 gainControl.setValue(volume); 
-                temporaryClip.start();
+                effectClip.start();
+            } else {
+                System.err.println("ไม่พบไฟล์เสียง: " + path);
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+        }
     }
 
     private void playSE(String path, boolean loop, float volume) {
@@ -399,10 +405,15 @@ public class part6 extends JFrame {
     }
 
     private void finishGame() {
-        stopAllSounds();
+        stopAllSounds(); // หยุดเสียงทั้งหมดของ Part 6 ก่อน
+        // แสดงข้อความแจ้งเตือน (Optional: ถ้าไม่ต้องการให้เด้งถามก็ลบบรรทัด JOptionPane ออกได้เลยครับ)
         UIManager.put("OptionPane.messageFont", THAI_FONT);
-        JOptionPane.showMessageDialog(null, "End Part 6!");
-        System.exit(0);
+        JOptionPane.showMessageDialog(null, "จบเนื้อเรื่อง part6 กำลังเข้าสู่ part7...");
+        // --- ส่วนสำคัญ: คำสั่งเปิด Part 7 ---
+        SwingUtilities.invokeLater(() -> {
+            new part7().setVisible(true); // สร้างและแสดงหน้าจอ Part 7
+            dispose(); // ปิดหน้าจอ Part 6 ทิ้งไป
+        });
     }
 
     public ImageIcon scaleImage(String path, int width, int height) {

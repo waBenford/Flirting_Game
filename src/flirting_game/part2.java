@@ -479,6 +479,18 @@ public class part2 extends JFrame {
         typewriterTimer.start();
     }
 
+    private ImageIcon getOptimizedImage(String path, int w, int h) {
+        String key = path + w + h;
+        if (!imageCache.containsKey(key)) {
+            try {
+                ImageIcon icon = new ImageIcon(path);
+                Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                imageCache.put(key, new ImageIcon(img));
+            } catch (Exception e) { return null; }
+        }
+        return imageCache.get(key);
+    }
+
     private void startFadeIn() {
         Timer fadeTimer = new Timer(50, e -> {
             alpha -= 0.05f;

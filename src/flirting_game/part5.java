@@ -423,11 +423,17 @@ public class part5 extends JFrame {
     }
 
     private void finishGame() {
-        stopAllSounds(); // หยุดทุกอย่างก่อนเด้งหน้าต่าง
+        stopAllSounds(); // หยุดเสียงทั้งหมดของ Part 6 ก่อน
+        
+        // แสดงข้อความแจ้งเตือน (Optional: ถ้าไม่ต้องการให้เด้งถามก็ลบบรรทัด JOptionPane ออกได้เลยครับ)
         UIManager.put("OptionPane.messageFont", THAI_FONT);
-        JOptionPane.showMessageDialog(null, "จบ Part 5: การผจญภัยกำลังจะเริ่มขึ้น!");
-        dispose();
-        System.exit(0); // มั่นใจว่าโปรแกรมและ Thread ทั้งหมดถูกปิด
+        JOptionPane.showMessageDialog(null, "จบเนื้อเรื่อง part5 กำลังเข้าสู่ part6...");
+        
+        // --- ส่วนสำคัญ: คำสั่งเปิด Part 7 ---
+        SwingUtilities.invokeLater(() -> {
+            new part6().setVisible(true); // สร้างและแสดงหน้าจอ Part 7
+            dispose(); // ปิดหน้าจอ Part 6 ทิ้งไป
+        });
     }
 
     public static void main(String[] args) {
