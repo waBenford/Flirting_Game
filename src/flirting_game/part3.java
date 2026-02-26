@@ -2,7 +2,11 @@ package flirting_game;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sound.sampled.AudioInputStream;
@@ -29,6 +33,8 @@ public class part3 extends JFrame {
     private float charAlpha = 0.0f; 
     private Timer charFadeTimer;
     private boolean isFading = false;
+
+    private PrintWriter networkOut;
 
     private Map<String, ImageIcon> imageCache = new HashMap<>();
 
@@ -130,6 +136,7 @@ public class part3 extends JFrame {
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
+        initNetwork();
         setupStatusUI();
 
         fadeOverlay = new JPanel() {
@@ -155,15 +162,18 @@ public class part3 extends JFrame {
     }
 
     private void handleNext() {
+        // 1. ป้องกันการคลิกซ้ำขณะเลือกตอบหรือกำลัง Fade ฉาก
         if (isChoosing || isFading) return; 
 
+        // 2. ถ้าตัวอักษรกำลังพิมพ์อยู่ ให้หยุดและแสดงข้อความเต็มทันที
         if (isTyping) {
-            typewriterTimer.stop();
+            if (typewriterTimer != null) typewriterTimer.stop();
             isTyping = false;
             dialogueArea.setText("<html><body style='width: 950px;'>" + dialogues[currentIndex] + "</body></html>");
             return;
         }
 
+        // 3. ระบบเลือกตอบ (Choice) ตามเนื้อเรื่องของ Part 3
         if (currentIndex == 14) {
             showChoices("..ปีศาจนี่เหมือนผีรึเปล่า??", "..เอ่อ..แล้วเผ่าอื่นๆหละ??", 15, 16);
             return;
@@ -173,22 +183,32 @@ public class part3 extends JFrame {
             return;
         }
 
+        // 4. คำนวณลำดับถัดไป (จัดการกระโดดข้าม Index หลังจากเลือกตอบ)
         int nextIndex = currentIndex;
         if (currentIndex == 15 || currentIndex == 16) nextIndex = 17;
         else if (currentIndex == 33 || currentIndex == 34) nextIndex = 35;
-        else nextIndex++;
+        else nextIndex = currentIndex + 1;
 
+        // 5. ตรวจสอบว่ายังไม่จบ Part
         if (nextIndex < dialogues.length) {
             String currentBG = imagePaths[Math.min(currentIndex, imagePaths.length-1)];
             String nextBG = imagePaths[Math.min(nextIndex, imagePaths.length-1)];
+            
             currentIndex = nextIndex;
 
+            // --- ส่วนสำคัญ: ส่งลำดับฉากไปหาเครื่องเพื่อน ---
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("SYNC_INDEX:" + currentIndex);
+            }
+
+            // 6. ตรวจสอบว่าต้อง Fade พื้นหลังหรือไม่ (ถ้าเปลี่ยนรูป s1 เป็น s2)
             if (!currentBG.equals(nextBG)) {
                 triggerSceneFade();
             } else {
                 updateScene();
             }
         } else {
+            // เมื่อจบ Part 3
             stopBGM();
             UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
             JOptionPane.showMessageDialog(null, "จบ Part 3 แล้ว!");
@@ -360,6 +380,33 @@ public class part3 extends JFrame {
 
     private void stopEffect() {
         if (effectClip != null) { effectClip.stop(); effectClip.close(); effectClip = null; }
+    }
+
+    private void initNetwork() {
+        if (!relationdata.isOnlineMode) return;
+        
+        new Thread(() -> {
+            try {
+                Socket socket = new Socket(relationdata.serverIP, 5000);
+                networkOut = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("SYNC_INDEX:")) {
+                        int remoteIndex = Integer.parseInt(line.substring(11));
+                        SwingUtilities.invokeLater(() -> {
+                            if (remoteIndex != currentIndex) {
+                                currentIndex = remoteIndex;
+                                updateScene();
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private void handleSoundEffects(int index) {

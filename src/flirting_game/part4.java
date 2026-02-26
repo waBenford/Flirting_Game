@@ -3,7 +3,11 @@ package flirting_game;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sound.sampled.AudioInputStream;
@@ -28,6 +32,8 @@ public class part4 extends JFrame {
     private int charIndex = 0;
     private boolean isTyping = false;
     private Map<String, ImageIcon> imageCache = new HashMap<>();
+
+    private PrintWriter networkOut;
     
     // --- ฟอนต์ภาษาไทยสำหรับจอ 1280 ---
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
@@ -162,6 +168,7 @@ public class part4 extends JFrame {
         layeredPane.add(characterLabel2, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
+        initNetwork();
 
         fadeOverlay = new JPanel() {
             @Override
@@ -186,57 +193,58 @@ public class part4 extends JFrame {
     }
 
     private void handleNext() {
+        // 1. ป้องกันการคลิกซ้ำขณะกำลังเลือกตอบ
         if (isChoosing) return;
 
+        // 2. ถ้าตัวอักษรกำลังพิมพ์อยู่ ให้หยุดและแสดงข้อความเต็มทันที
         if (isTyping) {
-            typewriterTimer.stop();
+            if (typewriterTimer != null) typewriterTimer.stop();
             isTyping = false;
             dialogueArea.setText("<html><body style='width: 950px;'>" + dialogues[currentIndex] + "</body></html>");
             return;
         }
 
-        // --- Choice Logic ---
+        // 3. ระบบ Choice Logic สำหรับ Part 4
         if (currentIndex == 10) { 
             showChoices("น่ารักมากๆเลย เหมาะกับเธอสุดๆ", "ก็พอได้นะ", 11, 12); 
             return; 
         } 
-        if (currentIndex == 11) { 
-            currentIndex = 13; 
-            updateScene(); 
-            return; 
-        }
+        
         if (currentIndex == 17) { 
             showChoices("ฉันชอบอาหารฝีมือเธอที่สุดเลย", "ก็อร่อยดีนะ", 18, 19); 
             return; 
         }
-        if (currentIndex == 18) { 
-            currentIndex = 20; 
-            updateScene(); 
-            return; 
-        }
+        
         if (currentIndex == 38) { 
             showChoices("พุ่งเข้าไปปกป้องอริส", "บอกให้อริสหลบเอง", 39, 40); 
             return; 
         }
-        if (currentIndex == 39) { 
-            currentIndex = 41; 
-            updateScene(); 
-            return; 
-        }
+        
         if (currentIndex == 57) { 
             showChoices("เราจะไปเดทกันไงละจ๊ะ อริสจัง", "ที่อยู่ของจอมมารยังไงหละ ", 58, 59);
             return; 
         }
-        if (currentIndex == 58) { 
-            currentIndex = 60; 
-            updateScene(); 
-            return; 
-        }
 
-        if (currentIndex < dialogues.length - 1) {
-            currentIndex++;
+        // 4. การกระโดดข้าม Index หลังจากเลือกตอบเสร็จ (เพื่อข้ามฉากของตัวเลือกอื่น)
+        int nextIndex = currentIndex;
+        if (currentIndex == 11 || currentIndex == 12) nextIndex = 13;
+        else if (currentIndex == 18 || currentIndex == 19) nextIndex = 20;
+        else if (currentIndex == 39 || currentIndex == 40) nextIndex = 41;
+        else if (currentIndex == 58 || currentIndex == 59) nextIndex = 60;
+        else nextIndex = currentIndex + 1;
+
+        // 5. ตรวจสอบว่ายังไม่จบ Part
+        if (nextIndex < dialogues.length) {
+            currentIndex = nextIndex;
+
+            // --- ส่วนสำคัญ: ส่งเลขฉากปัจจุบันไปหาเพื่อนคนอื่น ---
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("SYNC_INDEX:" + currentIndex);
+            }
+
             updateScene();
         } else {
+            // เมื่อจบ Part 4
             finishGame();
         }
     }
@@ -468,6 +476,33 @@ public class part4 extends JFrame {
             isChoosing = false; currentIndex = target; updateScene(); 
         });
         return btn;
+    }
+
+    private void initNetwork() {
+        if (!relationdata.isOnlineMode) return;
+        
+        new Thread(() -> {
+            try {
+                Socket socket = new Socket(relationdata.serverIP, 5000);
+                networkOut = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("SYNC_INDEX:")) {
+                        int remoteIndex = Integer.parseInt(line.substring(11));
+                        SwingUtilities.invokeLater(() -> {
+                            if (remoteIndex != currentIndex) {
+                                currentIndex = remoteIndex;
+                                updateScene();
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public static void main(String[] args) {

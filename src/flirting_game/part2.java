@@ -3,7 +3,11 @@ package flirting_game;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sound.sampled.*;
@@ -34,6 +38,8 @@ public class part2 extends JFrame {
     private float charAlpha = 0.0f;
     private Timer charFadeTimer;
     private boolean isFading = false;
+
+    private PrintWriter networkOut;
 
     // --- Fonts for 1280x800 ---
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
@@ -115,6 +121,7 @@ public class part2 extends JFrame {
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
+        initNetwork();
         setupRelationshipUI();
         setupFadeOverlay();
 
@@ -191,31 +198,52 @@ public class part2 extends JFrame {
     }
 
     private void handleInteraction() {
+        // 1. ป้องกันการคลิกซ้ำขณะเลือกตอบหรือกำลัง Fade ฉาก
         if (isChoosing || isFading) return;
+        
+        // 2. ถ้าตัวอักษรกำลังพิมพ์อยู่ ให้หยุดและแสดงข้อความเต็มทันที
         if (isAnimating) {
             stopAnimation();
             updateDialogueDisplay(dialogues[currentIndex]);
             return;
         }
 
+        // 3. ระบบเลือกตอบ (Choice) ที่จุด currentIndex == 7
         if (currentIndex == 7) {
             showChoices("ฉันไม่รู้ (ฉันยังไม่ไว้ใจใคร)", "ฉันจําชื่อตัวเองไม่ได้", 8, 9);
             return;
         }
 
-        if (currentIndex == 8) { currentIndex = 10; updateScene(); return; }
+        // 4. จัดการข้ามลำดับหลังจากเลือกตอบ (ถ้าอยู่ 8 ให้กระโดดไป 10 เพื่อเลี่ยง 9)
+        if (currentIndex == 8) { 
+            currentIndex = 10; 
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("SYNC_INDEX:" + currentIndex);
+            }
+            updateScene(); 
+            return; 
+        }
 
+        // 5. จัดการจุดที่ต้องมีการ Fade ฉากเป็นพิเศษ (Index: 10, 14, 19)
         if (currentIndex == 10 || currentIndex == 14 || currentIndex == 19) {
             performSceneFade(() -> {
-                currentIndex++; updateScene();
+                currentIndex++; 
+                if (relationdata.isOnlineMode && networkOut != null) {
+                    networkOut.println("SYNC_INDEX:" + currentIndex);
+                }
+                updateScene();
                 if (currentIndex == 15) playEffect("res/sound/water.wav", 5.0f);
             });
             return;
         }
 
+        // 6. จัดการจุดเปลี่ยนฉากพิเศษที่ Index 17
         if (currentIndex == 17) {
             performSceneFade(() -> {
                 currentIndex++;
+                if (relationdata.isOnlineMode && networkOut != null) {
+                    networkOut.println("SYNC_INDEX:" + currentIndex);
+                }
                 if (effectClip != null) effectClip.stop();
                 handleSoundEffects(currentIndex);
                 updateScene();
@@ -223,11 +251,19 @@ public class part2 extends JFrame {
             return;
         }
 
-        currentIndex++;
-        if (currentIndex < dialogues.length) {
+        // 7. การคลิกเปลี่ยนฉากทั่วไป
+        if (currentIndex < dialogues.length - 1) {
+            currentIndex++;
+            
+            // ส่งลำดับฉากไปหาเครื่องเพื่อน
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("SYNC_INDEX:" + currentIndex);
+            }
+            
             handleSoundEffects(currentIndex);
             updateScene();
         } else {
+            // เมื่อจบ Part 2 ให้ไป Part 3
             finishPart();
         }
     }
@@ -459,6 +495,33 @@ public class part2 extends JFrame {
             fadeOverlay.repaint();
         });
         fadeOut.start();
+    }
+
+    private void initNetwork() {
+        if (!relationdata.isOnlineMode) return;
+        
+        new Thread(() -> {
+            try {
+                Socket socket = new Socket(relationdata.serverIP, 5000);
+                networkOut = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("SYNC_INDEX:")) {
+                        int remoteIndex = Integer.parseInt(line.substring(11));
+                        SwingUtilities.invokeLater(() -> {
+                            if (remoteIndex != currentIndex) {
+                                currentIndex = remoteIndex;
+                                updateScene();
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public static void main(String[] args) {

@@ -3,7 +3,12 @@ package flirting_game;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+
 import javax.sound.sampled.*;
 import javax.swing.*;
 
@@ -21,6 +26,8 @@ public class part1 extends JFrame {
     private VisualNovelBox dialoguePanel; 
     private int currentIndex = 0;
     private boolean isFading = false;
+
+    private PrintWriter networkOut;
 
     // --- ฟอนต์ภาษาไทยสำหรับจอ 1280 ---
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
@@ -79,6 +86,7 @@ public class part1 extends JFrame {
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
+        initNetwork();
 
         // แผ่นดำสำหรับ Fade In (1280x800)
         fadeOverlay = new JPanel() {
@@ -104,30 +112,42 @@ public class part1 extends JFrame {
     }
 
     private void handleNext() {
+        // 1. ป้องกันการคลิกซ้ำขณะกำลัง Fade ฉาก
         if (isFading) return; 
         
-        // ถ้ากำลังพิมพ์ตัวอักษรอยู่ ให้หยุดและแสดงข้อความเต็มทันที
+        // 2. ถ้าตัวอักษรกำลังพิมพ์อยู่ ให้หยุดและแสดงข้อความเต็มทันที
         if (isAnimating) {
             stopAnimation();
             updateDialogueDisplay(dialogues[currentIndex]);
             return;
         }
 
-        // เช็คว่าจบเกมหรือยัง
+        // 3. ตรวจสอบว่าถึงบทสนทนาสุดท้ายหรือยัง
         if (currentIndex >= dialogues.length - 1) {
             stopBGM();
             UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
             JOptionPane.showMessageDialog(null, "จบ Part 1 แล้ว! กำลังเข้าสู่บทถัดไป...");
+            
+            // ส่งสถานะจบ Part ไปยังเครื่องอื่น (ถ้าต้องการให้ซิงค์การเปลี่ยนไฟล์ Part)
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("END_PART:1");
+            }
+            
             new part2().setVisible(true);
             dispose();
             return;
         }
 
-        // สั่ง Fade สำหรับทุกการเปลี่ยนหน้า
+        // 4. เริ่มกระบวนการเปลี่ยนฉากพร้อม Fade
         performSceneFade(() -> {
-            currentIndex++;
+            currentIndex++; // เลื่อนไปยังลำดับถัดไป
             
-            // จัดการเสียง BGM พิเศษ
+            // --- ส่วนสำคัญ: ส่งลำดับฉากปัจจุบันไปหาเพื่อนคนอื่นในวง Online ---
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("SYNC_INDEX:" + currentIndex);
+            }
+            
+            // จัดการเสียง BGM พิเศษใน Part 1
             if (currentIndex == 7) stopBGM();
             
             handleSoundEffects(currentIndex);
@@ -327,6 +347,33 @@ public class part1 extends JFrame {
             fadeOverlay.repaint();
         });
         fadeOut.start();
+    }
+
+    private void initNetwork() {
+        if (!relationdata.isOnlineMode) return;
+        
+        new Thread(() -> {
+            try {
+                Socket socket = new Socket(relationdata.serverIP, 5000);
+                networkOut = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("SYNC_INDEX:")) {
+                        int remoteIndex = Integer.parseInt(line.substring(11));
+                        SwingUtilities.invokeLater(() -> {
+                            if (remoteIndex != currentIndex) {
+                                currentIndex = remoteIndex;
+                                updateScene();
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public static void main(String[] args) {
