@@ -40,6 +40,18 @@ public class menu {
         JButton settingBtn = createImageButton("res/buttons/buttonSetting.png", btnW, btnH);
         JButton exitBtn = createImageButton("res/buttons/buttonExit.png", btnW, btnH);
 
+        JButton onlineBtn = createImageButton("res/buttons/buttonOnline.png", btnW, btnH); // สมมติว่ามีรูปปุ่ม
+        onlineBtn.addActionListener(e -> {
+            String ip = JOptionPane.showInputDialog(frame, "กรุณาใส่ IP Server ของเพื่อน:", "Join Online", JOptionPane.QUESTION_MESSAGE);
+            if (ip != null && !ip.isEmpty()) {
+                relationdata.isOnlineMode = true;
+                relationdata.serverIP = ip; // เก็บ IP ไว้ใน relationdata
+                new part1().setVisible(true);
+                frame.dispose();
+            }
+        });
+        buttonPanel.add(onlineBtn);
+
         // --- เพิ่มฟังก์ชันการกดปุ่ม (Actions) ---
 
         // ปุ่ม Start: ปิดหน้าเมนูแล้วไปหน้า part1

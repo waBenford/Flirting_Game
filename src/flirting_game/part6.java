@@ -3,7 +3,11 @@ package flirting_game;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sound.sampled.AudioInputStream;
@@ -27,6 +31,8 @@ public class part6 extends JFrame {
     private int charIndex = 0;
     private boolean isTyping = false;
     private Map<String, ImageIcon> imageCache = new HashMap<>();
+
+    private PrintWriter networkOut;
     
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 28);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
@@ -125,6 +131,7 @@ public class part6 extends JFrame {
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
+        initNetwork();
         updateScene();
 
         layeredPane.addMouseListener(new MouseAdapter() {
@@ -194,39 +201,54 @@ public class part6 extends JFrame {
     }
 
     private void handleNext() {
+        // 1. ป้องกันการคลิกซ้ำขณะกำลังเลือกตอบ
         if (isChoosing) return;
+
+        // 2. ถ้าตัวอักษรกำลังพิมพ์อยู่ ให้หยุดและแสดงข้อความเต็มทันที
         if (isTyping) {
             stopTypewriter();
             dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
             return;
         }
 
-        // --- Choice Logic ---
-        // Choice 1: 
+        // 3. ระบบ Choice Logic สำหรับ Part 6
+        // Choice 1: อริสถามเรื่องความสำคัญ
         if (currentIndex == 7) {
             showChoices("ก็เธอสําคัญกับฉันนี่", "ใครๆก็ต้องช่วยเพื่อนอยู่แล้ว", 8, 9);
             return;
         }
-        if (currentIndex == 8) { currentIndex = 10; updateScene(); return; }
 
-        // Choice 2: 
+        // Choice 2: Dan ถามว่าเป็นคู่รักกันหรอ
         if (currentIndex == 12) {
             showChoices("ตอนนี้อาจจะยังไม่ใช่เเต่อนาคตไม่เเน่", "ถ้าเธออยากเป็นก็ได้นะ", 13, 14);
             return;
         }
-        if (currentIndex == 13) { currentIndex = 15; updateScene(); return; }
 
-        // Choice 3: 
+        // Choice 3: การตัดสินใจเดินทางร่วมกับ Dan
         if (currentIndex == 35) {
             showChoices("ถ้าเกิดอะไรขึ้น ฉันจะปกป้องเธอเอง", " เพราะงั้น ไม่ต้องห่วงหรอก", 36, 37);
             return;
         }
-        if (currentIndex == 36) { currentIndex = 38; updateScene(); return; }
 
-        if (currentIndex < dialogues.length - 1) {
-            currentIndex++;
+        // 4. การกระโดดข้าม Index หลังจากเลือกตอบเสร็จ (เพื่อข้ามฉากของตัวเลือกอื่น)
+        int nextIndex = currentIndex;
+        if (currentIndex == 8 || currentIndex == 9) nextIndex = 10;
+        else if (currentIndex == 13 || currentIndex == 14) nextIndex = 15;
+        else if (currentIndex == 36 || currentIndex == 37) nextIndex = 38;
+        else nextIndex = currentIndex + 1;
+
+        // 5. ตรวจสอบว่ายังไม่จบ Part
+        if (nextIndex < dialogues.length) {
+            currentIndex = nextIndex;
+
+            // --- ส่วนสำคัญ: ส่งเลขฉากปัจจุบันไปหาเพื่อนคนอื่นในวง Online ---
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("SYNC_INDEX:" + currentIndex);
+            }
+
             updateScene();
         } else {
+            // เมื่อจบ Part 6 (สามารถเปลี่ยนเป็นเปิด Part 7 ได้เลย)
             finishGame();
         }
     }
@@ -327,6 +349,33 @@ public class part6 extends JFrame {
                 temporaryClip.start();
             }
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void initNetwork() {
+        if (!relationdata.isOnlineMode) return;
+        
+        new Thread(() -> {
+            try {
+                Socket socket = new Socket(relationdata.serverIP, 5000);
+                networkOut = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("SYNC_INDEX:")) {
+                        int remoteIndex = Integer.parseInt(line.substring(11));
+                        SwingUtilities.invokeLater(() -> {
+                            if (remoteIndex != currentIndex) {
+                                currentIndex = remoteIndex;
+                                updateScene();
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private void playSE(String path, boolean loop, float volume) {
