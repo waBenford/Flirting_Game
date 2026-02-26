@@ -3,11 +3,7 @@ package flirting_game;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sound.sampled.AudioInputStream;
@@ -31,8 +27,6 @@ public class part5 extends JFrame {
     private int charIndex = 0;
     private boolean isTyping = false;
     private Map<String, ImageIcon> imageCache = new HashMap<>();
-
-    private PrintWriter networkOut;
     
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 24);
 
@@ -148,7 +142,6 @@ public class part5 extends JFrame {
         layeredPane.add(characterLabel2, Integer.valueOf(101));
 
         setupDialogueUI();
-        initNetwork();
         
         fadeOverlay = new JPanel() {
             @Override
@@ -173,10 +166,7 @@ public class part5 extends JFrame {
     }
 
     private void handleNext() {
-        // 1. ป้องกันการคลิกซ้ำขณะกำลังเลือกตอบ
         if (isChoosing) return;
-
-        // 2. ถ้าตัวอักษรกำลังพิมพ์อยู่ ให้หยุดและแสดงข้อความเต็มทันที
         if (isTyping) {
             if (typewriterTimer != null) typewriterTimer.stop();
             isTyping = false;
@@ -184,41 +174,28 @@ public class part5 extends JFrame {
             return;
         }
 
-        // 3. ระบบ Choice Logic สำหรับ Part 5
         if (currentIndex == 9) { 
             showChoices("ฉันกินได้หมดเลย ขอเเค่เป็นอาหารที่เธอทํา", "ฉันยังไงก็ได้", 10, 11);
             return; 
         }
-        
+        if (currentIndex == 10 ) { currentIndex = 12; updateScene(); return; }
+
         if (currentIndex == 31) { 
             showChoices("ฉันจะไม่ยกอริสให้เเกเด็ดขาด", "ไม่มีวัน เพราะอริสเป็นของฉันคนเดียวเท่านั้น", 32, 33);
             return; 
         }
-        
+        if (currentIndex == 32 ) { currentIndex = 34; updateScene(); return; }
+
         if (currentIndex == 52) { 
-            showChoices("ให้ฉันไปอาบด้วยมั้ยหละ?", "เดี๋ยวฉันจะรอตรงนี้นะ มีอะไรก็เรียกได้เลย", 53, 54);
+            showChoices("ให้ฉันไปอาบด้วยมั้ยหละ?", "เดี๋ยวฉันจะรอจรงนี้นะ มีอะไรก็เรียกได้เลย", 53, 54);
             return; 
         }
+        if (currentIndex == 53 ) { currentIndex = 55; updateScene(); return; }
 
-        // 4. การกระโดดข้าม Index หลังจากเลือกตอบเสร็จ
-        int nextIndex = currentIndex;
-        if (currentIndex == 10 || currentIndex == 11) nextIndex = 12;
-        else if (currentIndex == 32 || currentIndex == 33) nextIndex = 34;
-        else if (currentIndex == 53 || currentIndex == 54) nextIndex = 55;
-        else nextIndex = currentIndex + 1;
-
-        // 5. ตรวจสอบว่ายังไม่จบ Part
-        if (nextIndex < dialogues.length) {
-            currentIndex = nextIndex;
-
-            // --- ส่วนสำคัญ: ส่งเลขฉากปัจจุบันไปหาเพื่อนคนอื่น ---
-            if (relationdata.isOnlineMode && networkOut != null) {
-                networkOut.println("SYNC_INDEX:" + currentIndex);
-            }
-
+        if (currentIndex < dialogues.length - 1) {
+            currentIndex++;
             updateScene();
         } else {
-            // เมื่อจบ Part 5
             finishGame();
         }
     }
@@ -368,33 +345,6 @@ public class part5 extends JFrame {
         dialoguePanel.add(nextArrow);
         Timer arrowTimer = new Timer(500, ev -> nextArrow.setVisible(!nextArrow.isVisible()));
         arrowTimer.start();
-    }
-
-    private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
-        
-        new Thread(() -> {
-            try {
-                Socket socket = new Socket(relationdata.serverIP, 5000);
-                networkOut = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                String line;
-                while ((line = in.readLine()) != null) {
-                    if (line.startsWith("SYNC_INDEX:")) {
-                        int remoteIndex = Integer.parseInt(line.substring(11));
-                        SwingUtilities.invokeLater(() -> {
-                            if (remoteIndex != currentIndex) {
-                                currentIndex = remoteIndex;
-                                updateScene();
-                            }
-                        });
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 
     private void showChoices(String text1, String text2, int t1, int t2) {
