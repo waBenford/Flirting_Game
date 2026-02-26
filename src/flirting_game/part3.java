@@ -34,6 +34,10 @@ public class part3 extends JFrame {
     private Timer charFadeTimer;
     private boolean isFading = false;
 
+    private JPanel statusOverlay;
+    private JLabel onlineCountLabel, affinityStatusLabel;
+    private String allPlayersData = "";
+
     private PrintWriter networkOut;
 
     private Map<String, ImageIcon> imageCache = new HashMap<>();
@@ -111,6 +115,8 @@ public class part3 extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
 
+        setFocusTraversalKeysEnabled(false);
+
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
         
@@ -136,8 +142,16 @@ public class part3 extends JFrame {
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
+        setupRelationshipUI();
+        setupStatusOverlay(); 
+        setupTabKeyBinding(); 
+        this.addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+            @Override public void windowGainedFocus(java.awt.event.WindowEvent e) {}
+            @Override public void windowLostFocus(java.awt.event.WindowEvent e) {
+                if (statusOverlay != null) statusOverlay.setVisible(false); // ปิด Scoreboard เมื่อสลับจอ
+            }
+        });
         initNetwork();
-        setupStatusUI();
 
         fadeOverlay = new JPanel() {
             @Override
@@ -191,30 +205,57 @@ public class part3 extends JFrame {
 
         // 5. ตรวจสอบว่ายังไม่จบ Part
         if (nextIndex < dialogues.length) {
+            // ตรวจสอบชื่อไฟล์ภาพเพื่อตัดสินใจว่าจะ Fade หรือไม่
             String currentBG = imagePaths[Math.min(currentIndex, imagePaths.length-1)];
             String nextBG = imagePaths[Math.min(nextIndex, imagePaths.length-1)];
             
             currentIndex = nextIndex;
 
-            // --- ส่วนสำคัญ: ส่งลำดับฉากไปหาเครื่องเพื่อน ---
+            // --- ส่วนสำคัญ: ส่งลำดับฉากไปหาเครื่องเพื่อนและบันทึกลง SQL (ผ่าน Server) ---
             if (relationdata.isOnlineMode && networkOut != null) {
                 networkOut.println("SYNC_INDEX:" + currentIndex);
             }
 
-            // 6. ตรวจสอบว่าต้อง Fade พื้นหลังหรือไม่ (ถ้าเปลี่ยนรูป s1 เป็น s2)
+            // 6. ตรวจสอบการเปลี่ยนภาพพื้นหลัง
             if (!currentBG.equals(nextBG)) {
-                triggerSceneFade();
+                triggerSceneFade(); // ถ้าภาพเปลี่ยนให้ใช้ Effect Fade
             } else {
-                updateScene();
+                updateScene(); // ถ้าภาพเดิมให้อัปเดตแค่บทสนทนา
             }
         } else {
-            // เมื่อจบ Part 3
+            // เมื่อจบ Part 3 ให้หยุดเพลงและไป Part 4
             stopBGM();
             UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
             JOptionPane.showMessageDialog(null, "จบ Part 3 แล้ว!");
             new part4().setVisible(true);
             dispose(); 
         }
+    }
+
+    private void setupRelationshipUI() {
+        JPanel relPanel = new JPanel(new GridLayout(2, 1));
+        relPanel.setBounds(25, 25, 300, 70);
+        relPanel.setOpaque(false);
+        affinityLabel = new JLabel("ความสนิท: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
+        affinityLabel.setForeground(Color.WHITE);
+        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
+        statusLabel.setForeground(new Color(255, 204, 0));
+        relPanel.add(affinityLabel); relPanel.add(statusLabel);
+        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
+    }
+
+    private void setupTabKeyBinding() {
+        // ใช้คำสั่งนี้เพื่อให้โปรแกรมรับคำสั่งจาก Keyboard ได้แน่นอนขึ้น
+        layeredPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("TAB"), "toggleTab");
+        layeredPane.getActionMap().put("toggleTab", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                // บังคับสลับสถานะการมองเห็น
+                statusOverlay.setVisible(!statusOverlay.isVisible()); 
+            }
+        });
     }
 
     private void triggerSceneFade() {
@@ -384,28 +425,29 @@ public class part3 extends JFrame {
 
     private void initNetwork() {
         if (!relationdata.isOnlineMode) return;
-        
         new Thread(() -> {
             try {
                 Socket socket = new Socket(relationdata.serverIP, 5000);
                 networkOut = new PrintWriter(socket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
+                networkOut.println("SET_NAME:" + relationdata.playerName);
+                networkOut.println("SET_PART:3");
+
                 String line;
                 while ((line = in.readLine()) != null) {
-                    if (line.startsWith("SYNC_INDEX:")) {
-                        int remoteIndex = Integer.parseInt(line.substring(11));
+                    if (line.startsWith("LOAD_AFFINITY:")) {
+                        int score = Integer.parseInt(line.substring(14));
+                        relationdata.aliceRel.setAffinity(score); // ดึงคะแนนจากพาร์ทก่อนมาใช้
                         SwingUtilities.invokeLater(() -> {
-                            if (remoteIndex != currentIndex) {
-                                currentIndex = remoteIndex;
-                                updateScene();
-                            }
+                            affinityLabel.setText("ความสนิท: " + score);
+                            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
                         });
+                    } else if (line.startsWith("ALL_STATS:")) {
+                        updateLeaderboardUI(line.substring(10));
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) {}
         }).start();
     }
 
@@ -419,6 +461,38 @@ public class part3 extends JFrame {
         if (index == 33) playEffect("res/sound/Arigato.wav", 5.0f);
     }
 
+    private void updateLeaderboardUI(String data) {
+        // ใช้ HTML Table เพื่อจัดคอลัมน์ให้ตรงกัน
+        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'>");
+        sb.append("<table width='300' style='color:white; font-family:Tahoma;'>");
+        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน</th></tr>");
+        
+        String[] players = data.split(",");
+        for (String p : players) {
+            if (!p.isEmpty() && p.contains("=")) {
+                String[] parts = p.split("=");
+                String name = parts[0];
+                String score = parts[1];
+                
+                // ไฮไลต์ชื่อตัวเองเป็นสีเขียว ถ้าชื่อตรงกับที่เราตั้งไว้
+                String nameColor = name.equals(relationdata.playerName) ? "#00FF7F" : "#FFFFFF";
+                
+                sb.append("<tr>")
+                .append("<td style='color:").append(nameColor).append(";'>").append(name).append("</td>")
+                .append("<td align='right' style='color:#FF69B4;'>").append(score).append(" pt</td>")
+                .append("</tr>");
+            }
+        }
+        sb.append("</table></body></html>");
+        
+        SwingUtilities.invokeLater(() -> {
+            if (affinityStatusLabel != null) {
+                affinityStatusLabel.setText(sb.toString());
+                affinityStatusLabel.setVerticalAlignment(SwingConstants.TOP); // ให้รายชื่อเริ่มจากข้างบน
+            }
+        });
+    }
+
     private void showChoices(String text1, String text2, int t1, int t2) {
         isChoosing = true;
         choiceButton1 = createChoiceButton(text1, 380, t1); //y: ขึ้น=ลง
@@ -426,6 +500,35 @@ public class part3 extends JFrame {
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
+    }
+
+    private void setupStatusOverlay() {
+        statusOverlay = new JPanel();
+        statusOverlay.setLayout(new BorderLayout(10, 10)); 
+        statusOverlay.setBackground(new Color(0, 0, 0, 200)); 
+        statusOverlay.setBounds(440, 150, 400, 400); 
+        statusOverlay.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        statusOverlay.setVisible(false);
+
+        // 1. สร้างป้ายจำนวนผู้เล่น (ต้องสร้างเพื่อไม่ให้เกิด Null Error)
+        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
+        onlineCountLabel.setForeground(Color.CYAN);
+        onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
+
+        JLabel titleLabel = new JLabel("--- ความสัมพันธ์ทั้งหมด ---", SwingConstants.CENTER);
+        titleLabel.setForeground(Color.YELLOW);
+        titleLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
+
+        affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล...", SwingConstants.CENTER);
+        affinityStatusLabel.setForeground(Color.WHITE);
+        affinityStatusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
+
+        // 2. เพิ่ม UI ลงใน Panel
+        statusOverlay.add(titleLabel, BorderLayout.NORTH);
+        statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER);
+        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH); // เพิ่ม onlineCountLabel ไว้ล่างสุด
+        
+        layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
     }
 
     private JButton createChoiceButton(String text, int y, int target) {
@@ -464,18 +567,20 @@ public class part3 extends JFrame {
         btn.setBorderPainted(false); // ปิดการวาดขอบสี่เหลี่ยมเดิม
 
         btn.addActionListener(e -> {
-            layeredPane.remove(choiceButton1);
-            layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2);
             isChoosing = false;
-            if (target == 33) {
-                relationdata.aliceRel.addAffinity(10);
-            } else if (target == 34) {
-                relationdata.aliceRel.decreaseAffinity(5);
+            if (target == 33) relationdata.aliceRel.addAffinity(10);
+            else if (target == 34) relationdata.aliceRel.decreaseAffinity(5);
+
+            // --- ส่วนที่ขาดไป: ต้องส่งไปบอก Server ด้วยคะแนนถึงจะถูกเซฟลง SQL ---
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
+                networkOut.println("SYNC_INDEX:" + target);
             }
+
             affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
-            currentIndex = target;
-            updateScene();
+            currentIndex = target; updateScene();
         });
         return btn;
     }

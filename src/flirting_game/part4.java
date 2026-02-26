@@ -10,10 +10,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.*;
 import javax.swing.*;
 
 public class part4 extends JFrame {
@@ -31,15 +28,22 @@ public class part4 extends JFrame {
     private Timer typewriterTimer;
     private int charIndex = 0;
     private boolean isTyping = false;
+    private boolean isFading = false;
     private Map<String, ImageIcon> imageCache = new HashMap<>();
-
-    private PrintWriter networkOut;
     
-    // --- ฟอนต์ภาษาไทยสำหรับจอ 1280 ---
-    private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
-    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
+    // UI สำหรับระบบ Leaderboard (Tab)
+    private JLabel affinityLabel, statusLabel;
+    private JPanel statusOverlay;
+    private JLabel onlineCountLabel, affinityStatusLabel;
 
-    // --- ข้อมูล Array (คงเดิมตามที่คุณส่งมา) ---
+    private float charAlpha = 0.0f; // ค่าความโปร่งใส 0.0 - 1.0
+    private Timer charFadeTimer;    // ตัวจับเวลาสำหรับ Fade ตัวละคร
+
+    // --- Networking ---
+    private PrintWriter networkOut;
+    private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
+
+    // --- ข้อมูล Array (คงเดิม) ---
     private String[] imagePaths = {
         "res/scene4/s1.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
         "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
@@ -59,7 +63,27 @@ public class part4 extends JFrame {
         "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png"
     };
     
-    private String[] charPaths2 = {
+    private String[] charPaths = { /* Mc Layer */
+        "res/empty.png", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", 
+        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body2.PNG", "res/Charactor/Mc/body1.PNG", 
+        "res/Charactor/Mc/body2.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG",
+        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG",
+        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG",
+        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", 
+        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/empty.png", 
+        "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", 
+        "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", 
+        "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG",
+        "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG",
+        "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG",
+        "res/Charactor/factor/demon1.PNG", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/factor/demon2.PNG", 
+        "res/Charactor/factor/demon2.png", "res/Charactor/factor/demon2.png", "res/Charactor/factor/demon2.png", 
+        "res/Charactor/factor/demon2.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png"
+    };
+
+    private String[] charPaths2 = { /* Alice Layer */
         "res/empty.png", "res/empty.png", "res/empty.png", 
         "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
         "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-shy1.png",
@@ -88,27 +112,7 @@ public class part4 extends JFrame {
         "res/Charactor/Alice/Girl/Alice-normal1.png",
     };
 
-    private String[] charPaths = {
-        "res/empty.png", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", 
-        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body2.PNG", "res/Charactor/Mc/body1.PNG", 
-        "res/Charactor/Mc/body2.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG",
-        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG",
-        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG",
-        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", 
-        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/empty.png", 
-        "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", 
-        "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", 
-        "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG",
-        "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG",
-        "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG",
-        "res/Charactor/factor/demon1.PNG", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/factor/demon2.PNG", 
-        "res/Charactor/factor/demon2.png", "res/Charactor/factor/demon2.png", "res/Charactor/factor/demon2.png", 
-        "res/Charactor/factor/demon2.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png"
-    };
-
-    private String[] names = {
+    private String[] names = { /* รายชื่อตามฉาก */
         " ", "ฉัน", "ฉัน", "อริส", "ฉัน", "อริส", "ฉัน", "อริส", 
         "อริส", "อริส", "อริส", "อริส", "อริส", "อริส", "ฉัน", "อริส", 
         " ", "อริส", "อริส", "อริส", "ลุง", "อริส", "ลุง", "ลุง", 
@@ -119,7 +123,7 @@ public class part4 extends JFrame {
         "อริส", "อริส", "ฉัน"
     };
     
-    private String[] dialogues = {
+    private String[] dialogues = { /* บทสนทนาตามฉาก */
         "เวลาผ่าน2ปี", "นี่ก็ผ่านไป2ปีเเล้ว หลังจากที่ฉันได้มาอยู่ในโลกนี้", 
         "ตอนนี้ฉันก็น่าจะเเข็งเเกร่งขึ้นบ้างละหละ", "...(ชื่อตัวละครเรา) ข้าวเที่ยงเสร็จละนะ", 
         "โอเค กําลังจะไปเดี๋ยวนี้แหละ", "..กําลังยืนดูตัวเรา..", "นี่เธอเเอบดูกล้ามฉันรึปล่าว?", 
@@ -147,10 +151,11 @@ public class part4 extends JFrame {
 
     public part4() {
         setTitle("ISEKAI DEMO - Part 4");
-        setSize(1280, 800); // มาตรฐาน 1280x800
+        setSize(1280, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
+        setFocusTraversalKeysEnabled(false); // ปลดล็อกปุ่ม Tab
 
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
@@ -158,356 +163,382 @@ public class part4 extends JFrame {
         playSE("res/sound/soundtrack5.wav", true, -10.0f);
 
         backgroundLabel = new JLabel();
-        backgroundLabel.setBounds(0, 0, 1280, 800); // BG เต็มจอ
+        backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        characterLabel = new JLabel(); // เลเยอร์สำหรับ Mc
+        characterLabel = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha));
+                super.paintComponent(g2d);
+                g2d.dispose();
+            }
+        };
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
-        
-        characterLabel2 = new JLabel(); // เลเยอร์สำหรับ อริส
+
+        // เปลี่ยนการสร้าง characterLabel2 (อริส) ให้มี PaintComponent พิเศษ
+        characterLabel2 = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha));
+                super.paintComponent(g2d);
+                g2d.dispose();
+            }
+        };
         layeredPane.add(characterLabel2, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
+        setupRelationshipUI();
+        setupStatusOverlay(); 
+        setupTabKeyBinding(); 
+        setupFadeOverlay();
         initNetwork();
 
-        fadeOverlay = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(new Color(0, 0, 0, (int)(alpha * 255)));
-                g2d.fillRect(0, 0, getWidth(), getHeight());
+        // ปิด Scoreboard เมื่อพับจอ
+        this.addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+            @Override public void windowGainedFocus(java.awt.event.WindowEvent e) {}
+            @Override public void windowLostFocus(java.awt.event.WindowEvent e) {
+                if (statusOverlay != null && statusOverlay.isVisible()) {
+                    statusOverlay.setVisible(false);
+                }
             }
-        };
-        fadeOverlay.setBounds(0, 0, 1280, 800);
-        fadeOverlay.setOpaque(false);
-        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        });
 
         startFadeIn();
+        updateScene();
 
         layeredPane.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                handleNext();
-            }
+            @Override public void mouseClicked(MouseEvent e) { handleNext(); }
         });
-    }
-
-    private void handleNext() {
-        // 1. ป้องกันการคลิกซ้ำขณะกำลังเลือกตอบ
-        if (isChoosing) return;
-
-        // 2. ถ้าตัวอักษรกำลังพิมพ์อยู่ ให้หยุดและแสดงข้อความเต็มทันที
-        if (isTyping) {
-            if (typewriterTimer != null) typewriterTimer.stop();
-            isTyping = false;
-            dialogueArea.setText("<html><body style='width: 950px;'>" + dialogues[currentIndex] + "</body></html>");
-            return;
-        }
-
-        // 3. ระบบ Choice Logic สำหรับ Part 4
-        if (currentIndex == 10) { 
-            showChoices("น่ารักมากๆเลย เหมาะกับเธอสุดๆ", "ก็พอได้นะ", 11, 12); 
-            return; 
-        } 
-        
-        if (currentIndex == 17) { 
-            showChoices("ฉันชอบอาหารฝีมือเธอที่สุดเลย", "ก็อร่อยดีนะ", 18, 19); 
-            return; 
-        }
-        
-        if (currentIndex == 38) { 
-            showChoices("พุ่งเข้าไปปกป้องอริส", "บอกให้อริสหลบเอง", 39, 40); 
-            return; 
-        }
-        
-        if (currentIndex == 57) { 
-            showChoices("เราจะไปเดทกันไงละจ๊ะ อริสจัง", "ที่อยู่ของจอมมารยังไงหละ ", 58, 59);
-            return; 
-        }
-
-        // 4. การกระโดดข้าม Index หลังจากเลือกตอบเสร็จ (เพื่อข้ามฉากของตัวเลือกอื่น)
-        int nextIndex = currentIndex;
-        if (currentIndex == 11 || currentIndex == 12) nextIndex = 13;
-        else if (currentIndex == 18 || currentIndex == 19) nextIndex = 20;
-        else if (currentIndex == 39 || currentIndex == 40) nextIndex = 41;
-        else if (currentIndex == 58 || currentIndex == 59) nextIndex = 60;
-        else nextIndex = currentIndex + 1;
-
-        // 5. ตรวจสอบว่ายังไม่จบ Part
-        if (nextIndex < dialogues.length) {
-            currentIndex = nextIndex;
-
-            // --- ส่วนสำคัญ: ส่งเลขฉากปัจจุบันไปหาเพื่อนคนอื่น ---
-            if (relationdata.isOnlineMode && networkOut != null) {
-                networkOut.println("SYNC_INDEX:" + currentIndex);
-            }
-
-            updateScene();
-        } else {
-            // เมื่อจบ Part 4
-            finishGame();
-        }
-    }
-
-    private void updateScene() {
-        if (currentIndex < names.length) {
-            nameLabel.setText(names[currentIndex]);
-        } else {
-            nameLabel.setText("");
-        }
-        if (currentIndex < dialogues.length) {
-            updateDialogueDisplay(dialogues[currentIndex]);
-        }
-
-        handleSoundEffects(currentIndex);
-
-        backgroundLabel.setIcon(getOptimizedImage(imagePaths[currentIndex], 1280, 800));
-        
-        // เลเยอร์ที่ 1 (Mc ยืนซ้าย)
-        updateCharacterLayer(characterLabel, charPaths, true); 
-        // เลเยอร์ที่ 2 (อริส ยืนขวา)
-        updateCharacterLayer(characterLabel2, charPaths2, false);
-        
-        layeredPane.repaint();
-    }
-
-    private void updateCharacterLayer(JLabel label, String[] paths, boolean isFirstLayer) {
-        if (currentIndex >= paths.length || paths[currentIndex].contains("empty")) {
-            label.setIcon(null);
-            return;
-        }
-
-        String path = paths[currentIndex];
-
-        // --- ระบบตรวจสอบและปรับขนาดตามตัวละคร ---
-        if (path.contains("Mc/body")) {
-            // Mc (ตัวละครชาย) ใช้ขนาด 900x900 และวางฝั่งซ้าย
-            label.setIcon(getOptimizedImage(path, 500, 900));
-            label.setBounds(50, 100, 600, 900); 
-        } 
-        else if (path.contains("Alice") || path.contains("Girl")) {
-            // --- จุดสำคัญ: ปรับอริสเป็น 600x900 เพื่อไม่ให้บีบอ้วน ---
-            label.setIcon(getOptimizedImage(path, 1050, 700));
-            // ขยับ X ไปที่ 680 เพื่อให้ยืนห่างจาก Mc อย่างสวยงาม
-            label.setBounds(420, 70, 1300, 900); 
-        } 
-        else if (path.contains("Uncle.png") && path.contains("factor")) {
-            // --- จุดสำคัญ: ปรับอริสเป็น 600x900 เพื่อไม่ให้บีบอ้วน ---
-            label.setIcon(getOptimizedImage(path, 900, 900));
-            // ขยับ X ไปที่ 680 เพื่อให้ยืนห่างจาก Mc อย่างสวยงาม
-            label.setBounds(-100, 225, 900, 900); 
-        } 
-        else {
-            // สำหรับตัวละครอื่นๆ หรือฉากต่อสู้ ใช้พิกัดมาตรฐาน
-            label.setIcon(getOptimizedImage(path, 800, 900));
-            label.setBounds(420, 100, 800, 900);
-        }
-    }
-
-    private void setupDialogueUI() {
-        dialoguePanel = new VisualNovelBox(); 
-        dialoguePanel.setLayout(null);
-        dialoguePanel.setBounds(225, 520, 800, 200);
-        layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
-
-        nameLabel = new JLabel("");
-        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26));
-        nameLabel.setForeground(new Color(180, 40, 90)); 
-        nameLabel.setBounds(60, 10, 300, 40);
-        dialoguePanel.add(nameLabel);
-
-        dialogueArea = new JLabel();
-        dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22));
-        dialogueArea.setForeground(new Color(45, 65, 115)); 
-        dialogueArea.setBounds(60, 60, 800, 110);
-        dialogueArea.setVerticalAlignment(SwingConstants.TOP);
-        dialoguePanel.add(dialogueArea);
-
-        JLabel nextArrow = new JLabel("▼");
-        nextArrow.setFont(new Font("Arial", Font.BOLD, 20));
-        nextArrow.setForeground(new Color(0, 153, 255));
-        nextArrow.setBounds(850, 130, 30, 30);
-        dialoguePanel.add(nextArrow);
-        Timer arrowTimer = new Timer(500, ev -> nextArrow.setVisible(!nextArrow.isVisible()));
-        arrowTimer.start();
-    }
-
-    // ... (ส่วน Sound และ Fade คงเดิม) ...
-
-    private void finishGame() {
-        stopBGM();
-        UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
-        JOptionPane.showMessageDialog(null, "จบ Part 4: การผจญภัยกำลังจะเริ่มขึ้น!");
-        new part5().setVisible(true);
-        dispose();
-    }
-
-    private void updateDialogueDisplay(String text) {
-        if (typewriterTimer != null) typewriterTimer.stop();
-        charIndex = 0; isTyping = true; dialogueArea.setText("");
-        typewriterTimer = new Timer(25, e -> {
-            if (charIndex < text.length()) {
-                charIndex++;
-                dialogueArea.setText("<html><body style='width: 950px;'>" + text.substring(0, charIndex) + "</body></html>");
-            } else { typewriterTimer.stop(); isTyping = false; }
-        });
-        typewriterTimer.start();
-    }
-
-    public void playEffect(String path, float volume) {
-        try {
-            File soundFile = new File(path); 
-            if (soundFile.exists()) {
-                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
-                Clip temporaryClip = AudioSystem.getClip(); 
-                temporaryClip.open(audioIn);
-                FloatControl gainControl = (FloatControl) temporaryClip.getControl(FloatControl.Type.MASTER_GAIN);
-                gainControl.setValue(volume); 
-                temporaryClip.start();
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private void playSE(String path, boolean loop, float volume) {
-        try {
-            File soundFile = new File(path);
-            if (!soundFile.exists()) return;
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioStream);
-            FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-            gainControl.setValue(volume);
-            if (loop) clip.loop(Clip.LOOP_CONTINUOUSLY);
-            clip.start();
-            if (path.contains("soundtrack")) this.bgmClip = clip;
-            else this.effectClip = clip;
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private void stopBGM() {
-        if (bgmClip != null) { bgmClip.stop(); bgmClip.close(); bgmClip = null; }
-    }
-
-    private void handleSoundEffects(int index) {
-        if (index == 11) playEffect("res/sound/baka.wav", 5.0f);
-        if (index == 12) playEffect("res/sound/muuuu.wav", 5.0f);
-        if (index == 18) playEffect("res/sound/hhonto.wav", 5.0f);
-        if (index == 19) playEffect("res/sound/emmm.wav", 5.0f);
-        if (index == 22) { 
-            stopBGM(); 
-            playSE("res/sound/soundtrack6.wav", false, -10.0f); 
-        }
-        if (index == 27) { playEffect("res/sound/evillaugh.wav", -10.0f); playEffect("res/sound/housefire.wav", -10.0f); }
-        if (index == 42) playEffect("res/sound/winddash.wav", -10.0f);
-        if (index == 46) { stopBGM(); playSE("res/sound/soundtrack7.wav", true, -10.0f); }
-        if (index == 58) playEffect("res/sound/Baka janai no.wav", 5.0f);
-        if (index == 59) playEffect("res/sound/Arigato.wav", 5.0f);
-    }
-
-    private ImageIcon getOptimizedImage(String path, int w, int h) {
-        String key = path + w + h;
-        if (!imageCache.containsKey(key)) {
-            imageCache.put(key, scaleImage(path, w, h));
-        }
-        return imageCache.get(key);
-    }
-
-    public ImageIcon scaleImage(String path, int width, int height) {
-        try {
-            return new ImageIcon(new ImageIcon(path).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
-        } catch (Exception e) { return null; }
-    }
-
-    private void startFadeIn() {
-        Timer fadeTimer = new Timer(45, e -> {
-            alpha -= 0.05f;
-            if (alpha <= 0) { alpha = 0; ((Timer)e.getSource()).stop(); layeredPane.remove(fadeOverlay); updateScene(); }
-            fadeOverlay.repaint();
-        });
-        fadeTimer.start();
-    }
-
-    private void showChoices(String text1, String text2, int t1, int t2) {
-        isChoosing = true; 
-        choiceButton1 = createChoiceButton(text1, 380, t1); //y: ขึ้น=ลง
-        choiceButton2 = createChoiceButton(text2, 450, t2); //y: ขึ้น=ลง
-        layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
-        layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
-        layeredPane.repaint();
-    }
-
-    private JButton createChoiceButton(String text, int y, int target) {
-        JButton btn = new JButton(text) {
-            // Override paintComponent เพื่อวาดปุ่มให้มีขอบโค้งมน
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                // วาดพื้นหลังโค้งมน
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
-
-                // วาดเส้นขอบโค้งมน
-                g2.setColor(new Color(225, 105, 180)); // สีขอบเดิม
-                g2.setStroke(new BasicStroke(2));   // ความหนาขอบเดิม
-                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
-
-                g2.dispose();
-
-                // วาดข้อความและส่วนอื่นๆ ทับลงไป
-                super.paintComponent(g);
-            }
-        };
-
-        // เลื่อนปุ่มไปทางขวา
-        btn.setBounds(800, y, 350, 60); 
-        btn.setFont(new Font("Tahoma", Font.BOLD, 20));
-        btn.setForeground(new Color(45,65,115)); // สีข้อความ
-        btn.setBackground(new Color(255, 255, 255, 150)); 
-        // ตั้งค่าเพื่อให้วาดปุ่มแบบกำหนดเองได้
-        btn.setContentAreaFilled(false);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false); // ปิดการวาดขอบสี่เหลี่ยมเดิม
-
-        btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2)); 
-        btn.addActionListener(e -> {
-            layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2);
-            isChoosing = false; currentIndex = target; updateScene(); 
-        });
-        return btn;
     }
 
     private void initNetwork() {
         if (!relationdata.isOnlineMode) return;
-        
         new Thread(() -> {
             try {
                 Socket socket = new Socket(relationdata.serverIP, 5000);
                 networkOut = new PrintWriter(socket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
+                networkOut.println("SET_NAME:" + relationdata.playerName);
+                networkOut.println("SET_PART:4"); // ระบุพาร์ท 4 ไปที่ Server
+
                 String line;
                 while ((line = in.readLine()) != null) {
-                    if (line.startsWith("SYNC_INDEX:")) {
-                        int remoteIndex = Integer.parseInt(line.substring(11));
-                        SwingUtilities.invokeLater(() -> {
-                            if (remoteIndex != currentIndex) {
-                                currentIndex = remoteIndex;
-                                updateScene();
-                            }
-                        });
+                    if (line.startsWith("LOAD_AFFINITY:")) {
+                        int score = Integer.parseInt(line.substring(14));
+                        relationdata.aliceRel.setAffinity(score);
+                        SwingUtilities.invokeLater(this::updateAffinityUI);
+                    } else if (line.startsWith("SYNC_INDEX:")) {
+                        int remoteIdx = Integer.parseInt(line.substring(11));
+                        if (remoteIdx != currentIndex) {
+                            currentIndex = remoteIdx;
+                            SwingUtilities.invokeLater(this::updateScene);
+                        }
+                    } else if (line.startsWith("ALL_STATS:")) {
+                        updateLeaderboardUI(line.substring(10));
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { System.err.println("Network Error"); }
         }).start();
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new part4().setVisible(true));
+    private void handleNext() {
+        if (isChoosing || isFading) return;
+        if (isTyping) { 
+            if(typewriterTimer != null) typewriterTimer.stop(); 
+            isTyping = false; 
+            updateDialogueDisplay(dialogues[currentIndex]); 
+            return; 
+        }
+
+        // --- ระบบ Choice ---
+        if (currentIndex == 10) { showChoices("น่ารักมากๆเลย เหมาะกับเธอสุดๆ", "ก็พอได้นะ", 11, 12); return; }
+        if (currentIndex == 17) { showChoices("ฉันชอบอาหารฝีมือเธอที่สุดเลย", "ก็อร่อยดีนะ", 18, 19); return; }
+        if (currentIndex == 38) { showChoices("พุ่งเข้าไปปกป้องอริส", "บอกให้อริสหลบเอง", 39, 40); return; }
+        if (currentIndex == 57) { showChoices("เราจะไปเดทกันไงละจ๊ะ อริสจัง", "ที่อยู่ของจอมมารยังไงหละ", 58, 59); return; }
+
+        // คำนวณลำดับถัดไป
+        int nextIdx = currentIndex;
+        if (currentIndex == 11) nextIdx = 13;
+        else if (currentIndex == 18) nextIdx = 20;
+        else if (currentIndex == 39) nextIdx = 41;
+        else if (currentIndex == 58) nextIdx = 60;
+        else nextIdx++;
+
+        if (nextIdx < dialogues.length) {
+            final int targetIdx = nextIdx;
+            
+            // --- จุดแก้ไขสำคัญ: ตรวจสอบ imagePaths ---
+            if (!imagePaths[currentIndex].equals(imagePaths[targetIdx])) {
+                // ถ้าภาพพื้นหลังเปลี่ยน ให้เล่นเอฟเฟกต์ Fade
+                performSceneFade(() -> {
+                    currentIndex = targetIdx;
+                    syncOnline();
+                    updateScene();
+                });
+            } else {
+                // ถ้าภาพเดิม ให้ข้ามไปฉากถัดไปทันทีโดยไม่ต้อง Fade
+                currentIndex = targetIdx;
+                syncOnline();
+                updateScene();
+            }
+        } else { finishPart(); }
     }
+
+    private void syncOnline() {
+        if (relationdata.isOnlineMode && networkOut != null) {
+            networkOut.println("SYNC_INDEX:" + currentIndex);
+        }
+    }
+
+    private void showChoices(String text1, String text2, int t1, int t2) {
+        isChoosing = true; 
+        choiceButton1 = createChoiceButton(text1, 380, t1);
+        choiceButton2 = createChoiceButton(text2, 450, t2);
+        layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+        layeredPane.repaint();
+    }
+
+    private void startCharacterFadeIn() {
+        charAlpha = 0.0f; // เริ่มที่ตัวล่องหน
+        if (charFadeTimer != null && charFadeTimer.isRunning()) charFadeTimer.stop();
+        
+        charFadeTimer = new Timer(30, e -> {
+            charAlpha += 0.05f; // ค่อยๆ ชัดขึ้นทีละนิด
+            if (charAlpha >= 1.0f) {
+                charAlpha = 1.0f;
+                ((Timer)e.getSource()).stop();
+            }
+            // สั่งให้ Label ทั้งคู่ทำการวาดใหม่ด้วยค่า Alpha ปัจจุบัน
+            characterLabel.repaint();
+            characterLabel2.repaint();
+        });
+        charFadeTimer.start();
+    }
+
+    private JButton createChoiceButton(String text, int y, int target) {
+        JButton btn = new JButton(text) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground()); g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+                g2.setColor(new Color(225, 105, 180)); g2.setStroke(new BasicStroke(2));
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
+                g2.dispose(); super.paintComponent(g);
+            }
+        };
+        btn.setBounds(800, y, 350, 60); btn.setFont(new Font("Tahoma", Font.BOLD, 18));
+        btn.setBackground(new Color(255, 255, 255, 180)); btn.setContentAreaFilled(false); btn.setBorderPainted(false);
+        btn.addActionListener(e -> {
+            layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2); isChoosing = false;
+            if (target == 11 || target == 18 || target == 39 || target == 59) relationdata.aliceRel.addAffinity(10);
+            else relationdata.aliceRel.decreaseAffinity(5);
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
+                networkOut.println("SYNC_INDEX:" + target);
+            }
+            updateAffinityUI(); currentIndex = target; updateScene();
+        });
+        return btn;
+    }
+
+    private void setupStatusOverlay() {
+        statusOverlay = new JPanel(new BorderLayout(15, 15));
+        statusOverlay.setBackground(new Color(20, 20, 25, 200)); 
+        statusOverlay.setBounds(440, 150, 400, 450);
+        statusOverlay.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 2));
+        statusOverlay.setVisible(false);
+
+        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
+        onlineCountLabel.setForeground(Color.CYAN);
+        affinityStatusLabel = new JLabel("", SwingConstants.CENTER);
+        
+        statusOverlay.add(new JLabel("🏆 Leaderboard", SwingConstants.CENTER) {{ 
+            setForeground(Color.YELLOW); setFont(new Font("Tahoma", Font.BOLD, 22)); 
+        }}, BorderLayout.NORTH);
+        statusOverlay.add(new JScrollPane(affinityStatusLabel) {{ 
+            getViewport().setOpaque(false); setOpaque(false); setBorder(null); 
+        }}, BorderLayout.CENTER);
+        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH);
+        layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
+    }
+
+    private void setupTabKeyBinding() {
+        layeredPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("TAB"), "toggleTab");
+        layeredPane.getActionMap().put("toggleTab", new AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                statusOverlay.setVisible(!statusOverlay.isVisible());
+            }
+        });
+    }
+
+    private void updateLeaderboardUI(String data) {
+        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'>");
+        sb.append("<table width='320' style='color:white; font-family:Tahoma;'>");
+        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน</th></tr>");
+        for (String p : data.split(",")) {
+            if (p.contains("=")) {
+                String[] parts = p.split("=");
+                String color = parts[0].equals(relationdata.playerName) ? "#00FF7F" : "white";
+                sb.append("<tr><td style='color:").append(color).append(";'>").append(parts[0])
+                  .append("</td><td align='right' style='color:#FF69B4;'>").append(parts[1]).append(" pt</td></tr>");
+            }
+        }
+        sb.append("</table></body></html>");
+        SwingUtilities.invokeLater(() -> affinityStatusLabel.setText(sb.toString()));
+    }
+
+    private void performSceneFade(Runnable onBlack) {
+        isFading = true; alpha = 0.0f;
+        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        Timer fadeOut = new Timer(30, e -> {
+            alpha += 0.1f;
+            if (alpha >= 1.0f) {
+                alpha = 1.0f; ((Timer)e.getSource()).stop(); onBlack.run();
+                new Timer(300, ev -> {
+                    ((Timer)ev.getSource()).stop();
+                    new Timer(30, eve -> {
+                        alpha -= 0.1f; if (alpha <= 0) { alpha = 0; ((Timer)eve.getSource()).stop(); isFading = false; }
+                        fadeOverlay.repaint();
+                    }).start();
+                }).start();
+            }
+            fadeOverlay.repaint();
+        });
+        fadeOut.start();
+    }
+
+    private void updateScene() {
+        // 1. อัปเดตชื่อผู้พูดและเริ่มระบบพิมพ์ตัวอักษร (Typewriter)
+        if (currentIndex < names.length) {
+            nameLabel.setText(names[currentIndex]);
+        } else {
+            nameLabel.setText("");
+        }
+        
+        if (currentIndex < dialogues.length) {
+            startTypewriter(dialogues[currentIndex]);
+        }
+
+        // 2. จัดการเสียง BGM และ Sound Effects ตามลำดับฉาก
+        handleSoundEffects(currentIndex);
+
+        // 3. อัปเดตภาพพื้นหลัง (ดึงจาก Cache เพื่อความลื่นไหล)
+        backgroundLabel.setIcon(getOptimizedImage(imagePaths[currentIndex], 1280, 800));
+
+        // 4. ระบบตรวจสอบการเปลี่ยนรูปตัวละครเพื่อเล่นเอฟเฟกต์ Fade In
+        String currentPath1 = (currentIndex < charPaths.length) ? charPaths[currentIndex] : "";
+        String lastPath1 = (currentIndex > 0) ? charPaths[currentIndex - 1] : "";
+        
+        String currentPath2 = (currentIndex < charPaths2.length) ? charPaths2[currentIndex] : "";
+        String lastPath2 = (currentIndex > 0) ? charPaths2[currentIndex - 1] : "";
+
+        // ถ้ามีการเปลี่ยนรูปตัวละคร Mc หรือ อริส/ตัวประกอบ หรือเป็นฉากเริ่มเกม ให้เริ่ม Fade In
+        if (!currentPath1.equals(lastPath1) || !currentPath2.equals(lastPath2) || currentIndex == 0) {
+            startCharacterFadeIn();
+        }
+
+        // 5. อัปเดตตำแหน่งและขนาดของเลเยอร์ตัวละครทั้ง 2 เลเยอร์
+        updateCharacterLayer(characterLabel, charPaths);  // เลเยอร์ Mc (ซ้าย)
+        updateCharacterLayer(characterLabel2, charPaths2); // เลเยอร์ อริส/ศัตรู (ขวา)
+        
+        // วาดหน้าจอใหม่เพื่อให้การแสดงผลถูกต้อง
+        layeredPane.repaint();
+    }
+
+    private void updateCharacterLayer(JLabel label, String[] paths) {
+        if (currentIndex >= paths.length || paths[currentIndex].contains("empty")) { label.setIcon(null); return; }
+        String path = paths[currentIndex];
+        if (path.contains("Mc/body")) { label.setIcon(getOptimizedImage(path, 500, 900)); label.setBounds(50, 100, 600, 900); }
+        else if (path.contains("Alice") || path.contains("Girl")) { label.setIcon(getOptimizedImage(path, 1050, 700)); label.setBounds(420, 70, 1300, 900); }
+        else if (path.contains("Uncle.png")) { label.setIcon(getOptimizedImage(path, 900, 900)); label.setBounds(-100, 225, 900, 900); }
+        else { label.setIcon(getOptimizedImage(path, 800, 900)); label.setBounds(420, 100, 800, 900); }
+    }
+
+    private void setupDialogueUI() {
+        dialoguePanel = new VisualNovelBox(); dialoguePanel.setLayout(null);
+        dialoguePanel.setBounds(225, 520, 800, 200); layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
+        nameLabel = new JLabel(); nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26));
+        nameLabel.setForeground(new Color(180, 40, 90)); nameLabel.setBounds(60, 15, 300, 40); dialoguePanel.add(nameLabel);
+        dialogueArea = new JLabel(); dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22));
+        dialogueArea.setForeground(new Color(45, 65, 115)); dialogueArea.setBounds(60, 65, 700, 110);
+        dialogueArea.setVerticalAlignment(SwingConstants.TOP); dialoguePanel.add(dialogueArea);
+    }
+
+    private void setupRelationshipUI() {
+        JPanel relPanel = new JPanel(new GridLayout(2, 1)); relPanel.setBounds(25, 25, 300, 70); relPanel.setOpaque(false);
+        affinityLabel = new JLabel("ความสนิท: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 22)); affinityLabel.setForeground(Color.WHITE);
+        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20)); statusLabel.setForeground(new Color(255, 204, 0));
+        relPanel.add(affinityLabel); relPanel.add(statusLabel); layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
+    }
+
+    private void updateAffinityUI() {
+        affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
+        statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+    }
+
+    private void startTypewriter(String text) {
+        if (typewriterTimer != null) typewriterTimer.stop();
+        charIndex = 0; isTyping = true; dialogueArea.setText("");
+        typewriterTimer = new Timer(25, e -> {
+            if (charIndex < text.length()) { charIndex++; updateDialogueDisplay(text.substring(0, charIndex)); }
+            else { typewriterTimer.stop(); isTyping = false; }
+        }); typewriterTimer.start();
+    }
+
+    private void updateDialogueDisplay(String text) {
+        dialogueArea.setText("<html><body style='width: 700px;'>" + text + "</body></html>");
+    }
+
+    private void startFadeIn() {
+        Timer ft = new Timer(45, e -> { alpha -= 0.05f; if (alpha <= 0) { alpha = 0; ((Timer)e.getSource()).stop(); layeredPane.remove(fadeOverlay); } fadeOverlay.repaint(); }); ft.start();
+    }
+
+    private void setupFadeOverlay() {
+        fadeOverlay = new JPanel() { @Override protected void paintComponent(Graphics g) { Graphics2D g2d = (Graphics2D) g; g2d.setColor(new Color(0, 0, 0, (int) (alpha * 255))); g2d.fillRect(0, 0, getWidth(), getHeight()); } };
+        fadeOverlay.setBounds(0, 0, 1280, 800); fadeOverlay.setOpaque(false);
+    }
+
+    private ImageIcon getOptimizedImage(String path, int w, int h) {
+        String key = path + w + h;
+        if (!imageCache.containsKey(key)) { imageCache.put(key, scaleImage(path, w, h)); }
+        return imageCache.get(key);
+    }
+
+    public ImageIcon scaleImage(String path, int width, int height) {
+        try { return new ImageIcon(new ImageIcon(path).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH)); }
+        catch (Exception e) { return null; }
+    }
+
+    private void playSE(String path, boolean loop, float volume) {
+        try {
+            File soundFile = new File(path); if (!soundFile.exists()) return;
+            AudioInputStream ai = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip(); clip.open(ai);
+            FloatControl gc = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN); gc.setValue(volume);
+            if (loop) { this.bgmClip = clip; clip.loop(Clip.LOOP_CONTINUOUSLY); } clip.start();
+        } catch (Exception e) {}
+    }
+
+    private void handleSoundEffects(int index) {
+        if (index == 22) { if (bgmClip != null) bgmClip.stop(); playSE("res/sound/soundtrack6.wav", false, -10.0f); }
+        if (index == 46) { if (bgmClip != null) bgmClip.stop(); playSE("res/sound/soundtrack7.wav", true, -10.0f); }
+    }
+
+    private void finishPart() {
+        if (networkOut != null) networkOut.close();
+        if (bgmClip != null) { bgmClip.stop(); bgmClip.close(); }
+        JOptionPane.showMessageDialog(null, "จบ Part 4: การผจญภัยกำลังจะเริ่มขึ้น!");
+        dispose();
+    }
+
+    public static void main(String[] args) { SwingUtilities.invokeLater(() -> new part4().setVisible(true)); }
 }
 
 // คลาสเสริมที่ใช้ร่วมกันทก Part

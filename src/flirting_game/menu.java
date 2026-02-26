@@ -30,42 +30,43 @@ public class menu {
         // --- 3. Buttons ---
         int btnW = 300;
         int btnH = 150;
-        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 15));
+        // ปรับเป็น 5 แถวเพื่อให้รองรับปุ่ม Online ที่เพิ่มเข้ามา
+        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 0, 5)); 
         buttonPanel.setOpaque(false);
-        buttonPanel.setBounds(360, 200, btnW, 320);
+        buttonPanel.setBounds(360, 180, btnW, 380); 
 
-        // สร้างปุ่มแยกทีละตัวเพื่อใส่ Action
         JButton startBtn = createImageButton("res/buttons/buttonStart.png", btnW, btnH);
+        JButton onlineBtn = createImageButton("res/buttons/buttonOnline.png", btnW, btnH);
         JButton galleryBtn = createImageButton("res/buttons/buttonGallery.png", btnW, btnH);
         JButton settingBtn = createImageButton("res/buttons/buttonSetting.png", btnW, btnH);
         JButton exitBtn = createImageButton("res/buttons/buttonExit.png", btnW, btnH);
 
-        JButton onlineBtn = createImageButton("res/buttons/buttonOnline.png", btnW, btnH); // สมมติว่ามีรูปปุ่ม
+        // --- เพิ่มฟังก์ชันการกดปุ่ม Online (ใส่ชื่อแทน IP) ---
         onlineBtn.addActionListener(e -> {
-            String ip = JOptionPane.showInputDialog(frame, "กรุณาใส่ IP Server ของเพื่อน:", "Join Online", JOptionPane.QUESTION_MESSAGE);
-            if (ip != null && !ip.isEmpty()) {
+            UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 18));
+            String name = JOptionPane.showInputDialog(frame, "กรุณาใส่ชื่อของคุณเพื่อเข้าเล่นออนไลน์:", "Join Online", JOptionPane.QUESTION_MESSAGE);
+            
+            if (name != null && !name.trim().isEmpty()) {
                 relationdata.isOnlineMode = true;
-                relationdata.serverIP = ip; // เก็บ IP ไว้ใน relationdata
-                new part1().setVisible(true);
+                relationdata.playerName = name.trim(); // บันทึกชื่อลงใน relationdata
+                
+                new part1().setVisible(true); 
                 frame.dispose();
+            } else if (name != null) {
+                JOptionPane.showMessageDialog(frame, "กรุณาใส่ชื่อก่อนเข้าเล่นครับ");
             }
         });
-        buttonPanel.add(onlineBtn);
 
-        // --- เพิ่มฟังก์ชันการกดปุ่ม (Actions) ---
-
-        // ปุ่ม Start: ปิดหน้าเมนูแล้วไปหน้า part1
         startBtn.addActionListener(e -> {
-            // ตรวจสอบว่าคุณมีไฟล์ part1.java หรือคลาส part1 แล้ว
             try {
+                relationdata.isOnlineMode = false; // ปิดโหมดออนไลน์ถ้าเล่นปกติ
                 new part1().setVisible(true);
-                frame.dispose(); // ปิดหน้าเมนู            
+                frame.dispose();            
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "ยังไม่ได้สร้างคลาส part1 หรือมีข้อผิดพลาด");
             }
         });
 
-        // ปุ่ม Exit: ปิดโปรแกรมทันที
         exitBtn.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(frame,
                 "คุณต้องการออกจากเกมใช่หรือไม่?", "ยืนยัน", JOptionPane.YES_NO_OPTION);
@@ -74,8 +75,9 @@ public class menu {
             }
         });
 
-        // เพิ่มปุ่มลงใน Panel
+        // จัดเรียงปุ่มลงใน Panel
         buttonPanel.add(startBtn);
+        buttonPanel.add(onlineBtn); // วางปุ่ม Online ไว้ใต้ Start
         buttonPanel.add(galleryBtn);
         buttonPanel.add(settingBtn);
         buttonPanel.add(exitBtn);
@@ -96,7 +98,6 @@ public class menu {
 
     private static JButton createImageButton(String path, int w, int h) {
         ImageIcon normalIcon = getScaledIcon(path, w, h);
-        // สร้างรูปที่ใหญ่ขึ้นเล็กน้อยสำหรับตอน Hover
         ImageIcon hoverIcon = getScaledIcon(path, w + 10, h + 10); 
 
         JButton button = new JButton(normalIcon);
@@ -109,14 +110,10 @@ public class menu {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setIcon(hoverIcon);
-                // ขยับตำแหน่งเล็กน้อยเพื่อให้ดูเหมือนขยายจากจุดศูนย์กลาง
-                button.setBounds(button.getX() - 5, button.getY() - 5, w + 15, h + 15);
             }
-
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
                 button.setIcon(normalIcon);
-                button.setBounds(button.getX() + 5, button.getY() + 5, w, h);
             }
         });
         return button;

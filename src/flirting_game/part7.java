@@ -3,10 +3,6 @@ package flirting_game;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
@@ -20,8 +16,6 @@ public class part7 extends JFrame {
     private int charIndex = 0;
     private boolean isTyping = false;
     private Map<String, ImageIcon> imageCache = new HashMap<>();
-
-    private PrintWriter networkOut;
     
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
@@ -94,7 +88,6 @@ public class part7 extends JFrame {
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
         setupDialogueUI();
-        initNetwork();
         updateScene();
 
         layeredPane.addMouseListener(new MouseAdapter() {
@@ -191,33 +184,6 @@ public class part7 extends JFrame {
     private void stopTypewriter() {
         if (typewriterTimer != null) typewriterTimer.stop();
         isTyping = false;
-    }
-
-    private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
-        
-        new Thread(() -> {
-            try {
-                Socket socket = new Socket(relationdata.serverIP, 5000);
-                networkOut = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                String line;
-                while ((line = in.readLine()) != null) {
-                    if (line.startsWith("SYNC_INDEX:")) {
-                        int remoteIndex = Integer.parseInt(line.substring(11));
-                        SwingUtilities.invokeLater(() -> {
-                            if (remoteIndex != currentIndex) {
-                                currentIndex = remoteIndex;
-                                updateScene();
-                            }
-                        });
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 
     private ImageIcon getOptimizedImage(String path, int w, int h) {

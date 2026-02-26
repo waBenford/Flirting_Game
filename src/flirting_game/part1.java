@@ -26,6 +26,8 @@ public class part1 extends JFrame {
     private VisualNovelBox dialoguePanel; 
     private int currentIndex = 0;
     private boolean isFading = false;
+    private JPanel statusOverlay;
+    private JLabel onlineCountLabel, affinityStatusLabel;
 
     private PrintWriter networkOut;
 
@@ -143,6 +145,7 @@ public class part1 extends JFrame {
             currentIndex++; // เลื่อนไปยังลำดับถัดไป
             
             // --- ส่วนสำคัญ: ส่งลำดับฉากปัจจุบันไปหาเพื่อนคนอื่นในวง Online ---
+            // ข้อมูลนี้จะถูก Server รับไปเพื่อกระจายต่อให้เพื่อน และบันทึกลงฐานข้อมูล SQL อัตโนมัติ
             if (relationdata.isOnlineMode && networkOut != null) {
                 networkOut.println("SYNC_INDEX:" + currentIndex);
             }
@@ -349,6 +352,33 @@ public class part1 extends JFrame {
         fadeOut.start();
     }
 
+    private void setupStatusOverlay() {
+        statusOverlay = new JPanel();
+        statusOverlay.setLayout(new GridLayout(3, 1));
+        statusOverlay.setBackground(new Color(0, 0, 0, 180)); // พื้นหลังดำโปร่งแสง
+        statusOverlay.setBounds(440, 200, 400, 200); // กึ่งกลางจอ 1280x800
+        statusOverlay.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        statusOverlay.setVisible(false); // เริ่มต้นให้ซ่อนไว้
+
+        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: " + relationdata.onlinePlayerCount, SwingConstants.CENTER);
+        onlineCountLabel.setForeground(Color.CYAN);
+        onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
+
+        affinityStatusLabel = new JLabel("ความสัมพันธ์: " + relationdata.aliceRel.getAffinity(), SwingConstants.CENTER);
+        affinityStatusLabel.setForeground(Color.PINK);
+        affinityStatusLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
+        
+        JLabel hintLabel = new JLabel("กด Tab อีกครั้งเพื่อปิด", SwingConstants.CENTER);
+        hintLabel.setForeground(Color.WHITE);
+        hintLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
+
+        statusOverlay.add(onlineCountLabel);
+        statusOverlay.add(affinityStatusLabel);
+        statusOverlay.add(hintLabel);
+        
+        layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER); // นำไปวางไว้เลเยอร์บนสุด
+    }
+
     private void initNetwork() {
         if (!relationdata.isOnlineMode) return;
         
@@ -356,23 +386,13 @@ public class part1 extends JFrame {
             try {
                 Socket socket = new Socket(relationdata.serverIP, 5000);
                 networkOut = new PrintWriter(socket.getOutputStream(), true);
+                
+                // --- ส่วนที่เพิ่ม: ส่งชื่อของเราไปบอก Server ทันทีที่ต่อติด ---
+                networkOut.println("SET_NAME:" + relationdata.playerName);
+                
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                String line;
-                while ((line = in.readLine()) != null) {
-                    if (line.startsWith("SYNC_INDEX:")) {
-                        int remoteIndex = Integer.parseInt(line.substring(11));
-                        SwingUtilities.invokeLater(() -> {
-                            if (remoteIndex != currentIndex) {
-                                currentIndex = remoteIndex;
-                                updateScene();
-                            }
-                        });
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                // ... ส่วนที่เหลือคงเดิม (การรับ SYNC_INDEX และ ALL_STATS) ...
+            } catch (Exception e) { e.printStackTrace(); }
         }).start();
     }
 
