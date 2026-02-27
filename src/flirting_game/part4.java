@@ -451,12 +451,38 @@ public class part4 extends JFrame {
     }
 
     private void updateCharacterLayer(JLabel label, String[] paths) {
-        if (currentIndex >= paths.length || paths[currentIndex].contains("empty")) { label.setIcon(null); return; }
-        String path = paths[currentIndex];
-        if (path.contains("Mc/body")) { label.setIcon(getOptimizedImage(path, 500, 900)); label.setBounds(50, 100, 600, 900); }
-        else if (path.contains("Alice") || path.contains("Girl")) { label.setIcon(getOptimizedImage(path, 1050, 700)); label.setBounds(420, 70, 1300, 900); }
-        else if (path.contains("Uncle.png")) { label.setIcon(getOptimizedImage(path, 900, 900)); label.setBounds(-100, 225, 900, 900); }
-        else { label.setIcon(getOptimizedImage(path, 800, 900)); label.setBounds(420, 100, 800, 900); }
+            if (currentIndex >= paths.length || paths[currentIndex].contains("empty")) { 
+                label.setIcon(null); 
+                return; 
+            }
+            
+            String path = paths[currentIndex];
+            
+            // 1. เลเยอร์พระเอก (Mc) - อยู่ซ้าย
+            if (path.contains("Mc/body")) { 
+                label.setIcon(getOptimizedImage(path, 500, 900)); 
+                label.setBounds(50, 100, 600, 900); 
+            } 
+            // 2. เลเยอร์อริส (Alice) - อยู่ขวา
+            else if (path.contains("Alice") || path.contains("Girl")) { 
+                label.setIcon(getOptimizedImage(path, 1050, 700)); 
+                label.setBounds(420, 70, 1300, 900); 
+            } 
+            // 3. เลเยอร์ลุง (Uncle) - อยู่ซ้าย
+            else if (path.contains("Uncle.png")) { 
+                label.setIcon(getOptimizedImage(path, 900, 900)); 
+                label.setBounds(-100, 225, 900, 900); 
+            } 
+            // 4. เลเยอร์ปีศาจ (Demon) - ปรับให้ไปอยู่ด้านซ้าย (X = 50) เพื่อไม่ให้ทับนางเอก
+            else if (path.contains("demon")) { 
+                label.setIcon(getOptimizedImage(path, 800, 900)); 
+                label.setBounds(50, 100, 800, 900); // ปรับจาก 420 เป็น 50
+            }
+            // 5. อื่นๆ (Default)
+            else { 
+                label.setIcon(getOptimizedImage(path, 800, 900)); 
+                label.setBounds(420, 100, 800, 900); 
+            }
     }
 
     private void setupDialogueUI() {
@@ -526,15 +552,59 @@ public class part4 extends JFrame {
         } catch (Exception e) {}
     }
 
+    private void stopBGM() {
+        if (bgmClip != null) {
+            if (bgmClip.isRunning()) {
+                bgmClip.stop();
+            }
+            bgmClip.flush();
+            bgmClip.close(); 
+            bgmClip = null;  
+        }
+    }
+
     private void handleSoundEffects(int index) {
-        if (index == 22) { if (bgmClip != null) bgmClip.stop(); playSE("res/sound/soundtrack6.wav", false, -10.0f); }
-        if (index == 46) { if (bgmClip != null) bgmClip.stop(); playSE("res/sound/soundtrack7.wav", true, -10.0f); }
+        if (index == 11){
+            playSE("res/sound/baka.wav", false, 5.0f);
+        }
+        if (index == 12){
+            playSE("res/sound/muuuu.wav", false, 5.0f);
+        }
+        if (index == 18){
+            playSE("res/sound/hhonto.wav", false, 5.0f);
+        }
+        if (index == 19){
+            playSE("res/sound/emmm.wav", false, 5.0f);
+        }
+        if (index == 22) { 
+            stopBGM();
+            playSE("res/sound/soundtrack6.wav", true, -10.0f); 
+        }
+        if (index == 27){
+            playSE("res/sound/evillaugh.wav", false, -10.0f);
+            playSE("res/sound/housefire.wav", false, -10.0f);
+        }
+        if (index == 39){
+            playSE("res/sound/Arigato.wav", false, 0.0f);
+        }
+        if (index == 46) {
+            stopBGM();
+            playSE("res/sound/soundtrack7.wav", true, -10.0f); 
+        }
+        if (index == 58){
+            playSE("res/sound/Baka janai no.wav", false, 5.0f);
+        }
+        if (index == 59){
+            playSE("res/sound/Arigato.wav", false, 0.0f);
+        }
+
     }
 
     private void finishPart() {
         if (networkOut != null) networkOut.close();
         if (bgmClip != null) { bgmClip.stop(); bgmClip.close(); }
         JOptionPane.showMessageDialog(null, "จบ Part 4: การผจญภัยกำลังจะเริ่มขึ้น!");
+        new part5().setVisible(true);
         dispose();
     }
 

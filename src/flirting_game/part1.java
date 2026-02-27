@@ -8,7 +8,8 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-
+import java.util.HashMap;
+import java.util.Map;
 import javax.sound.sampled.*;
 import javax.swing.*;
 
@@ -21,6 +22,7 @@ public class part1 extends JFrame {
     private boolean isAnimating = false;
     private Clip bgmClip;
     private Clip effectClip;
+    private Map<String, ImageIcon> imageCache = new HashMap<>();
 
     private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
     private VisualNovelBox dialoguePanel; 
@@ -273,6 +275,18 @@ public class part1 extends JFrame {
             } else { stopAnimation(); }
         });
         typewriterTimer.start();
+    }
+
+    private ImageIcon getOptimizedImage(String path, int w, int h) {
+        String key = path + w + h;
+        if (!imageCache.containsKey(key)) {
+            try {
+                ImageIcon icon = new ImageIcon(path);
+                Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                imageCache.put(key, new ImageIcon(img));
+            } catch (Exception e) { return null; }
+        }
+        return imageCache.get(key);
     }
 
     private void stopAnimation() {
