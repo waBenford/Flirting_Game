@@ -489,7 +489,118 @@ public class part4 extends JFrame {
     private ImageIcon getOptimizedImage(String path, int w, int h) { String key = path + w + h; if (!imageCache.containsKey(key)) { imageCache.put(key, scaleImage(path, w, h)); } return imageCache.get(key); }
     public ImageIcon scaleImage(String path, int width, int height) { try { return new ImageIcon(new ImageIcon(path).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH)); } catch (Exception e) { return null; } }
     private void showChoices(String text1, String text2, int t1, int t2) { isChoosing = true; choiceButton1 = createChoiceButton(text1, 380, t1); choiceButton2 = createChoiceButton(text2, 450, t2); layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER); layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER); layeredPane.repaint(); }
-    private JButton createChoiceButton(String text, int y, int target) { JButton btn = new JButton(text) { @Override protected void paintComponent(Graphics g) { Graphics2D g2d = (Graphics2D) g.create(); g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); g2d.setColor(getBackground()); g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25); g2d.setColor(new Color(225, 105, 180)); g2d.setStroke(new BasicStroke(2)); g2d.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22); g2d.dispose(); super.paintComponent(g); } }; btn.setBounds(800, y, 350, 60); btn.setFont(new Font("Tahoma", Font.BOLD, 18)); btn.setBackground(new Color(255, 255, 255, 180)); btn.setContentAreaFilled(false); btn.setBorderPainted(false); btn.addActionListener(e -> { layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2); isChoosing = false; if (target == 11 || target == 18 || target == 39 || target == 59) relationdata.aliceRel.addAffinity(10); else relationdata.aliceRel.decreaseAffinity(5); if (relationdata.isOnlineMode && networkOut != null) { networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity()); networkOut.println("SYNC_INDEX:" + target); } updateAffinityUI(); currentIndex = target; updateScene(); }); return btn; }
+    private JButton createChoiceButton(String text, int y, int target) {
+        JButton btn = new JButton(text) {
+            // --- ตัวแปรสำหรับ Animation ---
+            private double scale = 1.0;
+            private int alphaMod = 180; // ความโปร่งใสของพื้นหลัง
+            private Timer animTimer;
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // --- ส่วนการทำ Animation Scale ---
+                int centerX = getWidth() / 2;
+                int centerY = getHeight() / 2;
+                g2.translate(centerX, centerY);
+                g2.scale(scale, scale);
+                g2.translate(-centerX, -centerY);
+
+                // วาดพื้นหลังปุ่ม (สีขาวใสที่เปลี่ยนค่า alpha ตามการ Hover)
+                g2.setColor(new Color(255, 255, 255, alphaMod));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+
+                // วาดเส้นขอบสีชมพู
+                g2.setColor(new Color(225, 105, 180));
+                g2.setStroke(new BasicStroke(2));
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
+
+                g2.dispose();
+                super.paintComponent(g);
+            }
+
+            {
+                // เพิ่ม MouseListener สำหรับดักจับการ Hover และ Click
+                addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        startAnimation(1.05, 230); // ขยายขึ้น 5% และสว่างขึ้น
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        startAnimation(1.0, 180); // กลับสู่ขนาดปกติ
+                    }
+
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                        scale = 0.95; // ปุ่มยุบลงตอนกด
+                        repaint();
+                    }
+                });
+            }
+
+            private void startAnimation(double targetScale, int targetAlpha) {
+                if (animTimer != null && animTimer.isRunning()) animTimer.stop();
+                animTimer = new Timer(15, ev -> {
+                    // ค่อยๆ ปรับ Scale ให้สมูท
+                    if (scale < targetScale) scale += 0.01;
+                    else if (scale > targetScale) scale -= 0.01;
+
+                    // ค่อยๆ ปรับความสว่างพื้นหลัง
+                    if (alphaMod < targetAlpha) alphaMod += 5;
+                    else if (alphaMod > targetAlpha) alphaMod -= 5;
+
+                    if (Math.abs(scale - targetScale) < 0.01 && alphaMod == targetAlpha) {
+                        scale = targetScale;
+                        ((Timer)ev.getSource()).stop();
+                    }
+                    repaint();
+                });
+                animTimer.start();
+            }
+        };
+
+        // --- การตั้งค่าปุ่มพื้นฐาน ---
+        btn.setBounds(800, y, 350, 60);
+        btn.setFont(new Font("Tahoma", Font.BOLD, 18));
+        btn.setForeground(new Color(45, 65, 115));
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // --- Logic การกดปุ่มและระบบ Affinity ของ Part 4 ---
+        btn.addActionListener(e -> {
+            playSE("res/sound/click.wav", false, 0.0f);
+            layeredPane.remove(choiceButton1);
+            layeredPane.remove(choiceButton2);
+            isChoosing = false;
+
+            // ตรวจสอบเงื่อนไขคะแนนความสนิทตามที่คุณส่งมา
+            if (target == 11 || target == 18 || target == 39 || target == 59) {
+                relationdata.aliceRel.addAffinity(10);
+            } else {
+                relationdata.aliceRel.decreaseAffinity(5);
+            }
+
+            // ส่งข้อมูลไปยัง Server เพื่อบันทึก SQL (Online Mode)
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
+                networkOut.println("SYNC_INDEX:" + target);
+            }
+
+            // อัปเดตการแสดงผลบน UI
+            updateAffinityUI(); 
+
+            currentIndex = target;
+            updateScene();
+        });
+
+        return btn;
+    }
     private void finishPart() {
         isFading = true; // ล็อคการคลิกซ้ำ
         stopBGM();

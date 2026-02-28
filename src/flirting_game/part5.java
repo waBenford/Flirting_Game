@@ -423,8 +423,10 @@ public class part5 extends JFrame {
 
     private void showChoices(String text1, String text2, int t1, int t2) {
         isChoosing = true; 
-        choiceButton1 = createChoiceButton(text1, 380, t1); //y: ขึ้น=ลง
-        choiceButton2 = createChoiceButton(text2, 450, t2); //y: ขึ้น=ลง
+        choiceButton1 = createChoiceButton(text1, 380, t1); 
+        choiceButton2 = createChoiceButton(text2, 450, t2); 
+        
+        // ใช้ POPUP_LAYER เพื่อให้ปุ่มอยู่บนสุดเสมอ
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
@@ -432,66 +434,116 @@ public class part5 extends JFrame {
 
     private JButton createChoiceButton(String text, int y, int target) {
         JButton btn = new JButton(text) {
+            // --- ตัวแปรสำหรับระบบ Animation ---
+            private double scale = 1.0;
+            private int alphaMod = 180; // ค่าความโปร่งใสเริ่มต้นตามที่คุณตั้งไว้
+            private Timer animTimer;
+
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // วาดพื้นหลังปุ่มแบบโค้งมน
-                g2.setColor(getBackground());
+                // --- Effect ขยายจากจุดกลางปุ่ม ---
+                int centerX = getWidth() / 2;
+                int centerY = getHeight() / 2;
+                g2.translate(centerX, centerY);
+                g2.scale(scale, scale);
+                g2.translate(-centerX, -centerY);
+
+                // วาดพื้นหลังโค้งมน (จะสว่างขึ้นเมื่อเมาส์ Hover)
+                g2.setColor(new Color(255, 255, 255, alphaMod));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
 
-                // วาดเส้นขอบสีชมพูเข้มแบบโค้งมน
+                // วาดเส้นขอบสีชมพูเข้ม (ธีมหลักของคุณ)
                 g2.setColor(new Color(225, 105, 180)); 
                 g2.setStroke(new BasicStroke(2));   
                 g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
 
                 g2.dispose();
-                super.paintComponent(g);
+                super.paintComponent(g); // วาดข้อความ
+            }
+
+            {
+                // เพิ่ม Mouse Listener สำหรับดักจับการเคลื่อนไหวเมาส์
+                addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        startAnimation(1.05, 230); // ขยาย 5% และสว่างขึ้น
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        startAnimation(1.0, 180); // กลับสู่ปกติ
+                    }
+
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                        scale = 0.95; // ปุ่มยุบลงตอนคลิก
+                        repaint();
+                    }
+                });
+            }
+
+            private void startAnimation(double targetScale, int targetAlpha) {
+                if (animTimer != null && animTimer.isRunning()) animTimer.stop();
+                animTimer = new Timer(15, ev -> {
+                    // ปรับ Scale นุ่มๆ
+                    if (scale < targetScale) scale += 0.01;
+                    else if (scale > targetScale) scale -= 0.01;
+
+                    // ปรับค่าความชัดพื้นหลัง
+                    if (alphaMod < targetAlpha) alphaMod += 5;
+                    else if (alphaMod > targetAlpha) alphaMod -= 5;
+
+                    if (Math.abs(scale - targetScale) < 0.01 && alphaMod == targetAlpha) {
+                        scale = targetScale;
+                        ((Timer)ev.getSource()).stop();
+                    }
+                    repaint();
+                });
+                animTimer.start();
             }
         };
 
-        // ตั้งค่าตำแหน่งและดีไซน์ปุ่ม
+        // --- ตั้งค่าดีไซน์ปุ่ม ---
         btn.setBounds(800, y, 350, 60); 
         btn.setFont(new Font("Tahoma", Font.BOLD, 16));
         btn.setForeground(new Color(45, 65, 115)); 
-        btn.setBackground(new Color(255, 255, 255, 180));  
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR)); // เปลี่ยนเป็นรูปมือ
+
         btn.setContentAreaFilled(false);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false); 
-    
+
+        // --- Logic การทำงานและระบบ Affinity (Part 5) ---
         btn.addActionListener(e -> {
-            // ลบปุ่มออกและปลดล็อคสถานะการเลือก
+            playEffect("res/sound/click.wav", 0.0f);
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
             isChoosing = false; 
 
-            // --- ระบบคำนวณคะแนนสำหรับ Part 5 ---
-            // เลือกคำตอบที่ถูกต้อง: กินอะไรก็ได้ (10), ไม่ยกให้ใคร (32), สัญญาว่าจะรอ (54)
+            // ตรวจสอบคำตอบ: กินอะไรก็ได้ (10), ไม่ยกให้ใคร (32), สัญญาว่าจะรอ (54)
             if (target == 10 || target == 32 || target == 54) {
                 relationdata.aliceRel.addAffinity(10); 
             } else {
                 relationdata.aliceRel.decreaseAffinity(5); 
             }
 
-            // --- ส่งข้อมูลอัปเดตไปที่ Server เพื่อบันทึกคะแนนลง SQL ---
+            // ส่งข้อมูลไป Server (Online Mode)
             if (relationdata.isOnlineMode && networkOut != null) {
                 networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
                 networkOut.println("SYNC_INDEX:" + target);
             }
 
-            // --- อัปเดต UI ของคะแนนบนหน้าจอทันที ---
-            if (affinityLabel != null) {
-                affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
-            }
-            if (statusLabel != null) {
-                statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
-            }
+            // อัปเดต UI คะแนน
+            if (affinityLabel != null) affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
+            if (statusLabel != null) statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
 
-            // ย้ายไปยังลำดับเหตุการณ์ที่เลือกและอัปเดตหน้าจอ
             currentIndex = target; 
             updateScene(); 
         });
+
         return btn;
     }
 

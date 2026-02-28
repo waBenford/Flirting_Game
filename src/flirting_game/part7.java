@@ -172,7 +172,7 @@ public class part7 extends JFrame {
                 } else {
                     // สำหรับ อริส และตัวละครทั่วไป
                     charW = 1200;
-                    charH = 950;
+                    charH = 1000;
                     charX = (1280 - charW) / 2;
                     charY = 50;
                 }
@@ -285,43 +285,99 @@ public class part7 extends JFrame {
 
     private JButton createChoiceButton(String text, int y, int target) {
         JButton btn = new JButton(text) {
-            // Override paintComponent เพื่อวาดปุ่มให้มีขอบโค้งมน
+            // --- ตัวแปรสำหรับระบบ Animation ---
+            private double scale = 1.0;
+            private int alphaMod = 150; // ความโปร่งใสเริ่มต้นตามโค้ดพาร์ท 6 ของคุณ
+            private Timer animTimer;
+
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // วาดพื้นหลังโค้งมน
-                g2.setColor(getBackground());
+                // --- คำนวณ Scale Animation ขยายจากจุดศูนย์กลาง ---
+                int centerX = getWidth() / 2;
+                int centerY = getHeight() / 2;
+                g2.translate(centerX, centerY);
+                g2.scale(scale, scale);
+                g2.translate(-centerX, -centerY);
+
+                // วาดพื้นหลังโค้งมน (จะชัดขึ้นเมื่อเมาส์ชี้)
+                g2.setColor(new Color(255, 255, 255, alphaMod));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
 
-                // วาดเส้นขอบโค้งมน
-                g2.setColor(new Color(225, 105, 180)); // สีขอบเดิม
-                g2.setStroke(new BasicStroke(2));   // ความหนาขอบเดิม
+                // วาดเส้นขอบสีชมพูเข้ม (สีเดิมที่คุณกำหนดไว้)
+                g2.setColor(new Color(225, 105, 180)); 
+                g2.setStroke(new BasicStroke(2));   
                 g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
 
                 g2.dispose();
+                super.paintComponent(g); // วาดข้อความทับลงไป
+            }
 
-                // วาดข้อความและส่วนอื่นๆ ทับลงไป
-                super.paintComponent(g);
+            {
+                // เพิ่ม Mouse Event สำหรับจัดการ Animation
+                addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        startAnimation(1.05, 200); // เมื่อชี้: ขยาย 5% และพื้นหลังชัดขึ้น
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        startAnimation(1.0, 150); // เมื่อเอาออก: กลับสู่ขนาดปกติ
+                    }
+
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                        scale = 0.95; // เมื่อกด: ปุ่มยุบตัวลงเล็กน้อยเพื่อให้ดูมีแรงกด
+                        repaint();
+                    }
+                });
+            }
+
+            private void startAnimation(double targetScale, int targetAlpha) {
+                if (animTimer != null && animTimer.isRunning()) animTimer.stop();
+                animTimer = new Timer(15, ev -> {
+                    // ค่อยๆ ปรับขนาดปุ่มให้นุ่มนวล
+                    if (scale < targetScale) scale += 0.01;
+                    else if (scale > targetScale) scale -= 0.01;
+
+                    // ค่อยๆ ปรับความชัดของพื้นหลัง
+                    if (alphaMod < targetAlpha) alphaMod += 5;
+                    else if (alphaMod > targetAlpha) alphaMod -= 5;
+
+                    if (Math.abs(scale - targetScale) < 0.01 && alphaMod == targetAlpha) {
+                        scale = targetScale;
+                        ((Timer)ev.getSource()).stop();
+                    }
+                    repaint();
+                });
+                animTimer.start();
             }
         };
 
+        // --- ตั้งค่าดีไซน์ปุ่ม (ตามพาร์ท 6 เดิมของคุณ) ---
         btn.setBounds(800, y, 350, 60); 
         btn.setFont(new Font("Tahoma", Font.BOLD, 16));
-        btn.setForeground(new Color(45,65,115)); // สีข้อความ
-        btn.setBackground(new Color(255, 255, 255, 150));  
-        // ตั้งค่าเพื่อให้วาดปุ่มแบบกำหนดเองได้
+        btn.setForeground(new Color(45, 65, 115)); 
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR)); // เปลี่ยนเมาส์เป็นรูปมือ
+
+        // ปิดการวาดส่วนเกินของ Swing ปกติ
         btn.setContentAreaFilled(false);
         btn.setFocusPainted(false);
-        btn.setBorderPainted(false); // ปิดการวาดขอบสี่เหลี่ยมเดิม
-    
-        btn.setBorder(BorderFactory.createLineBorder(new Color(255, 204, 0), 2)); 
+        btn.setBorderPainted(false); 
+        
+        // --- Logic การทำงาน (พาร์ท 6 ยังไม่มี Affinity) ---
         btn.addActionListener(e -> {
+            playEffect("res/sound/click.wav", 0.0f);
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
-            isChoosing = false; currentIndex = target; updateScene(); 
+            isChoosing = false; 
+            currentIndex = target; 
+            updateScene(); 
         });
+
         return btn;
     }
 
