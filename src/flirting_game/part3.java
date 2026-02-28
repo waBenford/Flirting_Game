@@ -103,7 +103,7 @@ public class part3 extends JFrame {
         "ฝึกฝนตัวเองให้เเข็งเเกร่งมากขึ้น", "เพื่อที่ฉันจะได้เเก้เเค้นให้พ่อกับเเม่",
         "นี่...", "เธออยากจะร่วมเดินทางกับฉันมั้ย?",
         "เธอเป็นคนที่จิตใจดี เเละอ่อนโยนมาก", "เพราะอย่างงั้นฉันเลยอยากที่จะปกป้องเธอ",
-        "ไม่มีเหตุผลเลยที่ฉันปฏิเสธเธอ", "เเ่นนอน!! ฉันจะออกเดินทางกับเธอ",
+        "ไม่มีเหตุผลเลยที่ฉันปฏิเสธเธอ", "เเน่นอน!! ฉันจะออกเดินทางกับเธอ",
         "ฉันจะต้องเเข็งเเกร่งขึ้นให้ได้เหมือนกัน", "ขอบคุณนะ …",
         "เออ..ว่าเเต่เธอชื่ออะไรกันเเน่", "ฉันชื่อ..."
     };
@@ -224,11 +224,7 @@ public class part3 extends JFrame {
             }
         } else {
             // เมื่อจบ Part 3 ให้หยุดเพลงและไป Part 4
-            stopBGM();
-            UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
-            JOptionPane.showMessageDialog(null, "จบ Part 3 แล้ว!");
-            new part4().setVisible(true);
-            dispose(); 
+            finishPartWithTimeSkip();
         }
     }
 
@@ -303,6 +299,55 @@ public class part3 extends JFrame {
         updateDialogueDisplay(dialogues[currentIndex]);
         handleSoundEffects(currentIndex);
         layeredPane.repaint();
+    }
+
+    private void finishPartWithTimeSkip() {
+        isFading = true; // ล็อคการคลิกซ้ำ
+        stopBGM();
+        stopEffect();
+        alpha = 0.0f;
+        
+        // 1. ตรวจสอบว่ามี fadeOverlay หรือไม่
+        if (fadeOverlay.getParent() == null) {
+            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        }
+
+        // 2. สร้างข้อความ "ผ่านไปแล้ว 2 ปี..."
+        JLabel transitionText = new JLabel("ผ่านไปแล้ว 2 ปี...", SwingConstants.CENTER);
+        transitionText.setFont(new Font("Tahoma", Font.BOLD, 45)); // ขนาดใหญ่ชัดเจน
+        transitionText.setForeground(Color.WHITE);
+        transitionText.setBounds(0, 0, 1280, 800);
+        transitionText.setOpaque(false);
+        transitionText.setVisible(false); // ซ่อนไว้ก่อนจนกว่าจะจอดำ
+        layeredPane.add(transitionText, JLayeredPane.DRAG_LAYER);
+        layeredPane.setLayer(transitionText, JLayeredPane.DRAG_LAYER + 1); // ให้อยู่เหนือแผ่นดำ
+
+        // 3. เริ่มการ Fade Out (ดำมืด)
+        Timer fadeOut = new Timer(30, e -> {
+            alpha += 0.02f; // ปรับให้ค่อยๆ ดำช้าๆ (ช้ากว่าปกติ)
+            if (alpha >= 1.0f) {
+                alpha = 1.0f;
+                ((Timer)e.getSource()).stop();
+
+                // เมื่อจอดำสนิทแล้ว แสดงข้อความ
+                transitionText.setVisible(true);
+
+                // 4. หน่วงเวลาหน้าจอดำนานๆ (เช่น 3 วินาที) ตามที่ต้องการ
+                Timer delayTimer = new Timer(3000, ev -> {
+                    ((Timer)ev.getSource()).stop();
+                    
+                    // สลับไป Part 4
+                    SwingUtilities.invokeLater(() -> {
+                        new part4().setVisible(true);
+                        dispose(); // ปิดหน้าจอ Part 3
+                    });
+                });
+                delayTimer.setRepeats(false);
+                delayTimer.start();
+            }
+            fadeOverlay.repaint();
+        });
+        fadeOut.start();
     }
 
     private void setupDialogueUI() {

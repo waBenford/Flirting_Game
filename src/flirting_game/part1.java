@@ -116,45 +116,29 @@ public class part1 extends JFrame {
     }
 
     private void handleNext() {
-        // 1. ป้องกันการคลิกซ้ำขณะกำลัง Fade ฉาก
         if (isFading) return; 
         
-        // 2. ถ้าตัวอักษรกำลังพิมพ์อยู่ ให้หยุดและแสดงข้อความเต็มทันที
         if (isAnimating) {
             stopAnimation();
             updateDialogueDisplay(dialogues[currentIndex]);
             return;
         }
 
-        // 3. ตรวจสอบว่าถึงบทสนทนาสุดท้ายหรือยัง
+        // --- ตรวจสอบฉากสุดท้าย ---
         if (currentIndex >= dialogues.length - 1) {
             stopBGM();
-            UIManager.put("OptionPane.messageFont", THAI_FONT_PLAIN);
-            JOptionPane.showMessageDialog(null, "จบ Part 1 แล้ว! กำลังเข้าสู่บทถัดไป...");
-            
-            // ส่งสถานะจบ Part ไปยังเครื่องอื่น (ถ้าต้องการให้ซิงค์การเปลี่ยนไฟล์ Part)
-            if (relationdata.isOnlineMode && networkOut != null) {
-                networkOut.println("END_PART:1");
-            }
-            
-            new part2().setVisible(true);
-            dispose();
+            // เริ่ม Fade Out แบบพิเศษสำหรับเปลี่ยน Part
+            fadeOutToNextPart(); 
             return;
         }
 
-        // 4. เริ่มกระบวนการเปลี่ยนฉากพร้อม Fade
+        // การเปลี่ยนฉากปกติระหว่างเล่น
         performSceneFade(() -> {
-            currentIndex++; // เลื่อนไปยังลำดับถัดไป
-            
-            // --- ส่วนสำคัญ: ส่งลำดับฉากปัจจุบันไปหาเพื่อนคนอื่นในวง Online ---
-            // ข้อมูลนี้จะถูก Server รับไปเพื่อกระจายต่อให้เพื่อน และบันทึกลงฐานข้อมูล SQL อัตโนมัติ
+            currentIndex++; 
             if (relationdata.isOnlineMode && networkOut != null) {
                 networkOut.println("SYNC_INDEX:" + currentIndex);
             }
-            
-            // จัดการเสียง BGM พิเศษใน Part 1
             if (currentIndex == 7) stopBGM();
-            
             handleSoundEffects(currentIndex);
             updateScene();
         });
@@ -243,6 +227,42 @@ public class part1 extends JFrame {
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
+
+    private void fadeOutToNextPart() {
+    isFading = true;
+    alpha = 0.0f;
+    
+    if (fadeOverlay.getParent() == null) {
+        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+    }
+
+    Timer fadeOut = new Timer(30, null);
+    fadeOut.addActionListener(e -> {
+        alpha += 0.05f; // ค่อยๆ ดำขึ้น
+        if (alpha >= 1.0f) {
+            alpha = 1.0f;
+            fadeOut.stop();
+
+            // ส่งข้อมูลเน็ตเวิร์ค
+            if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("END_PART:1");
+            }
+
+            // หน่วงเวลาเล็กน้อย (200ms) ให้ OS เคลียร์ Memory ก่อนสลับหน้าจอ
+            Timer transitionTimer = new Timer(200, ev -> {
+                SwingUtilities.invokeLater(() -> {
+                    part2 next = new part2();
+                    next.setVisible(true);
+                    dispose(); // ปิดหน้าปัจจุบัน
+                });
+            });
+            transitionTimer.setRepeats(false);
+            transitionTimer.start();
+        }
+        fadeOverlay.repaint();
+    });
+    fadeOut.start();
+}
 
     public void playSE(String path, boolean isLoop, float volume) {
         try {
