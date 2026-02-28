@@ -578,55 +578,116 @@ public class part3 extends JFrame {
 
     private JButton createChoiceButton(String text, int y, int target) {
         JButton btn = new JButton(text) {
-            // Override paintComponent เพื่อวาดปุ่มให้มีขอบโค้งมน
+            // --- ส่วนของตัวแปรสำหรับ Animation ---
+            private double scale = 1.0;
+            private int alphaMod = 150; // ค่าเริ่มต้นตาม Background เดิมของคุณ
+            private Timer animTimer;
+
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // วาดพื้นหลังโค้งมน
-                g2.setColor(getBackground());
+                // --- ทำ Animation ขยายจากจุดกลางปุ่ม ---
+                int centerX = getWidth() / 2;
+                int centerY = getHeight() / 2;
+                g2.translate(centerX, centerY);
+                g2.scale(scale, scale);
+                g2.translate(-centerX, -centerY);
+
+                // วาดพื้นหลังโค้งมน (ค่า Alpha จะเปลี่ยนตามการ Hover)
+                g2.setColor(new Color(255, 255, 255, alphaMod));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
 
-                // วาดเส้นขอบโค้งมน
-                g2.setColor(new Color(225, 105, 180)); // สีขอบเดิม
-                g2.setStroke(new BasicStroke(2));   // ความหนาขอบเดิม
+                // วาดเส้นขอบสีชมพู
+                g2.setColor(new Color(225, 105, 180));
+                g2.setStroke(new BasicStroke(2));
                 g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
 
                 g2.dispose();
-
-                // วาดข้อความและส่วนอื่นๆ ทับลงไป
                 super.paintComponent(g);
+            }
+
+            {
+                // ใส่ Mouse Events สำหรับ Hover และ Click
+                addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        startAnimation(1.05, 200); // ขยายขึ้น 5% และชัดขึ้น
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        startAnimation(1.0, 150); // กลับสู่ขนาดปกติ
+                    }
+
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                        scale = 0.95; // ยุบตัวลงเล็กน้อยตอนคลิก
+                        repaint();
+                    }
+                });
+            }
+
+            private void startAnimation(double targetScale, int targetAlpha) {
+                if (animTimer != null && animTimer.isRunning()) animTimer.stop();
+                animTimer = new Timer(15, ev -> {
+                    // ปรับขนาด Scale นุ่มๆ
+                    if (scale < targetScale) scale += 0.01;
+                    else if (scale > targetScale) scale -= 0.01;
+
+                    // ปรับค่าความชัดพื้นหลัง
+                    if (alphaMod < targetAlpha) alphaMod += 5;
+                    else if (alphaMod > targetAlpha) alphaMod -= 5;
+
+                    if (Math.abs(scale - targetScale) < 0.01 && alphaMod == targetAlpha) {
+                        scale = targetScale;
+                        ((Timer)ev.getSource()).stop();
+                    }
+                    repaint();
+                });
+                animTimer.start();
             }
         };
 
-        // เลื่อนปุ่มไปทางขวา
+        // --- ตั้งค่าคุณสมบัติพื้นฐาน ---
         btn.setBounds(800, y, 350, 60);
         btn.setFont(new Font("Tahoma", Font.BOLD, 20));
-        btn.setForeground(new Color(45,65,115));
-        btn.setBackground(new Color(255, 255, 255, 150));
+        btn.setForeground(new Color(45, 65, 115));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR)); // เปลี่ยนรูปเมาส์เป็นรูปมือ
 
-        // ตั้งค่าเพื่อให้วาดปุ่มแบบกำหนดเองได้
         btn.setContentAreaFilled(false);
         btn.setFocusPainted(false);
-        btn.setBorderPainted(false); // ปิดการวาดขอบสี่เหลี่ยมเดิม
+        btn.setBorderPainted(false);
 
+        // --- Logic การทำงานและระบบ Affinity ---
         btn.addActionListener(e -> {
-            layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2);
+            playEffect("res/sound/click.wav", 0.0f);
+            layeredPane.remove(choiceButton1); 
+            layeredPane.remove(choiceButton2);
             isChoosing = false;
-            if (target == 33) relationdata.aliceRel.addAffinity(10);
-            else if (target == 34) relationdata.aliceRel.decreaseAffinity(5);
 
-            // --- ส่วนที่ขาดไป: ต้องส่งไปบอก Server ด้วยคะแนนถึงจะถูกเซฟลง SQL ---
+            // ตรวจสอบเงื่อนไขคะแนนความสนิท (อ้างอิงจาก target ของ Part 3)
+            if (target == 33) {
+                relationdata.aliceRel.addAffinity(10);
+            } else if (target == 34) {
+                relationdata.aliceRel.decreaseAffinity(5);
+            }
+
+            // ส่งข้อมูลไป Server เพื่อบันทึกลง SQL (Online Mode)
             if (relationdata.isOnlineMode && networkOut != null) {
                 networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
                 networkOut.println("SYNC_INDEX:" + target);
             }
 
+            // อัปเดตข้อความบน UI
             affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
-            currentIndex = target; updateScene();
+
+            currentIndex = target; 
+            updateScene();
         });
+
         return btn;
     }
 
