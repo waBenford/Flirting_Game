@@ -57,16 +57,21 @@ public class part7 extends JFrame {
        "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", 
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/scene5/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-shy1.png",
        "res/scene5/Alice-normal2.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/scene5/Alice-normal2.png", //0-12
-       "res/scene5/Alice-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", //13-24
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", //29
-       "res/Charactor/Alice/Girl/Alice-fight1.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", //25-35
-       "res/empty.png", "res/scene5/Alice-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", //36-51
-       "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/scene5/Alice-normal2.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/empty.png", //52-63
-       "res/empty.png", "res/empty.png","res/empty.png","res/empty.png","res/scene5/Alice-normal2.png","res/Charactor/Dan/dan-normal2.png", //64-69
+       "res/scene5/Alice-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", 
+       "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+       "res/Charactor/Alice/Girl/Alice-fight2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", 
+       "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", //13-24
+       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", 
+       "res/Charactor/Nebula/Nebula-normal2.png", //29
+       "res/Charactor/Alice/Girl/Alice-fight1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", 
+       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", //25-35
+       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+       "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/empty.png", 
+       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", 
+       "res/Charactor/Nebula/Nebula-normal1.png", //36-51
+       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Dan/dan-normal2.png", "res/scene5/Alice-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", 
+       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", //52-63
+       "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal2.png","res/scene5/Alice-normal2.png","res/Charactor/Dan/dan-normal2.png", //64-69
     };
 
     private String[] names = { 
@@ -149,25 +154,26 @@ public class part7 extends JFrame {
             if (path.contains("empty.png")) {
                 characterLabel.setIcon(null);
             } else {
-                // --- ระบบจัดตำแหน่งและขนาดให้สมส่วนตามชื่อไฟล์ ---
                 int charW, charH, charX, charY;
 
-                if (path.contains("dan")) {
-                    // สำหรับ Dan: ไหล่กว้าง ใช้สัดส่วนกว้างกว่าอริสเล็กน้อย
+                // ใช้โครงสร้าง if - else if - else เพื่อให้เลือกทำงานแค่อย่างเดียว
+                if (path.contains("Nebula")) {
+                    // ปรับ Nebula ให้ดูตัวใหญ่และสูงขึ้น (จอมมาร)
+                    charW = 900; 
+                    charH = 900;
+                    charX = (1280 - charW) / 2;
+                    charY = 50; // ดันขึ้นบนเพื่อให้เห็นความสูง
+                } else if (path.contains("dan")) {
+                    // สำหรับ Dan (รวม dan-normal2 ไว้ในเงื่อนไขนี้ได้เลยเพราะมีคำว่า dan เหมือนกัน)
                     charW = 1400;
                     charH = 1000;
-                    charX = (1280 - charW) / 2; // คำนวณให้อยู่กึ่งกลางจอ 1280
-                    charY = 60; 
-                } if (path.contains("dan-normal2")) {
-                	charW = 1400;
-                    charH = 1000;
-                    charX = (1280 - charW) / 2; // คำนวณให้อยู่กึ่งกลางจอ 1280
+                    charX = (1280 - charW) / 2;
                     charY = 60; 
                 } else {
-                    // สำหรับ อริส: สัดส่วนเพรียวแนวตั้ง
+                    // สำหรับ อริส และตัวละครทั่วไป
                     charW = 1200;
-                    charH = 900;
-                    charX = (1280 - charW) / 2; // คำนวณให้อยู่กึ่งกลางจอ 1280
+                    charH = 950;
+                    charX = (1280 - charW) / 2;
                     charY = 50;
                 }
 
@@ -259,6 +265,9 @@ public class part7 extends JFrame {
             playEffect("res/sound_nebula/naanii.wav", 0.0f);
         }
         if (index == 26){
+            playEffect("res/sound_nebula/hahaha.wav", 0.0f);
+        }
+        if (index == 47){
             playEffect("res/sound_nebula/hahaha.wav", 0.0f);
         }
     }
