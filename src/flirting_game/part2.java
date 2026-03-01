@@ -214,6 +214,7 @@ public class part2 extends JFrame {
             showChoices("ฉันไม่รู้ (ฉันยังไม่ไว้ใจใคร)", "ฉันจําชื่อตัวเองไม่ได้", 8, 9);
             return;
         }
+        if (currentIndex == 8) { currentIndex = 10; updateScene(); return; }
 
         if (currentIndex == 10 || currentIndex == 14 || currentIndex == 19) {
             performSceneFade(() -> {
@@ -279,7 +280,7 @@ public class part2 extends JFrame {
     }
 
     private void handleSoundEffects(int index) {
-        if (index == 8 || index == 9) playEffect("res/sound/soudesukaa.wav", 5.0f);
+        if (index == 8 ) playEffect("res/sound/soudesukaa.wav", 5.0f);
         else if (index == 11) playEffect("res/sound/fireplace.wav", 5.0f);
         else if (index == 18) {
             stopBGM();
@@ -377,7 +378,7 @@ public class part2 extends JFrame {
         if (currentIndex < dialogues.length) animateText(dialogues[currentIndex]);
         if (currentIndex < imagePaths.length) backgroundLabel.setIcon(scaleImage(imagePaths[currentIndex], 1280, 800));
         if (currentIndex < charPaths.length) {
-            characterLabel.setIcon(scaleImage(charPaths[currentIndex], 900, 900));
+            characterLabel.setIcon(scaleImage(charPaths[currentIndex], 1200, 800));
             if (currentIndex == 0 || !charPaths[currentIndex].equals(charPaths[Math.max(0, currentIndex-1)])) {
                 startCharacterFadeIn();
             }
@@ -629,7 +630,7 @@ public class part2 extends JFrame {
     public static void main(String[] args) { SwingUtilities.invokeLater(() -> new part2().setVisible(true)); }
 }
 
-class VisualNovelBox extends JPanel {
+/*class VisualNovelBox extends JPanel {
     private int cornerRadius = 30;
     public VisualNovelBox() { setOpaque(false); }
     @Override
@@ -647,4 +648,4 @@ class VisualNovelBox extends JPanel {
         g2d.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, cornerRadius, cornerRadius);
         g2d.dispose();
     }
-}
+}*/

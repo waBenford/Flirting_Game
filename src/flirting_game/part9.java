@@ -49,7 +49,7 @@ public class part9 extends JFrame {
     private String[] charPaths = { 
        "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
        "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
-       "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-shy2.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png",
+       "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-shy2.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", //0-11
        "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/Charactor/Dan/dan-normal2.png", 
        "res/Charactor/Alice/Girl/Alice-fight1.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/Charactor/Dan/dan-normal2.png", "res/empty.png",
@@ -553,7 +553,7 @@ public class part9 extends JFrame {
     }
 }
 
-class VisualNovelBox extends JPanel {
+/*class VisualNovelBox extends JPanel {
     private int cornerRadius = 30;
     public VisualNovelBox() { setOpaque(false); }
     @Override
@@ -567,4 +567,4 @@ class VisualNovelBox extends JPanel {
         g2d.setStroke(new BasicStroke(4f));
         g2d.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, cornerRadius, cornerRadius);
     }
-}
+}*/

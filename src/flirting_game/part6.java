@@ -484,7 +484,7 @@ public class part6 extends JFrame {
     }
 }
 
-class VisualNovelBox extends JPanel {
+/*class VisualNovelBox extends JPanel {
     private int cornerRadius;
 
     public VisualNovelBox() {
@@ -503,4 +503,4 @@ class VisualNovelBox extends JPanel {
         g2d.setStroke(new BasicStroke(4f));
         g2d.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, cornerRadius, cornerRadius);
     }
-}
+}*/
