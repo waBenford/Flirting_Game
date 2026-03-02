@@ -45,45 +45,91 @@ public class part9 extends JFrame {
         return paths;
     }
     
-    // ส่วนของตัวละคร (คุณชมพู่สามารถเพิ่ม Path เพิ่มเติมใน Array นี้ได้)
     private String[] charPaths = { 
-       "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
-       "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
-       "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-shy2.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", //0-11
-       "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png",
-       "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/Charactor/Dan/dan-normal2.png", 
-       "res/Charactor/Alice/Girl/Alice-fight1.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/Charactor/Dan/dan-normal2.png", "res/empty.png",
-       "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png",
-       "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", 
-       "res/Charactor/Alice/Girl/Alice-normal2.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png",  "res/empty.png",  "res/empty.png",
-       "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png",
-       "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", 
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",
-       "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png",
-       "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", 
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-       "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-       "res/Charactor/Alice/Girl/Alice-fight1.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", 
-       "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", 
-       "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", 
-       "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", 
-       "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png",  "res/empty.png",  "res/empty.png",  "res/empty.png",
-       "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png",  "res/empty.png", 
-       "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", 
-       "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", 
-       "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",  "res/Charactor/Alice/Girl/Alice-cry1.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight1.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-cry2.png",
-       "res/empty.png", "res/empty.png",
-    };
+            // 0-7: เริ่มเดินทาง (บรรยาย + Dan + อริส)
+            "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+            "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
+            
+            // 8-15: ทางเลือก + เริ่มเจอปีศาจ
+            "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-shy2.png", // 8, 9 (Choices)
+            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal2.png", 
+            "res/Charactor/Alice/Girl/Alice-normal2.png", "res/empty.png", "res/empty.png", "res/empty.png", // ปีศาจ
+            
+            // 16-23: ฉากต่อสู้ช่วงแรก
+            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight1.png",
+            "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png",
+            
+            // 24-35: ปีศาจมาเพิ่ม + Nebula ปรากฏตัว
+            "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+            "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", // Nebula (ถ้ามีรูป Nebula ให้เปลี่ยน res/empty.png เป็น path รูป Nebula)
+            
+            // 36-40: คุยกับ Nebula
+            "res/Charactor/Alice/Girl/Alice-normal1.png","res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png",
+            
+            // 41-51: Choices Nebula + ตกลงเดินทางด้วยกัน
+            "res/empty.png", "res/empty.png", // 41, 42 (Choices Nebula)
+            "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png",  "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png", 
+            
+            // 52-62: ระหว่างเดินทาง
+            "res/empty.png", "res/empty.png", // 52, 53 (Choices)
+            "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/empty.png",
+            "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            
+            // 63-77: เข้าใกล้หุบเขาเงามืด
+            "res/empty.png", "res/empty.png", // 63, 64 (Choices)
+            "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png",
+            "res/empty.png", "res/empty.png",  "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            
+            // 78-89: พักผ่อน + เดินทางต่อ
+            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", // 78, 79 (พักผ่อน)
+            "res/empty.png", "res/empty.png", // 80, 81 (Choices)
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            
+            // 90-101: ถึงป้อม Grey + เผชิญหน้า
+            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            
+            // 102-114: Grey ปล่อยพลัง + การต่อสู้ดุเดือด
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            
+            // 115-125: เวทย์ทำลายล้าง
+            "res/Charactor/Alice/Girl/Alice-fight1.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/empty.png",
+            
+            // 126-131: Dan ตัดสินใจสละชีพ
+            "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png",
+            "res/empty.png", "res/Charactor/Dan/dan-normal2.png",
+            
+            // 132-143: Dan พุ่งเข้าหา Grey
+            "res/Charactor/Alice/Girl/Alice-cry1.png", "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-cry1.png",
+            
+            // 144-151: Dan สั่งเสีย
+            "res/Charactor/Alice/Girl/Alice-cry2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-cry2.png", "res/Charactor/Dan/dan-normal1.png",
+            "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png",
+            
+            // 152-159: Dan เสียชีวิต
+            "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-cry2.png", "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            
+            // 160-170: การโจมตีสุดท้ายของ Nebula และอริส
+            "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight1.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+            
+            // 171-178: บทส่งท้าย (ฝังดาบ)
+            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Alice/Girl/Alice-cry1.png", "res/empty.png", "res/empty.png", "res/empty.png"
+        };
 
     private String[] names = { 
         " ", " ","Dan","อริส","ฉัน","Dan","Dan","อริส",
