@@ -166,6 +166,7 @@ public class part3 extends JFrame {
         layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
         startFadeIn();
+        updateScene();
 
         layeredPane.addMouseListener(new MouseAdapter() {
             @Override
@@ -281,23 +282,43 @@ public class part3 extends JFrame {
     }
 
     private void updateScene() {
-        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+        // 1. อัปเดตชื่อตัวละคร
+        if (currentIndex < names.length) {
+            nameLabel.setText(names[currentIndex]);
+        }
+
+        // 2. อัปเดตพื้นหลัง
         backgroundLabel.setIcon(getOptimizedImage(imagePaths[Math.min(currentIndex, imagePaths.length-1)], 1280, 800));
 
-        
+        // 3. จัดการตัวละครและการ Fade ตัวละคร
         if (currentIndex < charPaths.length) {
             String newPath = charPaths[currentIndex];
+            // เช็คว่าภาพเปลี่ยนจากเดิมไหม หรือว่าเป็นข้อความแรกสุด (Index 0)
             String oldPath = (currentIndex > 0) ? charPaths[currentIndex - 1] : "";
+            
             characterLabel.setIcon(getOptimizedImage(newPath, 900, 900));
-            characterLabel.setBounds(190, 100, 900, 900); // บังคับพิกัดมาตรฐาน
+            characterLabel.setBounds(190, 100, 900, 900); 
 
             if (!newPath.equals(oldPath) || currentIndex == 0) {
                 startCharacterFadeIn();
             }
         }
 
+        // 4. เริ่มพิมพ์ดีดข้อความ
         updateDialogueDisplay(dialogues[currentIndex]);
+
+        // 5. จัดการเสียงเอฟเฟกต์ตามฉาก
         handleSoundEffects(currentIndex);
+
+        // --- ส่วนที่เพิ่มเข้าไปเพื่อแก้ปัญหา Fade ข้อความแรก ---
+        // บังคับให้แผ่นดำ (fadeOverlay) อยู่บนสุดและวาดทับเสมอในช่วงที่ alpha ยังไม่เป็น 0
+        if (fadeOverlay != null && alpha > 0) {
+            layeredPane.setLayer(fadeOverlay, JLayeredPane.DRAG_LAYER); 
+            fadeOverlay.repaint();
+        }
+
+        // สั่งวาดหน้าจอใหม่ทั้งหมดเพื่อให้ Layer ต่างๆ เรียงตัวถูกต้อง
+        layeredPane.revalidate();
         layeredPane.repaint();
     }
 
