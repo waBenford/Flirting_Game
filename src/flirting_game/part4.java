@@ -458,9 +458,15 @@ public class part4 extends JFrame {
                 networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
                 String line;
                 while ((line = in.readLine()) != null) {
+                    // ค้นหาในเมธอด initNetwork()
                     if (line.startsWith("LOAD_AFFINITY:")) {
                         int score = Integer.parseInt(line.substring(14));
-                        relationdata.aliceRel.setAffinity(score); SwingUtilities.invokeLater(this::updateAffinityUI);
+                        relationdata.aliceRel.setAffinity(score);
+                        SwingUtilities.invokeLater(() -> {
+                            // แก้ไขตรงนี้เช่นกันครับ
+                            affinityLabel.setText("อริส: " + score); 
+                            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+                        });
                     } else if (line.startsWith("ALL_STATS:")) { updateLeaderboardUI(line.substring(10)); }
                 }
             } catch (Exception e) {}
@@ -468,11 +474,35 @@ public class part4 extends JFrame {
     }
 
     private void updateLeaderboardUI(String data) {
-        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'><table width='320' style='color:white; font-family:Tahoma;'>");
-        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน</th></tr>");
-        for (String p : data.split(",")) { if (p.contains("=")) { String[] parts = p.split("="); String color = parts[0].equals(relationdata.playerName) ? "#00FF7F" : "white"; sb.append("<tr><td style='color:").append(color).append(";'>").append(parts[0]).append("</td><td align='right' style='color:#FF69B4;'>").append(parts[1]).append(" pt</td></tr>"); } }
+        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'>");
+        sb.append("<table width='320' style='color:white; font-family:Tahoma;'>");
+        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน (อริส)</th></tr>");
+        
+        for (String p : data.split(",")) {
+            if (p.contains("=")) {
+                String[] parts = p.split("=");
+                String name = parts[0];
+                String rawScores = parts[1]; // เช่น "10/0"
+                
+                // --- แก้ไขตรงนี้: แยกเอาเฉพาะคะแนนแรกมาแสดง ---
+                String aliceScore = rawScores;
+                if (rawScores.contains("/")) {
+                    aliceScore = rawScores.split("/")[0]; // เอาเฉพาะตัวหน้าเครื่องหมาย /
+                }
+
+                String color = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
+                sb.append("<tr>")
+                .append("<td style='color:").append(color).append(";'>").append(name).append("</td>")
+                .append("<td align='right' style='color:#FF69B4;'>").append(aliceScore).append(" pt</td>")
+                .append("</tr>");
+            }
+        }
         sb.append("</table></body></html>");
-        SwingUtilities.invokeLater(() -> { affinityStatusLabel.setText(sb.toString()); onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length); });
+        
+        SwingUtilities.invokeLater(() -> {
+            affinityStatusLabel.setText(sb.toString());
+            onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length);
+        });
     }
 
     // --- ส่วนเสริม UI (คงเดิมแต่ปรับตำแหน่งและฟอนต์) ---
@@ -481,7 +511,36 @@ public class part4 extends JFrame {
     private void setupTabKeyBinding() { layeredPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("TAB"), "toggleTab"); layeredPane.getActionMap().put("toggleTab", new AbstractAction() { @Override public void actionPerformed(java.awt.event.ActionEvent e) { statusOverlay.setVisible(!statusOverlay.isVisible()); } }); }
     private void startTypewriter(String text) { if (typewriterTimer != null) typewriterTimer.stop(); charIndex = 0; isTyping = true; dialogueArea.setText(""); typewriterTimer = new Timer(25, e -> { if (charIndex < text.length()) { charIndex++; updateDialogueDisplay(text.substring(0, charIndex)); } else { typewriterTimer.stop(); isTyping = false; } }); typewriterTimer.start(); }
     private void updateDialogueDisplay(String text) { dialogueArea.setText("<html><body style='width: 700px;'>" + text + "</body></html>"); }
-    private void setupRelationshipUI() { JPanel relPanel = new JPanel(new GridLayout(2, 1)); relPanel.setBounds(25, 25, 300, 70); relPanel.setOpaque(false); affinityLabel = new JLabel("ความสนิท: " + relationdata.aliceRel.getAffinity()); affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 22)); affinityLabel.setForeground(Color.WHITE); statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus()); statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20)); statusLabel.setForeground(new Color(255, 204, 0)); relPanel.add(affinityLabel); relPanel.add(statusLabel); layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER); }
+    private void setupRelationshipUI() {
+        // 1. ปรับตำแหน่งติดซ้ายบน (0, 0) และลดความสูงลงเพื่อให้พอดีกับคนเดียว
+        JPanel relPanel = new JPanel(new GridLayout(2, 1, 0, 0)); 
+        relPanel.setBounds(0, 0, 280, 75); 
+        
+        // 2. ใช้พื้นหลังสีดำโปร่งแสงเพื่อให้ข้อความอ่านง่ายบนทุกพื้นหลัง
+        relPanel.setBackground(new Color(0, 0, 0, 190)); 
+        relPanel.setOpaque(true);
+
+        // 3. เพิ่มกรอบสีชมพูหนา 2 พิกเซล และใส่ระยะห่าง (Padding) ด้านใน
+        relPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 105, 180), 2), // กรอบสีชมพู
+            BorderFactory.createEmptyBorder(5, 15, 5, 10) // ระยะห่างจากขอบ
+        ));
+
+        // 4. ตั้งค่าการแสดงผลของ อริส (ใช้โทนสีเดียวกับ Part 7)
+        affinityLabel = new JLabel("อริส: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18)); 
+        affinityLabel.setForeground(new Color(255, 192, 203)); // สีชมพูสว่าง
+
+        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        statusLabel.setForeground(Color.WHITE); // สีขาวอ่านง่าย
+
+        relPanel.add(affinityLabel);
+        relPanel.add(statusLabel);
+        
+        // นำไปวางไว้ในเลเยอร์ POPUP เพื่อให้อยู่หน้าสุดเสมอ
+        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
+    }
     private void updateAffinityUI() { affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity()); statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus()); }
     private void setupFadeOverlay() { fadeOverlay = new JPanel() { @Override protected void paintComponent(Graphics g) { Graphics2D g2d = (Graphics2D) g; g2d.setColor(new Color(0, 0, 0, (int) (alpha * 255))); g2d.fillRect(0, 0, getWidth(), getHeight()); } }; fadeOverlay.setBounds(0, 0, 1280, 800); fadeOverlay.setOpaque(false); }
     private void startFadeIn() { alpha = 1.0f; if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER); Timer fadeTimer = new Timer(40, e -> { alpha -= 0.02f; if (alpha <= 0) { alpha = 0; ((Timer) e.getSource()).stop(); layeredPane.remove(fadeOverlay); } fadeOverlay.repaint(); }); fadeTimer.start(); }
