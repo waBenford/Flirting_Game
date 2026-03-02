@@ -1,10 +1,15 @@
-package flirting_game;
+package flirting_game; // ต้องมีบรรทัดนี้ตามโครงสร้างโฟลเดอร์ของคุณ
 
 import java.awt.*;
-import javax.swing.*;
+import java.io.File;
+import javax.sound.sampled.*;
+import javax.swing.*; // สำหรับระบบเสียง
 
 public class menu {
     public static void main(String[] args) {
+        // --- เริ่มเล่นเพลงประกอบทันทีที่เปิดโปรแกรม ---
+        SoundManager.playBGM("res/sound/bgm.wav"); 
+
         JFrame frame = new JFrame("Isekai Lover");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1024, 600);
@@ -14,6 +19,7 @@ public class menu {
         frame.setContentPane(lp);
 
         // --- 1. Background ---
+        // ใช้ระบบย่อรูปที่คุณทำไว้เพื่อป้องกันรูปใหญ่เกิน
         ImageIcon bgOriginal = new ImageIcon("res/menu/bg.png");
         Image bgImg = bgOriginal.getImage().getScaledInstance(1024, 600, Image.SCALE_SMOOTH);
         JLabel background = new JLabel(new ImageIcon(bgImg));
@@ -30,10 +36,9 @@ public class menu {
         // --- 3. Buttons ---
         int btnW = 300;
         int btnH = 150;
-        // ปรับเป็น 5 แถวเพื่อให้รองรับปุ่ม Online ที่เพิ่มเข้ามา
-        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 0, 5)); 
+        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 0, 5));
         buttonPanel.setOpaque(false);
-        buttonPanel.setBounds(360, 180, btnW, 380); 
+        buttonPanel.setBounds(360, 180, btnW, 380);
 
         JButton startBtn = createImageButton("res/buttons/buttonStart.png", btnW, btnH);
         JButton onlineBtn = createImageButton("res/buttons/buttonOnline.png", btnW, btnH);
@@ -41,15 +46,22 @@ public class menu {
         JButton settingBtn = createImageButton("res/buttons/buttonSetting.png", btnW, btnH);
         JButton exitBtn = createImageButton("res/buttons/buttonExit.png", btnW, btnH);
 
-        // --- เพิ่มฟังก์ชันการกดปุ่ม Online (ใส่ชื่อแทน IP) ---
+        // --- ฟังก์ชันปุ่ม Setting (ระบบปรับเสียง) ---
+        settingBtn.addActionListener(e -> {
+            showSettings(frame);
+        });
+
+        // --- ฟังก์ชันปุ่ม Online ---
         onlineBtn.addActionListener(e -> {
             UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 18));
             String name = JOptionPane.showInputDialog(frame, "กรุณาใส่ชื่อของคุณเพื่อเข้าเล่นออนไลน์:", "Join Online", JOptionPane.QUESTION_MESSAGE);
             
             if (name != null && !name.trim().isEmpty()) {
-                relationdata.isOnlineMode = true;
-                relationdata.playerName = name.trim(); // บันทึกชื่อลงใน relationdata
-                
+                //สั่งหยุดเพลงก่อนไปหน้าถัดไป
+                SoundManager.stopBGM();
+                // เก็บค่าลง relationdata 
+                // relationdata.isOnlineMode = true;
+                // relationdata.playerName = name.trim();
                 new part1().setVisible(true); 
                 frame.dispose();
             } else if (name != null) {
@@ -59,25 +71,25 @@ public class menu {
 
         startBtn.addActionListener(e -> {
             try {
-                relationdata.isOnlineMode = false; // ปิดโหมดออนไลน์ถ้าเล่นปกติ
+                //สั่งหยุดเพลงก่อนไปหน้าถัดไป
+                SoundManager.stopBGM();
+
                 new part1().setVisible(true);
-                frame.dispose();            
+                frame.dispose();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "ยังไม่ได้สร้างคลาส part1 หรือมีข้อผิดพลาด");
             }
         });
 
         exitBtn.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(frame,
-                "คุณต้องการออกจากเกมใช่หรือไม่?", "ยืนยัน", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(frame, "คุณต้องการออกจากเกมใช่หรือไม่?", "ยืนยัน", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 System.exit(0);
             }
         });
 
-        // จัดเรียงปุ่มลงใน Panel
         buttonPanel.add(startBtn);
-        buttonPanel.add(onlineBtn); // วางปุ่ม Online ไว้ใต้ Start
+        buttonPanel.add(onlineBtn);
         buttonPanel.add(galleryBtn);
         buttonPanel.add(settingBtn);
         buttonPanel.add(exitBtn);
@@ -86,6 +98,50 @@ public class menu {
 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    // --- ฟังก์ชันแสดงหน้าต่าง Setting ---
+    private static void showSettings(JFrame parent) {
+        JDialog dialog = new JDialog(parent, "Settings", true);
+        dialog.setSize(400, 250);
+        dialog.setLocationRelativeTo(parent);
+        dialog.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 30));
+
+        JLabel volLabel = new JLabel("Music Volume: " + SoundManager.getCurrentVolumePercentage() + "%"); 
+        volLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
+        dialog.add(volLabel);
+
+        // แถบเลื่อนปรับเสียง 0-100 (ห้ามพิมพ์ min:, max: ลงไป)
+        JSlider volumeSlider = new JSlider(0, 100, SoundManager.getCurrentVolumePercentage());
+        volumeSlider.setPreferredSize(new Dimension(300, 50));
+
+        volumeSlider.addChangeListener(e -> {
+            float volume = volumeSlider.getValue() / 100f;
+            SoundManager.setVolume(volume);
+        });
+        dialog.add(volumeSlider);
+
+        volumeSlider.addChangeListener(e -> {
+            int value = volumeSlider.getValue();
+            float volume = value / 100f;
+            
+            // ถ้าเลื่อนเป็น 0 ให้เปลี่ยนข้อความเป็นปิดเสียง 
+            if (value == 0) {
+                volLabel.setText("Music Volume: Muted ");
+            } else {
+                volLabel.setText("Music Volume: " + value + "% ");
+            }
+        
+            // ส่งค่าไปที่ระบบเสียงจริง
+            SoundManager.setVolume(volume);
+    });
+
+        
+        JButton closeBtn = new JButton("Close");
+        closeBtn.addActionListener(e -> dialog.dispose());
+        dialog.add(closeBtn);
+
+        dialog.setVisible(true);
     }
 
     private static ImageIcon getScaledIcon(String path, int width, int height) {
@@ -117,5 +173,68 @@ public class menu {
             }
         });
         return button;
+    }
+}
+
+// --- คลาสจัดการเสียง (Sound Manager) ---
+class SoundManager {
+    private static Clip clip;
+    private static FloatControl volumeControl;
+    // 1. เก็บค่าระดับเสียงเป็นตัวแปรกลาง (0.0 ถึง 1.0) เริ่มต้นที่ 0.5 (50%)
+    private static float globalVolume = 0.5f; 
+
+    public static void playBGM(String path) {
+        try {
+            stopBGM(); // สั่งหยุดของเก่าก่อน
+            File file = new File(path);
+            if (!file.exists()) return;
+            
+            AudioInputStream stream = AudioSystem.getAudioInputStream(file);
+            clip = AudioSystem.getClip();
+            clip.open(stream);
+            
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                volumeControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                // 2. ทันทีที่เล่นเพลงใหม่ ให้ใช้ระดับเสียงปัจจุบันทันที!
+                applyVolume(globalVolume); 
+            }
+            
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+            clip.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 3. ฟังก์ชันปรับเสียงที่ใช้สูตร Logarithmic เพื่อความนุ่มนวล
+    public static void setVolume(float volume) {
+        globalVolume = volume; // จำค่าไว้
+        applyVolume(volume);   // สั่งปรับเสียงของเพลงที่เล่นอยู่ตอนนี้
+    }
+
+    private static void applyVolume(float volume) {
+        if (volumeControl != null) {
+            float volumeAdjusted = Math.max(volume, 0.0001f); 
+            float dB = (float) (Math.log10(volumeAdjusted) * 20);
+            
+            float min = volumeControl.getMinimum();
+            float max = volumeControl.getMaximum();
+            if (dB < min) dB = min;
+            if (dB > max) dB = max;
+            
+            volumeControl.setValue(dB);
+        }
+    }
+
+    public static void stopBGM() {
+        if (clip != null && clip.isRunning()) {
+            clip.stop();
+            clip.close();
+        }
+    }
+
+    // 4. ไว้สำหรับดึงค่าไปโชว์ในแถบ Slider ตอนเปิดหน้า Setting
+    public static int getCurrentVolumePercentage() {
+        return (int)(globalVolume * 100);
     }
 }
