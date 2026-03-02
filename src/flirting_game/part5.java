@@ -36,6 +36,11 @@ public class part5 extends JFrame {
     private JPanel statusOverlay;
     private JLabel onlineCountLabel, affinityStatusLabel;
     private java.io.PrintWriter networkOut;
+
+    private float bgAlpha = 1.0f; // ค่าความโปร่งใสของพื้นหลัง
+    private Timer bgFadeTimer;    // Timer สำหรับ Fade พื้นหลัง
+    private String lastBgPath = ""; // เก็บเส้นทางรูปภาพล่าสุดเพื่อเช็คการเปลี่ยนแปลง
+    private boolean isBgFading = false; // เช็คสถานะการ Fade
     
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 24);
 
@@ -184,7 +189,16 @@ public class part5 extends JFrame {
 
         playSE("res/sound/soundtrack8.wav", true, -10.0f);
 
-        backgroundLabel = new JLabel();
+        backgroundLabel = new JLabel() {
+            @Override 
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                // กำหนดค่าความโปร่งใสตามตัวแปร bgAlpha
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, bgAlpha));
+                super.paintComponent(g2d); 
+                g2d.dispose();
+            }
+        };
         backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
@@ -300,7 +314,14 @@ public class part5 extends JFrame {
         else nameLabel.setText(names[currentIndex]);
 
         if (currentIndex < imagePaths.length) {
-            backgroundLabel.setIcon(getOptimizedImage(imagePaths[currentIndex], 1280, 800));
+            String currentBg = imagePaths[currentIndex];
+            
+            // ถ้า Path รูปภาพเปลี่ยนไปจากเดิม
+            if (!currentBg.equals(lastBgPath)) {
+                backgroundLabel.setIcon(getOptimizedImage(currentBg, 1280, 800));
+                startBackgroundFade(); // สั่งให้ Fade In รูปใหม่
+                lastBgPath = currentBg; // อัปเดต Path ล่าสุด
+            }
         }
 
         handleSoundEffects(currentIndex);
@@ -398,6 +419,25 @@ public class part5 extends JFrame {
                 temporaryClip.start();
             }
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void startFadeOut(Runnable onComplete) {
+        // นำ fadeOverlay กลับมาแสดงผล (ถ้าถูกลบออกไปตอน startFadeIn)
+        if (fadeOverlay.getParent() == null) {
+            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        }
+        
+        alpha = 0.0f; // เริ่มต้นที่โปร่งใส
+        Timer fadeTimer = new Timer(30, e -> {
+            alpha += 0.05f; // ค่อยๆ เพิ่มความมืด
+            if (alpha >= 1.0f) {
+                alpha = 1.0f;
+                ((Timer)e.getSource()).stop();
+                if (onComplete != null) onComplete.run(); // เมื่อมืดสนิทแล้ว ให้ทำงานที่ส่งมา
+            }
+            fadeOverlay.repaint();
+        });
+        fadeTimer.start();
     }
 
     private void playSE(String path, boolean loop, float volume) {
@@ -576,7 +616,9 @@ public class part5 extends JFrame {
             }
 
             // อัปเดต UI คะแนน
-            if (affinityLabel != null) affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
+            if (affinityLabel != null) {
+                affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
+            }
             if (statusLabel != null) statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
 
             currentIndex = target; 
@@ -593,16 +635,33 @@ public class part5 extends JFrame {
     }
 
     private void setupRelationshipUI() {
-        JPanel relPanel = new JPanel(new GridLayout(2, 1));
-        relPanel.setBounds(25, 25, 300, 70);
-        relPanel.setOpaque(false);
-        affinityLabel = new JLabel("ความสนิท: " + relationdata.aliceRel.getAffinity());
-        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
-        affinityLabel.setForeground(Color.WHITE);
+        // 1. ปรับตำแหน่งติดซ้ายบน (0, 0) และลดความสูงลงเพื่อให้พอดีกับคนเดียว
+        JPanel relPanel = new JPanel(new GridLayout(2, 1, 0, 0)); 
+        relPanel.setBounds(0, 0, 280, 75); 
+        
+        // 2. ใช้พื้นหลังสีดำโปร่งแสงเพื่อให้ข้อความอ่านง่ายบนทุกพื้นหลัง
+        relPanel.setBackground(new Color(0, 0, 0, 190)); 
+        relPanel.setOpaque(true);
+
+        // 3. เพิ่มกรอบสีชมพูหนา 2 พิกเซล และใส่ระยะห่าง (Padding) ด้านใน
+        relPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 105, 180), 2), // กรอบสีชมพู
+            BorderFactory.createEmptyBorder(5, 15, 5, 10) // ระยะห่างจากขอบ
+        ));
+
+        // 4. ตั้งค่าการแสดงผลของ อริส (ใช้โทนสีเดียวกับ Part 7)
+        affinityLabel = new JLabel("อริส: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18)); 
+        affinityLabel.setForeground(new Color(255, 192, 203)); // สีชมพูสว่าง
+
         statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
-        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        statusLabel.setForeground(new Color(255, 204, 0));
-        relPanel.add(affinityLabel); relPanel.add(statusLabel);
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        statusLabel.setForeground(Color.WHITE); // สีขาวอ่านง่าย
+
+        relPanel.add(affinityLabel);
+        relPanel.add(statusLabel);
+        
+        // นำไปวางไว้ในเลเยอร์ POPUP เพื่อให้อยู่หน้าสุดเสมอ
         layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
     }
 
@@ -659,17 +718,35 @@ public class part5 extends JFrame {
     }
 
     private void finishGame() {
-        stopAllSounds(); // หยุดเสียงทั้งหมดของ Part 6 ก่อน
-        
-        // แสดงข้อความแจ้งเตือน (Optional: ถ้าไม่ต้องการให้เด้งถามก็ลบบรรทัด JOptionPane ออกได้เลยครับ)
-        UIManager.put("OptionPane.messageFont", THAI_FONT);
-        JOptionPane.showMessageDialog(null, "จบเนื้อเรื่อง part5 กำลังเข้าสู่ part6...");
-        
-        // --- ส่วนสำคัญ: คำสั่งเปิด Part 7 ---
-        SwingUtilities.invokeLater(() -> {
-            new part6().setVisible(true); // สร้างและแสดงหน้าจอ Part 7
-            dispose(); // ปิดหน้าจอ Part 6 ทิ้งไป
+        // เริ่มกระบวนการ Fade Out ก่อน
+        startFadeOut(() -> {
+            stopAllSounds(); // หยุดเสียงของ Part 5
+            
+            // เมื่อหน้าจอมืดสนิทแล้ว จึงสลับหน้าจอไป Part 6
+            SwingUtilities.invokeLater(() -> {
+                new part6().setVisible(true); // เปิด Part 6
+                dispose(); // ปิดหน้าจอ Part 5
+            });
         });
+    }
+
+    private void startBackgroundFade() {
+        bgAlpha = 0.0f; // เริ่มจากมืด/โปร่งใส
+        isBgFading = true;
+        
+        if (bgFadeTimer != null && bgFadeTimer.isRunning()) bgFadeTimer.stop();
+        
+        // ปรับตัวเลข 50 (ms) คือความถี่, 0.02f คือความเร็ว (ยิ่งน้อยยิ่งนาน)
+        bgFadeTimer = new Timer(40, e -> {
+            bgAlpha += 0.04f; 
+            if (bgAlpha >= 1.0f) {
+                bgAlpha = 1.0f;
+                isBgFading = false;
+                ((Timer)e.getSource()).stop();
+            }
+            backgroundLabel.repaint();
+        });
+        bgFadeTimer.start();
     }
 
     private void initNetwork() {
@@ -685,14 +762,16 @@ public class part5 extends JFrame {
 
                 String line;
                 while ((line = in.readLine()) != null) {
-                    if (line.startsWith("LOAD_AFFINITY:")) {
-                        int score = Integer.parseInt(line.substring(14));
-                        relationdata.aliceRel.setAffinity(score);
-                        SwingUtilities.invokeLater(() -> {
-                            affinityLabel.setText("ความสนิท: " + score);
-                            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
-                        });
-                    } else if (line.startsWith("ALL_STATS:")) {
+                    // ค้นหาในเมธอด initNetwork()
+                        if (line.startsWith("LOAD_AFFINITY:")) {
+                            int score = Integer.parseInt(line.substring(14));
+                            relationdata.aliceRel.setAffinity(score);
+                            SwingUtilities.invokeLater(() -> {
+                                // แก้ไขตรงนี้เช่นกันครับ
+                                affinityLabel.setText("อริส: " + score); 
+                                statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+                            });
+                        } else if (line.startsWith("ALL_STATS:")) {
                         updateLeaderboardUI(line.substring(10));
                     }
                 }
@@ -701,17 +780,31 @@ public class part5 extends JFrame {
     }
 
     private void updateLeaderboardUI(String data) {
-        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'><table width='320' style='color:white; font-family:Tahoma;'>");
-        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน</th></tr>");
+        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'>");
+        sb.append("<table width='320' style='color:white; font-family:Tahoma;'>");
+        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน (อริส)</th></tr>");
+        
         for (String p : data.split(",")) {
             if (p.contains("=")) {
                 String[] parts = p.split("=");
-                String color = parts[0].equals(relationdata.playerName) ? "#00FF7F" : "white";
-                sb.append("<tr><td style='color:").append(color).append(";'>").append(parts[0]).append("</td>")
-                  .append("<td align='right' style='color:#FF69B4;'>").append(parts[1]).append(" pt</td></tr>");
+                String name = parts[0];
+                String rawScores = parts[1]; // เช่น "10/0"
+                
+                // --- แก้ไขตรงนี้: แยกเอาเฉพาะคะแนนแรกมาแสดง ---
+                String aliceScore = rawScores;
+                if (rawScores.contains("/")) {
+                    aliceScore = rawScores.split("/")[0]; // เอาเฉพาะตัวหน้าเครื่องหมาย /
+                }
+
+                String color = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
+                sb.append("<tr>")
+                .append("<td style='color:").append(color).append(";'>").append(name).append("</td>")
+                .append("<td align='right' style='color:#FF69B4;'>").append(aliceScore).append(" pt</td>")
+                .append("</tr>");
             }
         }
         sb.append("</table></body></html>");
+        
         SwingUtilities.invokeLater(() -> {
             affinityStatusLabel.setText(sb.toString());
             onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length);

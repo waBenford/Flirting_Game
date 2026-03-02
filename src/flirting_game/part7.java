@@ -27,7 +27,23 @@ public class part7 extends JFrame {
     private int charIndex = 0;
     private boolean isTyping = false;
     private Map<String, ImageIcon> imageCache = new HashMap<>();
+
+    private JLabel nebulaAffinityLabel, nebulaStatusLabel; // เพิ่มของ Nebula
+    private JLabel affinityLabel, statusLabel;
+    private JPanel statusOverlay;
+    private JLabel onlineCountLabel, affinityStatusLabel;
+    private java.io.PrintWriter networkOut;
+
+    private JPanel bgFadeOverlay;
     
+    private float charAlpha = 0.0f; // สำหรับเก็บค่าความโปร่งใสของตัวละคร
+    private Timer charFadeTimer;    // Timer สำหรับจัดการ Animation
+    private String lastCharPath = ""; // ใช้เช็คว่าตัวละครเปลี่ยนหรือไม่ เพื่อไม่ให้เล่น Fade ซ้ำ
+
+    private float bgAlpha = 0.0f; // 0.0 = ใส, 1.0 = ดำสนิท
+    private Timer bgFadeTimer;
+    private String lastBgPath = ""; // ใช้เช็คการเปลี่ยนฉากหลัง
+
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 28);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
 
@@ -126,13 +142,55 @@ public class part7 extends JFrame {
 
         backgroundLabel = new JLabel();
         backgroundLabel.setBounds(0, 0, 1280, 800);
+        bgFadeOverlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setColor(new Color(0, 0, 0, (int)(bgAlpha * 255)));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
+            }
+        };
+        bgFadeOverlay.setBounds(0, 0, 1280, 800);
+        bgFadeOverlay.setOpaque(false);
+        // ใส่ไว้ในเลเยอร์ที่อยู่เหนือ Background เล็กน้อย
+        layeredPane.add(bgFadeOverlay, Integer.valueOf(JLayeredPane.DEFAULT_LAYER + 1));
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        // ตัวละครจะถูกตั้งค่า Bounds ใหม่ใน updateScene
-        characterLabel = new JLabel();
+        characterLabel = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                // เพิ่ม RenderingHints เพื่อความสมูท
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha));
+                super.paintComponent(g2d);
+                g2d.dispose();
+            }
+        };
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
+        fadeOverlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(new Color(0, 0, 0, (int)(alpha * 255)));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        fadeOverlay.setBounds(0, 0, 1280, 800);
+        fadeOverlay.setOpaque(false);
+        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+
+        startFadeIn();
         setupDialogueUI();
+        setupRelationshipUI();
+        setupStatusOverlay(); 
+        setupTabKeyBinding(); 
+        initNetwork();
         updateScene();
 
         layeredPane.addMouseListener(new MouseAdapter() {
@@ -147,38 +205,39 @@ public class part7 extends JFrame {
     private void updateScene() {
         if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
         if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
-        if (currentIndex < imagePaths.length) backgroundLabel.setIcon(getOptimizedImage(imagePaths[currentIndex], 1280, 800));
+        if (currentIndex < imagePaths.length) {
+        String newBgPath = imagePaths[currentIndex];
+            if (!newBgPath.equals(lastBgPath)) {
+                startBackgroundTransition(newBgPath);
+                lastBgPath = newBgPath;
+            }
+        }
         
         if (currentIndex < charPaths.length) {
             String path = charPaths[currentIndex];
             if (path.contains("empty.png")) {
                 characterLabel.setIcon(null);
-            } else {
+                lastCharPath = path;
+            } else if (!path.equals(lastCharPath)) { // ถ้าเป็นรูปใหม่ ให้เริ่ม Fade
                 int charW, charH, charX, charY;
 
-                // ใช้โครงสร้าง if - else if - else เพื่อให้เลือกทำงานแค่อย่างเดียว
                 if (path.contains("Nebula")) {
-                    // ปรับ Nebula ให้ดูตัวใหญ่และสูงขึ้น (จอมมาร)
-                    charW = 900; 
-                    charH = 900;
-                    charX = (1280 - charW) / 2;
-                    charY = 50; // ดันขึ้นบนเพื่อให้เห็นความสูง
+                    charW = 900; charH = 900;
+                    charX = (1280 - charW) / 2; charY = 50;
                 } else if (path.contains("dan")) {
-                    // สำหรับ Dan (รวม dan-normal2 ไว้ในเงื่อนไขนี้ได้เลยเพราะมีคำว่า dan เหมือนกัน)
-                    charW = 1400;
-                    charH = 1000;
-                    charX = (1280 - charW) / 2;
-                    charY = 60; 
+                    charW = 1400; charH = 1000;
+                    charX = (1280 - charW) / 2; charY = 60; 
                 } else {
-                    // สำหรับ อริส และตัวละครทั่วไป
-                    charW = 1200;
-                    charH = 1000;
-                    charX = (1280 - charW) / 2;
-                    charY = 50;
+                    charW = 1200; charH = 1000;
+                    charX = (1280 - charW) / 2; charY = 50;
                 }
 
                 characterLabel.setBounds(charX, charY, charW, charH);
                 characterLabel.setIcon(getOptimizedImage(path, charW, charH));
+                
+                // เริ่มการ Fade In ตัวละคร
+                startCharacterFadeIn();
+                lastCharPath = path;
             }
         }
         handleSoundEffects(currentIndex);
@@ -272,6 +331,43 @@ public class part7 extends JFrame {
         }
     }
 
+    private void initNetwork() {
+        if (!relationdata.isOnlineMode) return;
+        new Thread(() -> {
+            try {
+                java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
+                networkOut = new java.io.PrintWriter(socket.getOutputStream(), true);
+                java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
+
+                networkOut.println("SET_NAME:" + relationdata.playerName);
+                networkOut.println("SET_PART:7"); // แก้ไขเป็น Part 7
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("LOAD_AFFINITY:")) {
+                        int score = Integer.parseInt(line.substring(14));
+                        relationdata.aliceRel.setAffinity(score);
+                        SwingUtilities.invokeLater(() -> {
+                            affinityLabel.setText("อริส: " + score);
+                            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus()); // ตรวจสอบให้เป็นรูปแบบนี้
+                        });
+                    } 
+                    else if (line.startsWith("LOAD_NEBULA:")) {
+                        int nScore = Integer.parseInt(line.substring(12));
+                        relationdata.nebulaRel.setAffinity(nScore);
+                        SwingUtilities.invokeLater(() -> {
+                            nebulaAffinityLabel.setText("เนบิวล่า: " + nScore);
+                            nebulaStatusLabel.setText("สถานะ: " + relationdata.nebulaRel.getStatus()); // ตรวจสอบให้เป็นรูปแบบนี้
+                        });
+                    }
+                    else if (line.startsWith("ALL_STATS:")) {
+                        updateLeaderboardUI(line.substring(10));
+                    }
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        }).start();
+    }
+
     private void showChoices(String text1, String text2, int t1, int t2) {
         isChoosing = true;
         choiceButton1 = createChoiceButton(text1, 380, t1); //y: ขึ้น=ลง
@@ -281,6 +377,87 @@ public class part7 extends JFrame {
         choiceButton1.setVisible(true);
         choiceButton2.setVisible(true);
         layeredPane.repaint();
+    }
+
+    private void setupStatusOverlay() {
+        statusOverlay = new JPanel(new BorderLayout(10, 10));
+        statusOverlay.setBackground(new Color(0, 0, 0, 210)); 
+        statusOverlay.setBounds(440, 150, 400, 400); 
+        statusOverlay.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        statusOverlay.setVisible(false);
+
+        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
+        onlineCountLabel.setForeground(Color.CYAN); 
+        onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
+
+        JLabel titleLabel = new JLabel("--- Scoreboard ---", SwingConstants.CENTER);
+        titleLabel.setForeground(Color.YELLOW); 
+        titleLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
+
+        affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล...", SwingConstants.CENTER);
+        affinityStatusLabel.setForeground(Color.WHITE); 
+        affinityStatusLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        affinityStatusLabel.setVerticalAlignment(SwingConstants.TOP);
+
+        statusOverlay.add(titleLabel, BorderLayout.NORTH);
+        statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER);
+        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH); 
+        layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
+    }
+
+    private void setupTabKeyBinding() {
+        layeredPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("TAB"), "toggleTab");
+        layeredPane.getActionMap().put("toggleTab", new AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                statusOverlay.setVisible(!statusOverlay.isVisible()); 
+            }
+        });
+    }
+
+    private void updateLeaderboardUI(String data) {
+        // กำหนดความกว้างตาราง 360
+        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'><table width='360' style='color:white; font-family:Tahoma;'>");
+        
+        // ส่วนหัวตาราง: ปรับ อริส ให้ align='right' และกำหนด width เพื่อบีบคอลัมน์ให้ชิดกัน
+        sb.append("<tr style='color:#FFD700;'>")
+        .append("<th align='left' width='160'>ผู้เล่น</th>")
+        .append("<th align='right' width='90'>อริส</th>")
+        .append("<th align='right' width='90'>เนบิวล่า</th>")
+        .append("</tr>");
+
+        for (String p : data.split(",")) {
+            if (p.contains("=")) {
+                String[] parts = p.split("="); 
+                String name = parts[0];
+                String rawScores = parts[1]; 
+                
+                String aliceValue = "0";
+                String nebulaValue = "0";
+                
+                if (rawScores.contains("/")) {
+                    String[] scoreParts = rawScores.split("/");
+                    aliceValue = scoreParts[0];
+                    nebulaValue = scoreParts[1];
+                } else {
+                    aliceValue = rawScores;
+                }
+
+                String color = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
+                
+                // ปรับส่วนข้อมูลของ อริส ให้เป็น align='right' เพื่อให้ตัวเลขอยู่ใกล้กับเนบิวล่า
+                sb.append("<tr>")
+                .append("<td style='color:").append(color).append(";'>").append(name).append("</td>")
+                .append("<td align='right' style='color:#FFC0CB;'>").append(aliceValue).append("</td>")
+                .append("<td align='right' style='color:#DA70D6;'>").append(nebulaValue).append("</td>")
+                .append("</tr>");
+            }
+        }
+        sb.append("</table></body></html>");
+        
+        SwingUtilities.invokeLater(() -> {
+            affinityStatusLabel.setText(sb.toString());
+            onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length);
+        });
     }
 
     private JButton createChoiceButton(String text, int y, int target) {
@@ -374,11 +551,54 @@ public class part7 extends JFrame {
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
             isChoosing = false; 
+
+            if (target == 7) { 
+                relationdata.aliceRel.addAffinity(10);
+                // ส่งของอริสไป Server
+                if (relationdata.isOnlineMode && networkOut != null) {
+                    new Thread(() -> { networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity()); }).start();
+                }
+            } else if (target == 48 || target == 52 || target == 47 || target == 51) {
+                if (target == 48 || target == 52) relationdata.nebulaRel.addAffinity(15);
+                else relationdata.nebulaRel.addAffinity(5);
+                
+                // ส่งของ Nebula ไป Server
+                if (relationdata.isOnlineMode && networkOut != null) {
+                    new Thread(() -> { networkOut.println("UPDATE_NEBULA_AFFINITY:" + relationdata.nebulaRel.getAffinity()); }).start();
+                }
+            }
+
+            // ซิงค์ตำแหน่งฉากเสมอ
+            if (relationdata.isOnlineMode && networkOut != null) {
+                new Thread(() -> { networkOut.println("SYNC_INDEX:" + target); }).start();
+            }
+
+            // อัปเดต UI ทั้งหมดให้เป็นค่าปัจจุบัน
+            affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
+            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus()); // แก้ตรงนี้
+            nebulaAffinityLabel.setText("เนบิวล่า: " + relationdata.nebulaRel.getAffinity());
+            nebulaStatusLabel.setText("สถานะ: " + relationdata.nebulaRel.getStatus()); // แก้ตรงนี้
+
             currentIndex = target; 
-            updateScene(); 
+            updateScene();
         });
 
         return btn;
+    }
+
+    private void startCharacterFadeIn() {
+        if (charFadeTimer != null && charFadeTimer.isRunning()) charFadeTimer.stop();
+        
+        charAlpha = 0.0f; 
+        charFadeTimer = new Timer(20, e -> { // วิ่งที่ ~60fps
+            charAlpha += 0.04f; // เพิ่มทีละน้อยๆ ให้ดูเนียนตา
+            if (charAlpha >= 1.0f) {
+                charAlpha = 1.0f;
+                ((Timer)e.getSource()).stop();
+            }
+            characterLabel.repaint(); // บังคับวาดใหม่เฉพาะส่วนตัวละคร
+        });
+        charFadeTimer.start();
     }
 
     public void playBGM(String path, float volume) {
@@ -419,6 +639,36 @@ public class part7 extends JFrame {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    private void startBackgroundTransition(String newPath) {
+    if (bgFadeTimer != null && bgFadeTimer.isRunning()) bgFadeTimer.stop();
+
+    // ขั้นตอนที่ 1: ค่อยๆ มืดลง (Fade to Black)
+    bgFadeTimer = new Timer(20, null); // สร้าง Timer เปล่าก่อน
+    bgFadeTimer.addActionListener(e -> {
+        bgAlpha += 0.05f; // ความเร็วในการมืดลง
+        if (bgAlpha >= 1.0f) {
+            bgAlpha = 1.0f;
+            bgFadeTimer.stop();
+            
+            // เปลี่ยนรูปภาพพื้นหลังเมื่อหน้าจอมืดสนิท
+            backgroundLabel.setIcon(getOptimizedImage(newPath, 1280, 800));
+            
+            // ขั้นตอนที่ 2: ค่อยๆ สว่างขึ้น (Fade In)
+            Timer fadeIn = new Timer(25, ev -> {
+                bgAlpha -= 0.05f; // ปรับให้สว่างขึ้นช้าๆ (ยิ่งค่าน้อยยิ่งช้า)
+                if (bgAlpha <= 0.0f) {
+                    bgAlpha = 0.0f;
+                    ((Timer)ev.getSource()).stop();
+                }
+                bgFadeOverlay.repaint();
+            });
+            fadeIn.start();
+        }
+        bgFadeOverlay.repaint();
+    });
+    bgFadeTimer.start();
+}
+
     private void stopBGM() {
         try {
             if (bgmClip != null) {
@@ -440,15 +690,62 @@ public class part7 extends JFrame {
     }
     
     private void startFadeIn() {
-        Timer fadeTimer = new Timer(35, e -> {
-            alpha -= 0.05f;
+        alpha = 1.0f; // เริ่มต้นที่หน้าจอดำสนิท
+        Timer fadeTimer = new Timer(50, e -> {
+            alpha -= 0.01f; // ค่อยๆ ลดความมืด (ปรับให้ช้าลงตามที่ต้องการ)
             if (alpha <= 0) {
-                alpha = 0; ((Timer)e.getSource()).stop();
-                layeredPane.remove(fadeOverlay); updateScene(); 
+                alpha = 0; 
+                ((Timer)e.getSource()).stop();
+                layeredPane.remove(fadeOverlay); // ลบแผ่นดำออกเพื่อให้คลิกหน้าจอได้
+                updateScene(); 
             }
             fadeOverlay.repaint();
         });
         fadeTimer.start();
+    }
+
+    private void setupRelationshipUI() {
+        // 1. ปรับตำแหน่งติดซ้ายบน (0, 0) และตั้งขนาดให้กระชับ
+        JPanel relPanel = new JPanel(new GridLayout(4, 1, 0, 0)); 
+        relPanel.setBounds(0, 0, 280, 120); 
+        
+        // 2. ใช้พื้นหลังสีดำโปร่งแสงเพื่อให้สีชื่อตัวละครเด่นขึ้นมา
+        relPanel.setBackground(new Color(0, 0, 0, 190)); 
+        relPanel.setOpaque(true);
+
+        // 3. เพิ่มกรอบสีชมพู (Pink) หนา 2 พิกเซล และใส่ Padding ด้านใน
+        relPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 105, 180), 2), // กรอบสีชมพู
+            BorderFactory.createEmptyBorder(5, 15, 5, 10) // ระยะห่างจากขอบ
+        ));
+
+        // 4. เปลี่ยนสีชื่อตัวละครให้สว่างและอ่านง่ายขึ้นบนพื้นหลังดำ
+        
+        // --- ส่วนของ อริส (ใช้สีชมพูสว่าง) ---
+        affinityLabel = new JLabel("อริส: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18)); 
+        affinityLabel.setForeground(new Color(255, 192, 203)); // Pink
+
+        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        statusLabel.setForeground(Color.WHITE); // สถานะใช้สีขาวพื้นฐาน
+
+        // --- ส่วนของ เนบิวล่า (ใช้สีม่วงสว่าง/ลาเวนเดอร์) ---
+        nebulaAffinityLabel = new JLabel("เนบิวล่า: " + relationdata.nebulaRel.getAffinity());
+        nebulaAffinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        nebulaAffinityLabel.setForeground(new Color(210, 160, 255)); // Light Purple
+
+        nebulaStatusLabel = new JLabel("สถานะ: " + relationdata.nebulaRel.getStatus());
+        nebulaStatusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        nebulaStatusLabel.setForeground(Color.WHITE);
+
+        relPanel.add(affinityLabel);
+        relPanel.add(statusLabel);
+        relPanel.add(nebulaAffinityLabel);
+        relPanel.add(nebulaStatusLabel);
+        
+        // แสดงผลในเลเยอร์หน้าสุด
+        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
     }
 
     private void startTypewriter(String text) {

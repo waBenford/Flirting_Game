@@ -50,7 +50,7 @@ public class menu {
         settingBtn.addActionListener(e -> {
             showSettings(frame);
         });
-
+        
         // --- ฟังก์ชันปุ่ม Online ---
         onlineBtn.addActionListener(e -> {
             UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 18));
@@ -60,8 +60,8 @@ public class menu {
                 //สั่งหยุดเพลงก่อนไปหน้าถัดไป
                 SoundManager.stopBGM();
                 // เก็บค่าลง relationdata 
-                // relationdata.isOnlineMode = true;
-                // relationdata.playerName = name.trim();
+                relationdata.isOnlineMode = true;
+                relationdata.playerName = name.trim();
                 new part1().setVisible(true); 
                 frame.dispose();
             } else if (name != null) {

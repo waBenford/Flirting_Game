@@ -175,34 +175,34 @@ public class part2 extends JFrame {
     }
 
     private void updateLeaderboardUI(String data) {
-        // ตาราง HTML เหมือน Part 3
         StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'>");
-        sb.append("<table width='300' style='color:white; font-family:Tahoma;'>");
-        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน</th></tr>");
+        sb.append("<table width='320' style='color:white; font-family:Tahoma;'>");
+        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน (อริส)</th></tr>");
         
-        String[] players = data.split(",");
-        int playerCount = 0;
-        for (String p : players) {
-            if (!p.isEmpty() && p.contains("=")) {
-                playerCount++;
+        for (String p : data.split(",")) {
+            if (p.contains("=")) {
                 String[] parts = p.split("=");
                 String name = parts[0];
-                String score = parts[1];
+                String rawScores = parts[1]; // เช่น "10/0"
                 
-                String nameColor = name.equals(relationdata.playerName) ? "#00FF7F" : "#FFFFFF";
-                
+                // --- แก้ไขตรงนี้: แยกเอาเฉพาะคะแนนแรกมาแสดง ---
+                String aliceScore = rawScores;
+                if (rawScores.contains("/")) {
+                    aliceScore = rawScores.split("/")[0]; // เอาเฉพาะตัวหน้าเครื่องหมาย /
+                }
+
+                String color = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
                 sb.append("<tr>")
-                .append("<td style='color:").append(nameColor).append(";'>").append(name).append("</td>")
-                .append("<td align='right' style='color:#FF69B4;'>").append(score).append(" pt</td>")
+                .append("<td style='color:").append(color).append(";'>").append(name).append("</td>")
+                .append("<td align='right' style='color:#FF69B4;'>").append(aliceScore).append(" pt</td>")
                 .append("</tr>");
             }
         }
         sb.append("</table></body></html>");
         
-        final int finalCount = playerCount;
         SwingUtilities.invokeLater(() -> {
-            if (affinityStatusLabel != null) affinityStatusLabel.setText(sb.toString());
-            if (onlineCountLabel != null) onlineCountLabel.setText("ผู้เล่นออนไลน์: " + finalCount);
+            affinityStatusLabel.setText(sb.toString());
+            onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length);
         });
     }
 
@@ -313,6 +313,15 @@ public class part2 extends JFrame {
                         // ส่งข้อมูลไปประมวลผลตาราง HTML
                         updateLeaderboardUI(line.substring(10));
                     }
+                    if (line.startsWith("LOAD_AFFINITY:")) {
+                        int score = Integer.parseInt(line.substring(14));
+                        relationdata.aliceRel.setAffinity(score);
+                        SwingUtilities.invokeLater(() -> {
+                            // แก้ไขตรงนี้เช่นกันครับ
+                            affinityLabel.setText("อริส: " + score); 
+                            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+                        });
+                    }
                 }
             } catch (Exception e) { e.printStackTrace(); }
         }).start();
@@ -346,16 +355,33 @@ public class part2 extends JFrame {
     }
 
     private void setupRelationshipUI() {
-        JPanel relPanel = new JPanel(new GridLayout(2, 1));
-        relPanel.setBounds(25, 25, 300, 70);
-        relPanel.setOpaque(false);
-        affinityLabel = new JLabel("ความสนิท: " + relationdata.aliceRel.getAffinity());
-        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
-        affinityLabel.setForeground(Color.WHITE);
+        // 1. ปรับตำแหน่งติดซ้ายบน (0, 0) และลดความสูงลงเพื่อให้พอดีกับคนเดียว
+        JPanel relPanel = new JPanel(new GridLayout(2, 1, 0, 0)); 
+        relPanel.setBounds(0, 0, 280, 75); 
+        
+        // 2. ใช้พื้นหลังสีดำโปร่งแสงเพื่อให้ข้อความอ่านง่ายบนทุกพื้นหลัง
+        relPanel.setBackground(new Color(0, 0, 0, 190)); 
+        relPanel.setOpaque(true);
+
+        // 3. เพิ่มกรอบสีชมพูหนา 2 พิกเซล และใส่ระยะห่าง (Padding) ด้านใน
+        relPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 105, 180), 2), // กรอบสีชมพู
+            BorderFactory.createEmptyBorder(5, 15, 5, 10) // ระยะห่างจากขอบ
+        ));
+
+        // 4. ตั้งค่าการแสดงผลของ อริส (ใช้โทนสีเดียวกับ Part 7)
+        affinityLabel = new JLabel("อริส: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18)); 
+        affinityLabel.setForeground(new Color(255, 192, 203)); // สีชมพูสว่าง
+
         statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
-        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        statusLabel.setForeground(new Color(255, 204, 0));
-        relPanel.add(affinityLabel); relPanel.add(statusLabel);
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        statusLabel.setForeground(Color.WHITE); // สีขาวอ่านง่าย
+
+        relPanel.add(affinityLabel);
+        relPanel.add(statusLabel);
+        
+        // นำไปวางไว้ในเลเยอร์ POPUP เพื่อให้อยู่หน้าสุดเสมอ
         layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
     }
 
@@ -565,7 +591,7 @@ public class part2 extends JFrame {
 
             // อัปเดตการแสดงผลคะแนนบนหน้าจอ
             if (affinityLabel != null) {
-                affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
+                affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
             }
             if (statusLabel != null) {
                 statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
