@@ -44,7 +44,7 @@ public class part9 extends JFrame {
         }
         return paths;
     }
-    
+    //
     private String[] charPaths = { 
             // 0-7: เริ่มเดินทาง (บรรยาย + Dan + อริส)
             "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
