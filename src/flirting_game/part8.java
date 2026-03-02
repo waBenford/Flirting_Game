@@ -180,7 +180,7 @@ public class part8 extends JFrame {
                 } else {
                     int specialW = path.contains("dan") ? 1400 : 1200;
                     int specialH = path.contains("dan") ? 1000 : 950;
-                    leftCharLabel.setBounds(-200, 50, specialW, specialH);
+                    leftCharLabel.setBounds(-250, 50, specialW, specialH);
                     leftCharLabel.setIcon(getOptimizedImage(path, specialW, specialH));
                     // rightCharLabel.setIcon(null);
                 }
