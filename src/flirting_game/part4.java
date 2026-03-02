@@ -296,7 +296,7 @@ public class part4 extends JFrame {
         } 
         else if (prevP2.contains("empty") && !currentP2.contains("empty")) {
             int w = currentP2.contains("Alice") ? 1050 : 800;
-            int targetY = currentP2.contains("Alice") ? 70 : 100;
+            int targetY = currentP2.contains("Alice") ? 130 : 100;
             animateCharacterEntry(characterLabel2, currentP2, w, 900, 115, 420, targetY, false);
         }
         // --- 3. ตรรกะ Fade ตอนเปลี่ยนสีหน้า (Path เปลี่ยนแต่ตัวละครอยู่บนจอแล้ว) ---
