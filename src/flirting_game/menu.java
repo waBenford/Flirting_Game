@@ -34,11 +34,21 @@ public class menu {
         lp.add(logoLabel, JLayeredPane.PALETTE_LAYER);
 
         // --- 3. Buttons ---
-        int btnW = 300;
-        int btnH = 150;
-        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 0, 5));
+        int btnW = 250; // ลดจาก 300 เหลือ 250 เพื่อไม่ให้เบียดกันเกินไป
+        int btnH = 80;  // ลดจาก 100 เหลือ 80 เพื่อให้วาง 3 แถวได้พอดี
+        
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
         buttonPanel.setOpaque(false);
-        buttonPanel.setBounds(360, 180, btnW, 380);
+        
+        // ปรับ Bounds: 
+        // x: 212 (กึ่งกลางของ 1024 เมื่อกว้าง 600)
+        // y: 320 (ขยับลงมาข้างล่างเพื่อให้พ้นตัวอักษร Logo)
+        // width: 600, height: 280 (ขนาดพื้นที่สำหรับวางปุ่ม 3 แถว)
+        buttonPanel.setBounds(212, 320, 600, 280); 
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 15, 8, 15); // เว้นระยะห่างระหว่างปุ่ม
+        gbc.fill = GridBagConstraints.NONE;
 
         JButton startBtn = createImageButton("res/buttons/buttonStart.png", btnW, btnH);
         JButton onlineBtn = createImageButton("res/buttons/buttonOnline.png", btnW, btnH);
@@ -88,14 +98,30 @@ public class menu {
             }
         });
 
-        buttonPanel.add(startBtn);
-        buttonPanel.add(onlineBtn);
-        buttonPanel.add(galleryBtn);
-        buttonPanel.add(settingBtn);
-        buttonPanel.add(exitBtn);
+        // --- การจัดวาง (GridBagLayout) ---
+        
+        // แถวที่ 1: Start (ซ้าย) | Online (ขวา)
+        gbc.gridy = 0;
+        gbc.gridx = 0; gbc.gridwidth = 1;
+        buttonPanel.add(startBtn, gbc);
+        gbc.gridx = 1;
+        buttonPanel.add(onlineBtn, gbc);
+
+        // แถวที่ 2: Setting (ซ้าย) | Gallery (ขวา)
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        buttonPanel.add(settingBtn, gbc);
+        gbc.gridx = 1;
+        buttonPanel.add(galleryBtn, gbc);
+
+        // แถวที่ 3: Exit (ตรงกลาง)
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2; // สั่งให้ปุ่มครอบคลุมพื้นที่ 2 คอลัมน์
+        gbc.anchor = GridBagConstraints.CENTER; // จัดให้อยู่กึ่งกลาง
+        buttonPanel.add(exitBtn, gbc);
         
         lp.add(buttonPanel, JLayeredPane.MODAL_LAYER);
-
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
@@ -153,25 +179,67 @@ public class menu {
     }
 
     private static JButton createImageButton(String path, int w, int h) {
-        ImageIcon normalIcon = getScaledIcon(path, w, h);
-        ImageIcon hoverIcon = getScaledIcon(path, w + 10, h + 10); 
+        // โหลดรูปภาพเตรียมไว้
+        final Image img = new ImageIcon(path).getImage();
 
-        JButton button = new JButton(normalIcon);
-        button.setBorder(BorderFactory.createEmptyBorder());
-        button.setContentAreaFilled(false);
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // สร้างปุ่มแบบกำหนดเองที่มีตัวแปร scale และ timer เป็นของตัวเอง
+        JButton button = new JButton() {
+            private double scale = 1.0;
+            private Timer animTimer;
 
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                button.setIcon(hoverIcon);
+            {
+                setContentAreaFilled(false);
+                setFocusPainted(false);
+                setBorderPainted(false);
+                setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+                addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseEntered(java.awt.event.MouseEvent e) {
+                        startAnimation(1.1); // ขยาย 10%
+                    }
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent e) {
+                        startAnimation(1.0); // กลับสู่ขนาดปกติ
+                    }
+                });
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                button.setIcon(normalIcon);
+
+            private void startAnimation(double targetScale) {
+                if (animTimer != null && animTimer.isRunning()) animTimer.stop();
+                animTimer = new Timer(15, e -> {
+                    if (Math.abs(scale - targetScale) < 0.01) {
+                        scale = targetScale;
+                        ((Timer)e.getSource()).stop();
+                    } else {
+                        scale += (targetScale - scale) * 0.2; // Easing effect
+                    }
+                    repaint();
+                });
+                animTimer.start();
             }
-        });
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+                int dw = (int) (w * scale);
+                int dh = (int) (h * scale);
+                int x = (getWidth() - dw) / 2;
+                int y = (getHeight() - dh) / 2;
+
+                g2.drawImage(img, x, y, dw, dh, null);
+                g2.dispose();
+            }
+
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension((int)(w * 1.2), (int)(h * 1.2)); // เผื่อพื้นที่ขยาย
+            }
+        };
+
         return button;
     }
 }
