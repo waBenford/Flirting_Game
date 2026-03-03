@@ -35,11 +35,16 @@ public class part6 extends JFrame {
     private java.io.PrintWriter networkOut;
 
     private String lastBgPath = "";
-    private String lastCharPath = "";
-    private float charAlpha = 0.0f; 
-    private Timer charFadeTimer;
+    
+    // --- ตัวแปรสำหรับจำภาพล่าสุด (ย้ายมาตรงนี้เพื่อแก้ Error static) ---
+    private String lastP1 = "";
+    private String lastP2 = "";
+    
+    // --- ระบบ Dual Character ---
+    private float charAlpha1 = 0.0f; 
+    private float charAlpha2 = 0.0f; 
+    private Timer charFadeTimer1, charFadeTimer2;
 
-    // Font สำหรับภาษาไทย
     private final Font thaiFont = new Font("Tahoma", Font.BOLD, 18);
 
     private String[] imagePaths = {
@@ -59,18 +64,33 @@ public class part6 extends JFrame {
     };
     
     private String[] charPaths = {
-       "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png", "res/Charactor/Dan/dan-showhand1.png",
-       "res/Charactor/Dan/dan-showhand1.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower3.png", 
-       "res/scene5/Alice-shower1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",
-       "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-shy1.png", "res/Charactor/Alice/Girl/Alice-shy2.png", "res/Charactor/Dan/dan-normal1.png",
+       "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png",
+       "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower1.png", 
+       "res/scene5/Alice-shower1.png", "res/scene5/Alice-shower1.png", "res/empty.png", "res/empty.png", "res/empty.png",
+       "res/empty.png", "res/Charactor/Alice/Girl/Alice-shy1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+       "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png",
+       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+       "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", 
+       "res/Charactor/Alice/Girl/Alice-shy2.png","res/Charactor/Alice/Girl/Alice-shy1.png", "res/empty.png","res/empty.png", 
+       "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png", 
+       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png", 
+    };
+
+    private String[] charPaths2 = {
+       "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-showhand1.png",
+       "res/Charactor/Dan/dan-showhand1.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+       "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",
+       "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", 
        "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
-       "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", 
-       "res/Charactor/Alice/Girl/Alice-shy2.png","res/Charactor/Alice/Girl/Alice-shy1.png", "res/Charactor/Dan/dan-normal2.png","res/Charactor/Dan/dan-normal2.png", 
-       "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", 
-       "res/Charactor/Alice/Girl/Alice-normal2.png", "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png", 
+       "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png", 
+       "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png","res/Charactor/Dan/dan-normal2.png", 
+       "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
+       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png", 
     };
     
     private String[] names = { 
@@ -126,19 +146,28 @@ public class part6 extends JFrame {
         playSE("res/sound/soundtrack12.wav", true, -10.0f);
         playEffect("res/sound/ahhhhh.wav", 0.0f);
 
-        // 1. พื้นหลัง
         backgroundLabel = new JLabel();
         backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        // 2. ตัวละคร
-        characterLabel = createCharacterLabel(); 
-        characterLabel2 = createCharacterLabel();
-        
-        layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
-        layeredPane.add(characterLabel2, JLayeredPane.PALETTE_LAYER);
+        characterLabel = new JLabel() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha1)); 
+                super.paintComponent(g2d); g2d.dispose();
+            }
+        };
+        layeredPane.add(characterLabel, Integer.valueOf(100));
 
-        // แก้ไขชื่อผู้เล่น
+        characterLabel2 = new JLabel() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha2)); 
+                super.paintComponent(g2d); g2d.dispose();
+            }
+        };
+        layeredPane.add(characterLabel2, Integer.valueOf(101));
+
         for (int i = 0; i < dialogues.length; i++) {
             if (dialogues[i].contains("(ชื่อตัวละครเรา)")) {
                 dialogues[i] = dialogues[i].replace("(ชื่อตัวละครเรา)", relationdata.playerName);
@@ -146,7 +175,7 @@ public class part6 extends JFrame {
         }
 
         setupDialogueUI();
-        setupRelationshipUI(); // <--- ส่วนที่แก้ Font ภาษาไทย
+        setupRelationshipUI(); 
         setupStatusOverlay();
         setupTabKeyBinding();
         initNetwork();
@@ -174,76 +203,111 @@ public class part6 extends JFrame {
         });
     }
 
-    private JLabel createCharacterLabel() {
-        return new JLabel() {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha)); 
-                super.paintComponent(g2d); 
-                g2d.dispose();
-            }
-        };
-    }
-
     private void updateScene() {
-        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
-        if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
+        if (currentIndex >= dialogues.length) return;
 
-        // พื้นหลัง
+        nameLabel.setText(currentIndex < names.length ? names[currentIndex] : " ");
+
         if (currentIndex < imagePaths.length) {
             String currentBg = imagePaths[currentIndex];
             if (!currentBg.equals(lastBgPath)) {
                 backgroundLabel.setIcon(getOptimizedImage(currentBg, 1280, 800));
-                lastBgPath = currentBg;
+                lastBgPath = currentBg; 
             }
         }
 
-        // ตัวละคร (Dual System)
-        if (currentIndex < charPaths.length) {
-            String currentChar = charPaths[currentIndex];
-            
-            boolean isDualScene = (currentIndex >= 10 && currentIndex <= 44);
-
-            if (isDualScene) {
-                characterLabel.setBounds(-200, 50, 1000, 900); 
-                characterLabel2.setBounds(200, 50, 1400, 1000); 
-
-                if (currentChar.toLowerCase().contains("dan")) {
-                    characterLabel2.setIcon(getOptimizedImage(currentChar, 1400, 1000));
-                } else if (!currentChar.contains("empty")) {
-                    characterLabel.setIcon(getOptimizedImage(currentChar, 1000, 900));
-                }
-            } else {
-                characterLabel.setBounds(140, 50, 1000, 950);
-                characterLabel2.setIcon(null);
-                if (currentChar.contains("empty")) characterLabel.setIcon(null);
-                else characterLabel.setIcon(getOptimizedImage(currentChar, 1000, 900));
-            }
-
-            if (!currentChar.equals(lastCharPath)) {
-                startCharacterFadeIn();
-                lastCharPath = currentChar;
-            }
-        }
         handleSoundEffects(currentIndex);
+        startTypewriter(dialogues[currentIndex]);
+
+        String path1 = (currentIndex < charPaths.length) ? charPaths[currentIndex] : "res/empty.png";
+        String path2 = (currentIndex < charPaths2.length) ? charPaths2[currentIndex] : "res/empty.png";
+
+        boolean hasAlice = !path1.contains("empty");
+        boolean hasDan = !path2.contains("empty");
+
+        handleCharacterTransitions(path1, path2);
+
+        // Logic จัดวางตัวละคร: ถ้าหายไปหนึ่งตัว ให้อีกตัวอยู่กลาง
+        updatePosition(characterLabel, path1, hasAlice, hasDan, true);  
+        updatePosition(characterLabel2, path2, hasDan, hasAlice, false); 
+
         layeredPane.repaint();
+    }
+
+    private void updatePosition(JLabel label, String path, boolean isMeActive, boolean isOtherActive, boolean isAlice) {
+        if (!isMeActive) {
+            label.setIcon(null);
+            return;
+        }
+
+        if (isAlice) {
+            label.setIcon(getOptimizedImage(path, 1200, 800));
+            if (!isOtherActive) {
+                label.setBounds(40, 100, 1200, 800); // กลาง
+            } else {
+                label.setBounds(-300, 100, 1200, 800); // ซ้าย
+            }
+        } else {
+            label.setIcon(getOptimizedImage(path, 1200, 900));
+            if (!isOtherActive) {
+                label.setBounds(100, 50, 1200, 900); // กลาง
+            } else {
+                label.setBounds(300, 50, 1200, 900); // ขวา
+            }
+        }
+    }
+
+    private void handleCharacterTransitions(String p1, String p2) {
+        if (!p1.equals(lastP1)) {
+            if (!p1.contains("empty")) startCharacterFadeIn1();
+            else charAlpha1 = 0.0f;
+            lastP1 = p1;
+        }
+        if (!p2.equals(lastP2)) {
+            if (!p2.contains("empty")) startCharacterFadeIn2();
+            else charAlpha2 = 0.0f;
+            lastP2 = p2;
+        }
+    }
+
+    private void startCharacterFadeIn1() {
+        charAlpha1 = 0.0f;
+        if (charFadeTimer1 != null && charFadeTimer1.isRunning()) charFadeTimer1.stop();
+        charFadeTimer1 = new Timer(30, e -> {
+            charAlpha1 += 0.1f;
+            if (charAlpha1 >= 1.0f) { charAlpha1 = 1.0f; ((Timer)e.getSource()).stop(); }
+            characterLabel.repaint();
+        });
+        charFadeTimer1.start();
+    }
+
+    private void startCharacterFadeIn2() {
+        charAlpha2 = 0.0f;
+        if (charFadeTimer2 != null && charFadeTimer2.isRunning()) charFadeTimer2.stop();
+        charFadeTimer2 = new Timer(30, e -> {
+            charAlpha2 += 0.1f;
+            if (charAlpha2 >= 1.0f) { charAlpha2 = 1.0f; ((Timer)e.getSource()).stop(); }
+            characterLabel2.repaint();
+        });
+        charFadeTimer2.start();
     }
 
     private void setupRelationshipUI() {
         JPanel relPanel = new JPanel(new GridLayout(2, 1)); 
-        relPanel.setBounds(20, 20, 280, 80); // ปรับตำแหน่งซ้ายบน
-        relPanel.setBackground(new Color(0, 0, 0, 180)); 
-        relPanel.setBorder(BorderFactory.createLineBorder(new Color(255, 105, 180), 2));
+        relPanel.setBounds(0, 0, 280, 75); 
+        relPanel.setBackground(new Color(0, 0, 0, 190)); 
+        relPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 105, 180), 2),
+            BorderFactory.createEmptyBorder(5, 15, 5, 10)
+        ));
         
         affinityLabel = new JLabel("อริส: " + relationdata.aliceRel.getAffinity());
-        affinityLabel.setFont(thaiFont); // ใช้ Font ไทยที่กำหนดไว้
-        affinityLabel.setForeground(Color.WHITE);
-        affinityLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        affinityLabel.setFont(thaiFont);
+        affinityLabel.setForeground(new Color(255, 192, 203));
         
         statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
-        statusLabel.setFont(thaiFont); // ใช้ Font ไทยที่กำหนดไว้
-        statusLabel.setForeground(Color.PINK);
-        statusLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        statusLabel.setForeground(Color.WHITE);
         
         relPanel.add(affinityLabel); 
         relPanel.add(statusLabel);
@@ -277,7 +341,6 @@ public class part6 extends JFrame {
         new Timer(500, ev -> nextArrow.setVisible(!nextArrow.isVisible())).start();
     }
 
-    // --- ส่วนที่เหลือของโค้ดคงเดิม ---
     private void handleNext() {
         if (isChoosing || isFading) return; 
         if (isTyping) {
@@ -295,11 +358,7 @@ public class part6 extends JFrame {
 
         int nextIndex = currentIndex + 1;
         if (nextIndex < dialogues.length) {
-            if (!imagePaths[currentIndex].equals(imagePaths[nextIndex])) {
-                performSceneFade(() -> { currentIndex = nextIndex; syncOnline(); updateScene(); });
-            } else {
-                currentIndex = nextIndex; syncOnline(); updateScene();
-            }
+            currentIndex = nextIndex; syncOnline(); updateScene();
         } else {
             finishGame();
         }
@@ -323,8 +382,6 @@ public class part6 extends JFrame {
 
     private void showChoices(String text1, String text2, int t1, int t2) {
         isChoosing = true;
-        // ปรับพิกัด Y ให้อยู่เหนือกล่องข้อความ (กล่องข้อความอยู่ที่ Y=520)
-        // ปุ่มแรกอยู่ที่ 350, ปุ่มสองอยู่ที่ 425
         choiceButton1 = createChoiceButton(text1, 350, t1); 
         choiceButton2 = createChoiceButton(text2, 425, t2); 
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
@@ -335,43 +392,25 @@ public class part6 extends JFrame {
     private JButton createChoiceButton(String text, int y, int target) {
         JButton btn = new JButton(text) {
             private double scale = 1.0;
-            private int alphaMod = 170; // ความโปร่งแสงเริ่มต้น
+            private int alphaMod = 170; 
             private Timer animTimer;
 
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                int w = getWidth();
-                int h = getHeight();
-                
-                // Animation Scale
-                g2.translate(w / 2, h / 2);
-                g2.scale(scale, scale);
-                g2.translate(-w / 2, -h / 2);
-                
-                // พื้นหลังไล่เฉดสีขาว-เทาอ่อน สไตล์ Glassmorphism
-                GradientPaint gp = new GradientPaint(0, 0, new Color(255, 255, 255, alphaMod), 
-                                                    0, h, new Color(230, 230, 230, alphaMod));
-                g2.setPaint(gp);
-                g2.fillRoundRect(0, 0, w, h, 20, 20);
-                
-                // เส้นขอบสีชมพูเข้ม (Theme อริส)
-                g2.setColor(new Color(255, 102, 153));
-                g2.setStroke(new BasicStroke(2.0f));
-                g2.drawRoundRect(1, 1, w - 2, h - 2, 18, 18);
-                
-                g2.dispose();
-                super.paintComponent(g);
+                int w = getWidth(); int h = getHeight();
+                g2.translate(w / 2, h / 2); g2.scale(scale, scale); g2.translate(-w / 2, -h / 2);
+                GradientPaint gp = new GradientPaint(0, 0, new Color(255, 255, 255, alphaMod), 0, h, new Color(230, 230, 230, alphaMod));
+                g2.setPaint(gp); g2.fillRoundRect(0, 0, w, h, 20, 20);
+                g2.setColor(new Color(255, 102, 153)); g2.setStroke(new BasicStroke(2.0f)); g2.drawRoundRect(1, 1, w - 2, h - 2, 18, 18);
+                g2.dispose(); super.paintComponent(g);
             }
 
             {
                 addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) { startAnim(1.03, 230); }
-                    @Override
-                    public void mouseExited(MouseEvent e) { startAnim(1.0, 170); }
+                    @Override public void mouseEntered(MouseEvent e) { startAnim(1.03, 230); }
+                    @Override public void mouseExited(MouseEvent e) { startAnim(1.0, 170); }
                 });
             }
 
@@ -387,32 +426,21 @@ public class part6 extends JFrame {
             }
         };
 
-        // ตำแหน่ง X=800 คือด้านขวาบนของกล่องข้อความ
         btn.setBounds(800, y, 380, 60); 
         btn.setFont(new Font("Tahoma", Font.BOLD, 17));
         btn.setForeground(new Color(50, 50, 50));
-        btn.setFocusPainted(false);
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
+        btn.setFocusPainted(false); btn.setContentAreaFilled(false); btn.setBorderPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btn.addActionListener(e -> {
             playEffect("res/sound/click.wav", 0.0f);
-            layeredPane.remove(choiceButton1); 
-            layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2);
             isChoosing = false; 
-            
-            // อัปเดตค่าความสัมพันธ์
-            if (target == 8 || target == 13 || target == 36) {
-                relationdata.aliceRel.addAffinity(10); 
-            } else {
-                relationdata.aliceRel.decreaseAffinity(5);
-            }
-            
+            if (target == 8 || target == 13 || target == 36) relationdata.aliceRel.addAffinity(10); 
+            else relationdata.aliceRel.decreaseAffinity(5);
             if (affinityLabel != null) affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
             jumpToIndex(target);
         });
-        
         return btn;
     }
 
@@ -493,35 +521,18 @@ public class part6 extends JFrame {
 
     private void stopTypewriter() { if (typewriterTimer != null) typewriterTimer.stop(); isTyping = false; }
 
-    private void performSceneFade(Runnable onBlack) {
-        isFading = true; alpha = 0.0f; fadeOverlay.setVisible(true);
+    private void finishGame() {
+        if (isFading) return; isFading = true;
+        alpha = 0.0f; fadeOverlay.setVisible(true);
         Timer fo = new Timer(20, e -> {
             alpha += 0.05f;
             if (alpha >= 1.0f) {
-                alpha = 1.0f; ((Timer)e.getSource()).stop(); onBlack.run();
-                Timer fi = new Timer(20, ev -> {
-                    alpha -= 0.05f; if (alpha <= 0) { alpha = 0; ((Timer)ev.getSource()).stop(); isFading = false; fadeOverlay.setVisible(false); }
-                    fadeOverlay.repaint();
-                }); fi.start();
+                ((Timer)e.getSource()).stop();
+                new part7().setVisible(true); dispose();
             }
             fadeOverlay.repaint();
         });
         fo.start();
-    }
-
-    private void startCharacterFadeIn() {
-        charAlpha = 0.0f;
-        if (charFadeTimer != null) charFadeTimer.stop();
-        charFadeTimer = new Timer(30, e -> {
-            charAlpha += 0.05f; if (charAlpha >= 1.0f) { charAlpha = 1.0f; ((Timer)e.getSource()).stop(); }
-            characterLabel.repaint(); characterLabel2.repaint();
-        });
-        charFadeTimer.start();
-    }
-
-    private void finishGame() {
-        if (isFading) return; isFading = true;
-        performSceneFade(() -> { new part7().setVisible(true); dispose(); });
     }
 
     public ImageIcon scaleImage(String p, int w, int h) {
