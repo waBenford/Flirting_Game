@@ -20,7 +20,7 @@ public class part4 extends JFrame {
     private int currentIndex = 0;
     private Clip bgmClip;      
     private Clip effectClip;   
-    private JButton choiceButton1, choiceButton2;
+    private JButton choiceButton1, choiceButton2, choiceButton3, choiceButton4;
     private boolean isChoosing = false;
     private Timer typewriterTimer;
     private int charIndex = 0;
@@ -47,20 +47,22 @@ public class part4 extends JFrame {
     // --- Data Arrays (ปรับขนาดเป็น 61 ตัวเพื่อกัน Index 59 Error) ---
     private String[] imagePaths = {
         "res/scene4/s1.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
+        "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", //0-7
         "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
-        "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
-        "res/scene4/s2.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", 
-        "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png","res/scene4/s3.png",
-        "res/scene4/s4.1.png", "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png",
-        "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s5.png", 
+        "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s3.png", 
+        "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", 
+        "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png",
+        "res/scene4/s4.1.png","res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png", 
+        "res/scene4/s4.png", "res/scene4/s4.png", "res/scene4/s4.png", 
         "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", 
-        "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png",
-        "res/scene4/s5.png", "res/scene4/s6.png", "res/scene4/s6.png","res/scene4/s6.png", "res/scene4/s6.png",
-        "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png",
-        "res/scene4/s6.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", 
-        "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png",
-        "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s3.png", "res/scene4/s3.png",
-        "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png"
+        "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s5.png", 
+        "res/scene4/s5.png", "res/scene4/s5.png", "res/scene4/s6.png", "res/scene4/s6.png", 
+        "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", 
+        "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s6.png", "res/scene4/s7.png", 
+        "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", 
+        "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", 
+        "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", 
+        "res/scene4/s3.png", "res/scene4/s3.png"
     };
     
     private String[] charPaths = {
@@ -70,7 +72,8 @@ public class part4 extends JFrame {
         "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG",
         "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG",
         "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", 
-        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/empty.png", 
+        "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG", "res/Charactor/Mc/body1.PNG","res/Charactor/Mc/body1.PNG",
+        "res/Charactor/Mc/body1.PNG","res/Charactor/Mc/body1.PNG", "res/empty.png",  
         "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", 
         "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", "res/Charactor/factor/Uncle.png", 
         "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG", "res/Charactor/factor/demon1.PNG",
@@ -92,8 +95,10 @@ public class part4 extends JFrame {
         "res/Charactor/Alice/Girl/Alice-shy2.png", "res/Charactor/Alice/Girl/Alice-shy1.png",
         "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
         "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
-        "res/Charactor/Alice/Girl/Alice-shy1.png", "res/Charactor/Alice/Girl/Alice-shy1.png",
-        "res/Charactor/Alice/Girl/Alice-shy2.png", "res/empty.png",
+        "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
+        "res/Charactor/Alice/Girl/Alice-shy2.png", "res/Charactor/Alice/Girl/Alice-shy1.png", 
+        "res/Charactor/Alice/Girl/Alice-shy1.png", "res/Charactor/Alice/Girl/Alice-shy2.png",
+        "res/Charactor/Alice/Girl/Alice-shy1.png", "res/empty.png",
         "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
         "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
         "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
@@ -108,19 +113,22 @@ public class part4 extends JFrame {
         "res/Charactor/Alice/Girl/Alice-fight1.png", "res/Charactor/Alice/Girl/Alice-fight2.png",
         "res/Charactor/Alice/Girl/Alice-fight1.png","res/Charactor/Alice/Girl/Alice-normal1.png",
         "res/Charactor/Alice/Girl/Alice-normal2.png","res/Charactor/Alice/Girl/Alice-normal1.png",
-        "res/Charactor/Alice/Girl/Alice-shy1.png","res/Charactor/Alice/Girl/Alice-normal2.png",
-        "res/Charactor/Alice/Girl/Alice-normal1.png"
+        "res/Charactor/Alice/Girl/Alice-normal2.png","res/Charactor/Alice/Girl/Alice-normal1.png",
+        "res/Charactor/Alice/Girl/Alice-normal2.png","res/Charactor/Alice/Girl/Alice-normal1.png",
+        "res/Charactor/Alice/Girl/Alice-normal2.png","res/Charactor/Alice/Girl/Alice-shy2.png",
+        "res/Charactor/Alice/Girl/Alice-normal1.png",
     };
 
     private String[] names = {
         " ", "ฉัน", "ฉัน", "อริส", "ฉัน", "อริส", "ฉัน", "อริส", 
-        "อริส", "อริส", "อริส", "อริส", "อริส", "อริส", "ฉัน", "อริส", 
-        " ", "อริส", "อริส", "อริส", "ลุง", "อริส", "ลุง", "ลุง", 
-        "อริส", "อริส", "ฉัน", "ปีศาจ", "ปีศาจ", "ฉัน", "ปีศาจ", "ฉัน", 
-        "ปีศาจ", "ปีศาจ", "อริส","อริส", "ปีศาจ", "อริส", " ", "อริส", " ", 
-        "อริส", "ฉัน", "ปีศาจ", "ปีศาจ", "ปีศาจ", "ฉัน", "ฉัน","ปีศาจ", 
-        "ปีศาจ", "ปีศาจ", "อริส", "ฉัน", "อริส", "อริส", "ฉัน", "อริส", 
-        "อริส", "อริส", "ฉัน", "ฉัน"
+        "อริส", "อริส", "อริส", "อริส", "อริส", "อริส","อริส","อริส",//0-16
+        "ฉัน","อริส","ฉัน","อริส","อริส","อริส","อริส","อริส", //17-24
+        " ", "อริส","ชาวบ้าน","ชาวบ้าน","อริส","อริส","ฉัน","ปีศาจ",//25-32
+        "ปีศาจ","ฉัน", "ปีศาจ", "ฉัน", "ปีศาจ", "ปีศาจ","อริส","อริส","ปีศาจ", //33-41
+        "อริส", " ", "อริส"," ", " ", "อริส", "ฉัน", "ปีศาจ",//42-49
+        "ปีศาจ", "ปีศาจ","ฉัน", "ฉัน", "ปีศาจ","ปีศาจ","ปีศาจ","อริส",//50-57
+        "ฉัน", "อริส", "อริส", "ฉัน", "ฉัน", "อริส", "อริส", "อริส", //58-65
+        "อริส", "ฉัน",//66-67
     };
     
     private String[] dialogues = {
@@ -128,25 +136,36 @@ public class part4 extends JFrame {
         "ตอนนี้ฉันก็น่าจะเเข็งเเกร่งขึ้นบ้างละหละ", "(ชื่อตัวละครเรา) ข้าวเที่ยงเสร็จละนะ", 
         "โอเค กําลังจะไปเดี๋ยวนี้แหละ", "..กําลังยืนดูตัวเรา..", "นี่เธอเเอบดูกล้ามฉันรึปล่าว?", 
         "ปล่าวซะหน่อย ใครมันจะไปดูกัน", "ช่างเรื่องนั้นเถอะ", "นี่..นายคิดว่าชุดนี้เหมาะกับฉันมั้ย?", 
-        "มันเป็นชุดสําหรับเดินทางหนะ", "น่ารักอะไรกัน..บ้าจริง", "โถ่ว..นี่นายจะไม่ชมฉันเลยบ้างรึไง", 
+        "มันเป็นชุดสําหรับเดินทางหนะ", //10
+        "น่ารักอะไรกัน..บ้าจริง", //choice1 11
+        "โถ่ว..นี่นายจะไม่ชมฉันเลยบ้างรึไง", //choice2 12
+        "ชิ!! งั้นข้าวมื้อนี้ไม่ต้องกิน!!",//choice3 13
+        "งะ..งั้นหรอ..",//choice4 14
         "เมื่อกี้นายกําลังฝึกหรอ?", "อือ..ก็นิดหน่อยอะ", "รีบกินสิเดี๋ยวมันจะเย็นเอานะ", 
-        "(กําลังกิน)", "เป็นไงอร่อยมั้ย?", "จะ..จริงหรอ..งั้นก็กินเยอะๆเลยนะ", 
-        "อือๆก็ดีเเล้ว", "นี่!!เปิดประตูหน่อย!!", "เกิดอะไรขึ้นหรอคะ?", 
-        "เอ่อ..คือว่า..มันมีปีศาจมาบุกโจมตีหมู่บ้าน", "มีชาวบ้านหลายคนที่ได้รับบาดเจ็บ เเต่ส่วนใหญ่ก็หนีออกมาได้", 
+        "(กําลังกิน)", "เป็นไงอร่อยมั้ย?", //19
+        "จะ..จริงหรอ..งั้นก็กินเยอะๆเลยนะ", //choice1 20
+        "อือๆก็ดีเเล้ว", //choice2 21
+        "ถ้าชอบฉันก็ดีใจ",//choice3 22
+        "…",//choice4 23
+        "นี่!!เปิดประตูหน่อย!!", "เกิดอะไรขึ้นหรอคะ?", 
+        "เอ่อ..คือว่า..มันมีปีศาจมาบุกโจมตีหมู่บ้าน", "มีชาวบ้านหลายคนที่ได้รับบาดเจ็บ เเต่ส่วนใหญ่ก็หนีออกมาได้", //24-28
         "เเย่ละสิ! ต้องรีบไปจัดการเเล้ว!", "ไปกันเถอะ (ชื่อตัวละครเรา)", "โอเค!!", 
         "ไม่มีพวกเก่งๆเลยรึไง ฮ่าๆ", "มีเเต่ชาวบ้านกระจอกๆเเบบนี้ ก็ไม่สนุกนะเส้", 
-        "นี่เเกกําลังทําอะไร!!", "ก็กําลังเล่นสนุกอยู่ไงหละ ฮ่าๆ", "เล่นสนุกอย่างงั้นหรอ?", 
+        "นี่เเกกําลังทําอะไร!!", "ก็กําลังเล่นสนุกอยู่ไงหละ ฮ่าๆ", "เล่นสนุกอย่างงั้นหรอ?", //29-36
         "พวกเเกมันก็ไม่ต่างอะไรจากหนอนเเถลง!!", "ชีวิตของพวกเเกก็มีไว้ให้พวกข้าสนุกเท่านั้น", 
-        "เลวที่สุด..", "ฉันจะไม่ให้อภัยพวกเเกเด็ดขาด!! ", "เเน่จริงก็เข้ามา!!", 
-        "เวทย์นํ้าเเข็ง Ice shot!!","ปีศาจหลบได้ เเละกําลังจะโจมตี อริส", "ขอบคุณที่ช่วยนะ (ชื่อตัวละครเรา)", "อริสหลบการโจมตีได้", 
+        "เลวที่สุด..", "ฉันจะไม่ให้อภัยพวกเเกเด็ดขาด!! ", "เเน่จริงก็เข้ามา!!", //37-41
+        "เวทย์นํ้าเเข็ง Ice shot!!","ปีศาจหลบได้ เเละกําลังจะโจมตี อริส", //43
+        "ขอบคุณที่ช่วยนะ (ชื่อตัวละครเรา)", //choice1 44
+        "อริสหลบการโจมตีได้",//choice2 45
+        "อริสหลบได้เเต่โดนโจมตีเล็กน้อย",//choice3 46
         "เวทย์นํ้าเเข็ง Ice floor", "รับไปซะ! เวทย์ลม wind storm", "เอ่อ..พลังเวทย์ขนาดนี้..มันเป็นใครกันนะ!?", 
-        "อ้ากกกก!!", "ข้าเเพ้หรอเนี่ย", "ดูเหมือนเเกจะประเมินตัวเองไว้สูงเลยสินะ", 
+        "อ้ากกกก!!", "ข้าเเพ้หรอเนี่ย", "ดูเหมือนเเกจะประเมินตัวเองไว้สูงเลยสินะ", //47-52 
         "เอาหละ..ใครเป็นคนส่งเเกมา", "เเกรู้ไปจะได้อะไรขึ้นมา", "อย่างพวกเเก ไม่มีทางชนะท่านผู้นั้นได้หรอก", 
         "ท่านจอมมารผู้นั้นหนะ..", "จอมมารหรอ?", "อริส เธอรู้เรื่องจอมมารคนนั้นบ้างรึปล่าว?", 
-        "ฉันเคยได้ยินว่ามีจอมมารคนนึงที่อยู่ลึกสุดของป่า death end", "เเต่จอมมารคนนั้นดูเหมือนจะเป็น คนที่รักความสงบสุขมาก", 
+        "ฉันเคยได้ยินว่ามีจอมมารคนนึงที่อยู่ลึกสุดของป่า death end", "เเต่จอมมารคนนั้นดูเหมือนจะเป็น คนที่รักความสงบสุขมาก", //53-60
         "ฟังดูเเล้วไม่มีเหตุที่จอมมารคนนั้นจะทําเรื่องเเบบนี้เลย", "อริส ฉันว่ามันถึงเวลาที่เราต้องออกเดินทางเเล้วหละ", 
-        "เเล้วเราจะไปที่ไหนกันหรอ?", "ไปเดทอะไรบ้ารึปล่าว อร๊ายยยย", "ขอบคุณนะ", 
-        "ไม่งั้นอาจจะมีผู้คนต้องตายไปมากกว่านี้"
+        "เเล้วเราจะไปที่ไหนกันหรอ?", "ไปเดทอะไรบ้ารึปล่าว อร๊ายยยย", "ขอบคุณนะ", //61-65
+        "อะ..อื้อ..", "ไม่งั้นอาจจะมีผู้คนต้องตายไปมากกว่านี้",//67
     };
 
     public part4() {
@@ -205,34 +224,73 @@ public class part4 extends JFrame {
         });
     }
 
-    private void handleNext() {
-        if (isChoosing || isFading || isAnimatingEntry) return;
-        if (isTyping) { 
-            if(typewriterTimer != null) typewriterTimer.stop(); 
-            isTyping = false; 
-            updateDialogueDisplay(dialogues[currentIndex]); return; 
-        }
+        private void handleNext() {
+            if (isChoosing || isFading || isAnimatingEntry) return;
 
-        if (currentIndex == 10) { showChoices("น่ารักมากๆเลย เหมาะกับเธอสุดๆ", "ก็พอได้นะ", 11, 12); return; }
-        if (currentIndex == 17) { showChoices("ฉันชอบอาหารฝีมือเธอที่สุดเลย", "ก็อร่อยดีนะ", 18, 19); return; }
-        if (currentIndex == 38) { showChoices("พุ่งเข้าไปปกป้องอริส", "บอกให้อริสหลบเอง", 39, 40); return; }
-        if (currentIndex == 57) { showChoices("เราจะไปเดทกันไงละจ๊ะ อริสจัง", "ที่อยู่ของจอมมารยังไงหละ", 58, 59); return; }
+            if (isTyping) { 
+                if(typewriterTimer != null) typewriterTimer.stop(); 
+                isTyping = false; 
+                // ป้องกัน Error หาก currentIndex เกินขอบเขต
+                if (currentIndex < dialogues.length) {
+                    updateDialogueDisplay(dialogues[currentIndex]); 
+                }
+                return; 
+            }
 
-        int nextIdx = currentIndex;
-        if (currentIndex == 11) nextIdx = 13;
-        else if (currentIndex == 18) nextIdx = 20;
-        else if (currentIndex == 39) nextIdx = 41;
-        else if (currentIndex == 58) nextIdx = 60;
-        else nextIdx++;
+            // --- ส่วนเช็ค Choice ---
+            if (currentIndex == 10) { 
+                showChoices("น่ารักมากๆเลย เหมาะกับเธอสุดๆ", "ก็พอได้นะ", "ก็งั้นๆอะ", "ฉันชอบชุดนี้นะ", 11, 12, 13, 14); 
+                return; 
+            }
+            if (currentIndex == 19) { 
+                showChoices("ฉันชอบอาหารฝีมือเธอที่สุดเลย", "ก็อร่อยดีนะ", "อร่อยมากๆเลย", "ก็พอกินได้", 20, 21, 22, 23); 
+                return; 
+            }
+            // แก้ไขจุดนี้: ส่ง null เพื่อให้ Choice 4 หายไปในฉากสู้ปีศาจ
+            if (currentIndex == 42) { 
+                showChoices("พุ่งเข้าไปปกป้องอริส", "บอกให้อริสหลบเอง", "ไม่ทําอะไรเลย", null, 43, 44, 45, -1); 
+                return; 
+            }
+            if (currentIndex == 62) { 
+                showChoices("เราจะไปเดทกันไงละจ๊ะ อริสจัง", "ที่อยู่ของจอมมารยังไงหละ", "ยังจะถามอีก ก็ไปล่าจอมมารไงละ", null, 63, 64, 65, -1); 
+                return; 
+            }
 
-        if (nextIdx < dialogues.length) {
-            if (!imagePaths[currentIndex].equals(imagePaths[nextIdx])) {
-                final int target = nextIdx;
-                performSceneFade(() -> { currentIndex = target; syncOnline(); updateScene(); });
-            } else { currentIndex = nextIdx; syncOnline(); updateScene(); }
-        } else { finishPart(); }
+            // --- ส่วนคำนวณ Next Index ---
+            int nextIdx = currentIndex;
+            
+            if (currentIndex >= 11 && currentIndex <= 14) {
+                nextIdx = 15;
+            } else if (currentIndex >= 20 && currentIndex <= 23) {
+                nextIdx = 24;
+            } else if (currentIndex >= 43 && currentIndex <= 45) {
+                nextIdx = 46;
+            } else if (currentIndex >= 63 && currentIndex <= 65) {
+                nextIdx = 66;
+            } else {
+                nextIdx = currentIndex + 1; 
+            }
+
+            // --- ตรวจสอบความปลอดภัยก่อนอัปเดตฉาก ---
+            if (nextIdx < dialogues.length) {
+                // ตรวจสอบว่า imagePaths มีขนาดเท่ากับ dialogues หรือไม่เพื่อป้องกัน NullPointerException
+                if (nextIdx < imagePaths.length && !imagePaths[currentIndex].equals(imagePaths[nextIdx])) {
+                    final int target = nextIdx;
+                    performSceneFade(() -> { 
+                        currentIndex = target; 
+                        syncOnline(); 
+                        updateScene(); 
+                    });
+                } else { 
+                    currentIndex = nextIdx; 
+                    syncOnline(); 
+                    updateScene(); 
+                }
+            } else { 
+                // ถ้า nextIdx เท่ากับหรือมากกว่า dialogues.length แสดงว่าจบ Part แล้ว
+                finishPart(); 
+            }
     }
-
     // --- ระบบ Animation เข้าฉาก (เลื่อนและ Fade) ---
     private void animateCharacterEntry(JLabel label, String path, int w, int h, int startX, int endX, int targetY, boolean isChar1) {
         isAnimatingEntry = true;
@@ -547,9 +605,41 @@ public class part4 extends JFrame {
     private void performSceneFade(Runnable onBlack) { isFading = true; alpha = 0.0f; if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER); Timer fadeOut = new Timer(30, e -> { alpha += 0.1f; if (alpha >= 1.0f) { alpha = 1.0f; ((Timer)e.getSource()).stop(); onBlack.run(); new Timer(300, ev -> { ((Timer)ev.getSource()).stop(); new Timer(30, eve -> { alpha -= 0.1f; if (alpha <= 0) { alpha = 0; ((Timer)eve.getSource()).stop(); isFading = false; } fadeOverlay.repaint(); }).start(); }).start(); } fadeOverlay.repaint(); }); fadeOut.start(); }
     private ImageIcon getOptimizedImage(String path, int w, int h) { String key = path + w + h; if (!imageCache.containsKey(key)) { imageCache.put(key, scaleImage(path, w, h)); } return imageCache.get(key); }
     public ImageIcon scaleImage(String path, int width, int height) { try { return new ImageIcon(new ImageIcon(path).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH)); } catch (Exception e) { return null; } }
-    private void showChoices(String text1, String text2, int t1, int t2) { isChoosing = true; choiceButton1 = createChoiceButton(text1, 380, t1); choiceButton2 = createChoiceButton(text2, 450, t2); layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER); layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER); layeredPane.repaint(); }
-    private JButton createChoiceButton(String text, int y, int target) {
-        JButton btn = new JButton(text) {
+        private void showChoices(String text1, String text2, String text3, String text4, int t1, int t2, int t3, int t4) {
+            isChoosing = true;
+
+            // เคลียร์ปุ่มเก่าออกจาก LayeredPane ก่อนเพื่อป้องกันปุ่มซ้อน
+            if (choiceButton1 != null) layeredPane.remove(choiceButton1);
+            if (choiceButton2 != null) layeredPane.remove(choiceButton2);
+            if (choiceButton3 != null) layeredPane.remove(choiceButton3);
+            if (choiceButton4 != null) layeredPane.remove(choiceButton4);
+
+            // กำหนดระยะห่าง Y (ถ้ามี 4 ปุ่มอาจจะเริ่มที่ 250, ถ้ามี 3 ปุ่มอาจจะปรับให้ลงมาหน่อยที่ 300)
+            int startY = (text4 == null || text4.isEmpty()) ? 300 : 250; 
+            int gap = 70; // ระยะห่างระหว่างปุ่ม
+
+            choiceButton1 = createChoiceButton(text1, startY, t1); 
+            choiceButton2 = createChoiceButton(text2, startY + gap, t2);
+            choiceButton3 = createChoiceButton(text3, startY + (gap * 2), t3);
+            
+            // เพิ่ม 3 ปุ่มแรกเสมอ
+            layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
+            layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+            layeredPane.add(choiceButton3, JLayeredPane.POPUP_LAYER);
+
+            // ตรวจสอบว่ามีปุ่มที่ 4 หรือไม่
+            if (text4 != null && !text4.isEmpty() && t4 != -1) {
+                choiceButton4 = createChoiceButton(text4, startY + (gap * 3), t4);
+                layeredPane.add(choiceButton4, JLayeredPane.POPUP_LAYER);
+            } else {
+                choiceButton4 = null; // เคลียร์ reference ถ้าไม่มีปุ่มที่ 4
+            }
+
+            layeredPane.revalidate();
+            layeredPane.repaint();
+    }
+        private JButton createChoiceButton(String text, int y, int target) {
+            JButton btn = new JButton(text) {
             // --- ตัวแปรสำหรับ Animation ---
             private double scale = 1.0;
             private int alphaMod = 180; // ความโปร่งใสของพื้นหลัง
@@ -636,7 +726,11 @@ public class part4 extends JFrame {
             playSE("res/sound/click.wav", false, 0.0f);
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton3);
+            if (choiceButton4 != null) layeredPane.remove(choiceButton4);
             isChoosing = false;
+            currentIndex = target;
+            updateScene();
 
             // ตรวจสอบเงื่อนไขคะแนนความสนิทตามที่คุณส่งมา
             if (target == 11 || target == 18 || target == 39 || target == 59) {
@@ -653,9 +747,8 @@ public class part4 extends JFrame {
 
             // อัปเดตการแสดงผลบน UI
             updateAffinityUI(); 
-
-            currentIndex = target;
-            updateScene();
+            layeredPane.revalidate();
+            layeredPane.repaint();
         });
 
         return btn;

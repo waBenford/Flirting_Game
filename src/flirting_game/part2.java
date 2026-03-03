@@ -13,7 +13,7 @@ public class part2 extends JFrame {
     private JLayeredPane layeredPane;
     private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
     private VisualNovelBox dialoguePanel; 
-    private JButton choiceButton1, choiceButton2;
+    private JButton choiceButton1, choiceButton2, choiceButton3; 
     private JPanel fadeOverlay;
     private JLabel affinityLabel, statusLabel;
     
@@ -45,12 +45,12 @@ public class part2 extends JFrame {
     private String[] imagePaths = {
         "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png",
         "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png",
-        "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s2.png",
-        "res/scene2/s2.png", "res/scene2/s2.png", "res/scene2/s2.png", "res/scene2/s3.png",
-        "res/scene2/s3.png", "res/scene2/s3.png", "res/scene2/s4.png", "res/scene2/s4.png",
-        "res/scene2/s4.png", "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", //20
-        "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png",
-        "res/scene2/s6.png", "res/scene2/s6.png"
+        "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png", "res/scene2/s1.png",
+        "res/scene2/s1.png", "res/scene2/s2.png", "res/scene2/s2.png", "res/scene2/s2.png", 
+        "res/scene2/s2.png", "res/scene2/s3.png", "res/scene2/s3.png", "res/scene2/s3.png", 
+        "res/scene2/s4.png", "res/scene2/s4.png", "res/scene2/s4.png", "res/scene2/s5.png", 
+        "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s5.png", 
+        "res/scene2/s5.png", "res/scene2/s5.png", "res/scene2/s6.png", "res/scene2/s6.png",
     };
 
     private String[] charPaths = {
@@ -66,23 +66,28 @@ public class part2 extends JFrame {
     };
 
     private String[] names = {
-        "ฉัน", "ฉัน", "เด็กผู้หญิง", "เด็กผู้หญิง", "ฉัน", "เด็กผู้หญิง", "อริส",
-        "อริส", "อริส", "อริส", "อริส", "อริส", "อริส", "ฉัน", "อริส", "ฉัน", "ฉัน", "...", "ฉัน"
+        "ฉัน", "ฉัน", "เด็กผู้หญิง", "เด็กผู้หญิง", "ฉัน", "เด็กผู้หญิง", "อริส", //0-6
+        "อริส", "อริส", "อริส", "อริส", "ฉัน", "อริส", "อริส", "ฉัน", 
+        "อริส", "ฉัน", "ฉัน", "...", "ฉัน" //18
     };
 
     private String[] dialogues = {
         "..เอ่อ..เธอคือ ใครหรอ?", "..เเล้วนี่ฉันอยู่ที่ไหน..ฉันยังไม่ตายหรอ!?", "..เอ๋..ตายหรอ??",
-        "ไม่เห็นจะมีใครตายเลยนะ", "นี่เรา..อยู่ที่ไหนกันเเน่นะ..", "อ๊ะ..ลืมเเนะนําตัวเลย",
-        "ฉันชื่อว่า อริส เป็นลูกของชาวนาในหมู่บ้านเเถวนี้", "เเล้วเธอหละ?", "งั้นหรอ...ไม่เป็นไร",
-        "อ้าว... จำชื่อไม่ได้หรอ? ไม่เป็นไรนะ ค่อยๆ นึกไปก็ได้", "อืมม..งั้นเดี๋ยว..ไปที่บ้านฉันก่อนละกัน",
+        "ไม่เห็นจะมีใครตายเลยนะ", "นี่เรา..อยู่ที่ไหนกันเเน่นะ..", "อ๊ะ..ลืมเเนะนําตัวเลย", //0-5
+        "ฉันชื่อว่า อริส เป็นลูกของชาวนาในหมู่บ้านเเถวนี้","เเล้วเธอหละ?",//7
+        "งั้นหรอ เเล้วเธอมาจากไหนหรอ?",//8
+        "เเปลกคนจัง..งั้นเธอมาจากไหนหละ?",//9
+        "เออ...เธอมาจากที่ไหนหรอ?",//10
+        "..ฉันก็ไม่รู้เหมือนกัน",//11
+        "อืมม..งั้นเดี๋ยว..ไปที่บ้านฉันก่อนละกัน",//12
         "ตัวเธอสะบักสะบอมมากเลย", "ไปอาบนํ้าก่อนเลยนะ เดี๋ยวฉันจะเตรียมกับข้าวไว้ให้",
-        "ห้องนํ้าไปทางไหนหรอ?", "ขึ้นบันไดไปเเล้วก็เลี้ยวขวาหนะ", "น่ารักเเถมยังใจดีอีกต่างหาก",
+        "ห้องนํ้าไปทางไหนหรอ?", "ขึ้นบันไดไปเเล้วก็เลี้ยวขวาหนะ", "น่ารักเเถมยังใจดีอีกต่างหาก",//13-17
         "..ต่อจากนี้จะทําไงต่อดีนะ..เห้ออ..", "...", "เอื้อมมือไปหยิบ", "...",
-        "ไม่เคยเห็นหนังสือเเบบนี้มาก่อนเลย", "..เปิดอ่าน..", "..การใช้เวทย์ลมขั้นพื้นฐาน..", //20
-        "..พลังเวทย์อย่างงั้นนะหรอ..", "..ดูเหมือนจะมีวิธีการร่ายเวทย์ด้วย.. ",
+        "ไม่เคยเห็นหนังสือเเบบนี้มาก่อนเลย", "..เปิดอ่าน..", "..การใช้เวทย์ลมขั้นพื้นฐาน..", //18-24
+        "..พลังเวทย์อย่างงั้นนะหรอ..", "..ดูเหมือนจะมีวิธีการร่ายเวทย์ด้วย..",
         "..ลองหน่อยละกัน..ยังไงมันก็คงเป็นหนังสือที่ทําขึ้นมาเล่นๆ",
-        "..สายลมที่พัดผ่าน..จงตอบรับเสียงของฉัน!!", "..Wind Dash!!",
-        "..เห้ย!!..เมื่อกี้มันอะไร?!", "เกิดอะไรขึ้นหนะ!!"
+        "..สายลมที่พัดผ่าน..จงตอบรับเสียงของฉัน!!", "..Wind Dash!!",//25-29
+        "..เห้ย!!..เมื่อกี้มันอะไร?!", "เกิดอะไรขึ้นหนะ!!"//31
     };
 
     public part2() {
@@ -211,10 +216,14 @@ public class part2 extends JFrame {
         if (isAnimating) { stopAnimation(); updateDialogueDisplay(dialogues[currentIndex]); return; }
 
         if (currentIndex == 7) {
-            showChoices("ฉันไม่รู้ (ฉันยังไม่ไว้ใจใคร)", "ฉันจําชื่อตัวเองไม่ได้", 8, 9);
+            showChoices("ฉันไม่รู้ (ฉันยังไม่ไว้ใจใคร)", "ฉันจําชื่อตัวเองไม่ได้", "ฉันไม่ค่อยเเน่ใจเลย..", 8, 9, 10);
             return;
         }
-        if (currentIndex == 8) { currentIndex = 10; updateScene(); return; }
+        if (currentIndex == 8 || currentIndex == 9 || currentIndex == 10) {
+            currentIndex = 11;
+            updateScene();
+            return;
+        }
 
         if (currentIndex == 10 || currentIndex == 14 || currentIndex == 19) {
             performSceneFade(() -> {
@@ -477,12 +486,15 @@ public class part2 extends JFrame {
         catch (Exception e) { return null; }
     }
 
-    private void showChoices(String text1, String text2, int target1, int target2) {
+    private void showChoices(String text1, String text2, String text3, int target1, int target2, int target3) {
         isChoosing = true;
-        choiceButton1 = createChoiceButton(text1, 380, target1);
-        choiceButton2 = createChoiceButton(text2, 450, target2);
+        choiceButton1 = createChoiceButton(text1, 310, target1);
+        choiceButton2 = createChoiceButton(text2, 380, target2);
+        choiceButton3 = createChoiceButton(text3, 450, target3);
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton3, JLayeredPane.POPUP_LAYER);
+
         layeredPane.repaint();
     }
 
@@ -574,6 +586,7 @@ public class part2 extends JFrame {
             // ลบปุ่มออกเมื่อเลือกแล้ว
             layeredPane.remove(choiceButton1); 
             layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton3);
             isChoosing = false;
 
             // ตรวจสอบเงื่อนไขคะแนนความสนิท (อ้างอิงจาก target ที่ส่งมา)

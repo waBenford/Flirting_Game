@@ -21,7 +21,7 @@ public class part5 extends JFrame {
     private int currentIndex = 0;
     private Clip bgmClip;      
     private Clip effectClip;
-    private JButton choiceButton1, choiceButton2;
+    private JButton choiceButton1, choiceButton2, choiceButton3;
     private boolean isChoosing = false;
     private Timer typewriterTimer;
     private int charIndex = 0;
@@ -45,66 +45,67 @@ public class part5 extends JFrame {
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 24);
 
     private String[] imagePaths = {
-       "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png",
-       "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", 
-       "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", 
-       "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", 
-       "res/scene5/s2.png", "res/scene5/s2.png", "res/scene5/s2.png", "res/scene5/s2.png", 
-       "res/scene5/s2.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", 
-       "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", 
-       "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", 
-       "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", 
-       "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s4.png", 
-       "res/scene5/s4.png", "res/scene5/s4.png", "res/scene5/s4.png", "res/scene5/s4.png", 
-       "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", 
-       "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", 
-       "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s5.png",
-       "res/scene5/s5.png", "res/scene5/s5.png", 
+        "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png",
+        "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", //0-7 
+        "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", 
+        "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", "res/scene5/s1.png", //8-15
+        "res/scene5/s1.png", "res/scene5/s2.png", "res/scene5/s2.png", "res/scene5/s2.png", "res/scene5/s2.png", // 16-20
+        "res/scene5/s2.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", // 21-24
+        "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", 
+        "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", //25-32
+        "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", 
+        "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png","res/scene5/s4.png", //33-40
+        "res/scene5/s4.png", "res/scene5/s4.png", "res/scene5/s4.png", "res/scene5/s4.png", 
+        "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", //41-48
+        "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", 
+        "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", "res/scene5/s3.png", //49-56
+        "res/scene5/s5.png", "res/scene5/s5.png", "res/scene5/s5.png", "res/scene5/s5.png", //57-60
     };
 
     private String[] charPaths = {
         "res/empty.png", "res/empty.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", 
-        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", 
+        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", //0-8 
         "res/scene5/Alice-normal2.png", "res/scene5/Alice-shy1.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", 
-        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", 
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", //9-15
+        "res/scene5/Alice-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+        "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",//16-26
         "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",
+        "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",//27-34
         "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",
-        "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",
-        "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",
-        "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",
+        "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/scene5/demogigi1.png",//35-42
         "res/scene5/demogigi1.png", "res/scene5/demogigi1.png", "res/empty.png", "res/empty.png", 
-        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png", "res/empty.png",
-        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-shy1.png",
-        "res/scene5/Alice-normal2.png", "res/scene5/Alice-shower1.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower2.png",
+        "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png", "res/scene5/Alice-normal2.png","res/scene5/Alice-normal1.png",//43-50
+        "res/empty.png", "res/scene5/Alice-normal2.png", "res/scene5/Alice-normal1.png","res/scene5/Alice-normal2.png",
+        "res/scene5/Alice-shy1.png", "res/scene5/Alice-normal2.png","res/scene5/Alice-normal1.png","res/scene5/Alice-shower1.png", //51-58
+        "res/scene5/Alice-shower3.png","res/scene5/Alice-shower2.png",//60
     };
 
     private String[] charPaths2 = {
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", //0-9
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",//10-19 
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-        "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png", "res/scene5/Alice-fight1.png",
+        "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png", "res/scene5/Alice-fight1.png",//20-27
         "res/scene5/Alice-fight2.png", "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png",
-        "res/scene5/Alice-fight1.png", "res/scene5/Alice-shy1.png", "res/scene5/Alice-shy2.png",
-        "res/scene5/Alice-fight2.png", "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png",
-        "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png",
+        "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png", "res/scene5/Alice-shy2.png",//28-33
+        "res/scene5/Alice-shy1.png", "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png",
+        "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png",//34-38
         // --- เพิ่มส่วนที่ขาดหายไปตรงนี้เพื่อให้ครบ 58 รายการ ---
+        "res/scene5/Alice-fight1.png", "res/scene5/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png",//39-43
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png"
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",//44-53
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png"//54-57
     };
 
     private String[] names = { 
         " ", " ", "ฉัน", "ฉัน", "อริส", "อริส", "ฉัน", "อริส",
-        "ฉัน", "อริส", "อริส", "อริส", "อริส", "ฉัน", "อริส", "ฉัน",
-        "ฉัน", "ฉัน", "ฉัน", " ", "ฉัน", "ฉัน","ปีศาจเดโม", "ปีศาจเดโม",
-        "อริส", "ฉัน", "อริส", "อริส", "อริส", "ปีศาจเดโม", "ปีศาจเดโม", "ฉัน",
-        "อริส", "อริส", "ปีศาจเดโม", "ฉัน", "อริส", "ฉัน", "อริส", " ",
-        " ", " ", " ", " ", "ฉัน", "อริส", "ฉัน", "ฉัน", 
-        "อริส", " ", "อริส", "ฉัน", "อริส", "อริส", "อริส", " ", " ",
+        "ฉัน", "อริส", "อริส", "อริส", "อริส", "อริส", "ฉัน", "อริส", "ฉัน",//0-16
+        "ฉัน", "ฉัน", "ฉัน", " ", "ฉัน", "ฉัน","ปีศาจเดโม", "ปีศาจเดโม",//17-24
+        "อริส", "ฉัน", "อริส", "อริส", "อริส", "ปีศาจเดโม", "ปีศาจเดโม", "ฉัน",//25-32
+        "อริส", "อริส", "อริส","ปีศาจเดโม", "ฉัน", "อริส", "ฉัน", "อริส", " ",//33-40
+        " ", " ", " ", " ", "ฉัน", "อริส", "ฉัน", "ฉัน", //41-48
+        "อริส", " ", "อริส", "ฉัน", "อริส", "อริส", "อริส","อริส","อริส"," ", " ",//49-57
     };
     
     private String[] dialogues = {
@@ -112,60 +113,63 @@ public class part5 extends JFrame {
         "ตัวเรากับอริสได้เดินทางออกจากหมู่บ้านมา 1 อาทิตย์เเล้ว", // 1
         "ฉันคิดว่าเราน่าจะออกมาไกลพอสมควรละนะ", // 2
         "ดีนะที่ก่อนหน้านี้ได้เเผนที่มาจากคนในหมู่บ้าน", // 3
-        "อืออ", // 4
+        "อืออ", // 4 
         "นายหิวรึยัง?", // 5
         "ก็..นิดหน่อยนะ", // 6
         "งั้นเรานั่งพักกินข้าวตรงนี้ก่อนมั้ย?", // 7
         "ก็ดีเหมือนกันนะ", // 8
         "นายอยากกินอะไรมั้ย?", // 9
-        "นายนี่ละก็..", // 10
-        "อื้อโอเค", // 11
-        "เดี๋ยวฉันจะไปหาของเเถวนี้ก่อนนะ", // 12
-        "ให้ฉันไปด้วยมั้ย?", // 13
-        "ไม่เป็นไรหรอก นายนั่งรออยู่ตรงนี้แหละ", // 14
-        "อือ..ก็ได้", // 15
-        "ตอนนี้เราน่าจะยังอยู่ในเขตป่าLifeอยู่นะ", // 16
-        "คงต้องใช้เวลาอีกนานเลยกว่าถึงจุดหมาย", // 17
-        "ดีเลย เราจะได้ใช้เวลานี้อยู่กับอริสมากขึ้น", // 18
-        "อร๊ายยยย", // 19
-        "..นั่นมัน..เสียงอริสนี่!!", // 20
-        "เกิดอะไรขึ้น อริส!!", // 21
-        "กะจะเดินเล่นเฉยๆ ดันมาเจอมนุษย์ซะงั้น", // 22
-        "เเต่ก็ดี ข้ากําลังหิวได้ที่เลย", // 23
-        "…(ชื่อตัวละครเรา)!!", // 24
-        "นี่เธอเบาดเจ็บตรงไหนรึปล่าว?", // 25
-        "ไม่ ฉันไม่เป็นไร", // 26
-        "อยู่ๆปีศาจมันก็เข้ามาโจมตีเเบบกระทันหัน", // 27
-        "เเต่ก็พอหลบได้ เลยมีเเผลถลอกนิดหน่อยหนะ", // 28
-        "นี่พ่อหนุ่ม ข้าขอเเม่หนูตรงนั้นได้ไหม?", // 29
-        "เเล้วข้าจะไว้ชีวิตเจ้า", // 30
-        "ไม่มีทาง!!", // 31
-        "(เขิน)", // 32
-        "มันใช่เวลามั้ย!! ไอ่บ้า!!", // 33
-        "ยังไงข้าก็จะกินพวกเจ้าทั้งสองอยู่ดี", // 34
-        "อริส ครั้งนี้ให้ฉันเป็นคนจัดการเอง", // 35
-        "จะไม่เป็นไรหรอ?", // 36
-        "เเค่นี้สบายมาก", // 37
-        "งั้นฝากด้วยนะ", // 38
-        "ตัวเราได้ใช้เวทย์โจมตี ปีศาจเดโมก่อน", // 39
-        "ปีศาจเดโมหลบได้ เเละพุ่งโจมตีใส่เราทันที", // 40
-        "เรากระโดดหลบ เเละปล่อยพลังเวทย์ที่รุนเเรงใส่ ปีศาจเดโม", // 41
-        "ปีศาจเดโมโดนพลังเวทย์เต็มๆ", // 42
-        "ปีศาจเดโม กลัวจะถูกกําจัด เลยใช้ม่านควันสีดําเเละหลบหนี", // 43
-        "พลาดท่าจนได้", // 44
-        "เเต่อย่างน้อยตอนนี้ก็คงจะปลอดภัยเเล้ว", // 45
-        "ฉันคิดว่าปีศาจตัวเมื่อกี้ต้องเกี่ยวข้องกับจอมมารเเน่เลย", // 46
-        "นี่เรา..ยังไม่ได้กินข้าวกันเลยนี่หน่า", // 47
-        "จริงด้วย! งั้นเดี๋ยวฉันรีบไปทําให้นะ", // 48
-        "หลังจากพักผ่อนเเละกินอะไรกันเสร็จเเล้ว", // 49
-        "ฉันรู้สึกร้อนมากเลย..", // 50
-        "จะไปอาบนํ้าไหมละ ดูเหมือนว่าจะมีลําธารใกล้ๆนะ", // 51
-        "จริงหรอ งั้นฉันขอไปอาบนํ้าก่อน", // 52
-        "คนลามก!!...", // 53
-        "โอเค เดี๋ยวมานะ", // 54
-        "อริสกําลังอาบนํ้า", // 55
-        "เเต่จู่ๆ ก็มีเสียง เเปลกๆที่พุ่มไม้", // 56
-        "อริสเห็นเงาคนอยู่หลังพุ่มไม้..", // 57
+        "นายนี่ละก็..", // 10 choice1
+        "อื้อโอเค",// 11 choice2
+        "เข้าใจแล้ว",// 12 choice3
+        "เดี๋ยวฉันจะไปหาของเเถวนี้ก่อนนะ", // 13
+        "ให้ฉันไปด้วยมั้ย?", // 14
+        "ไม่เป็นไรหรอก นายนั่งรออยู่ตรงนี้แหละ", // 15
+        "อือ..ก็ได้", // 16
+        "ตอนนี้เราน่าจะยังอยู่ในเขตป่าLifeอยู่นะ", // 17
+        "คงต้องใช้เวลาอีกนานเลยกว่าถึงจุดหมาย", // 18
+        "ดีเลย เราจะได้ใช้เวลานี้อยู่กับอริสมากขึ้น", // 19
+        "อร๊ายยยย", // 20
+        "..นั่นมัน..เสียงอริสนี่!!", // 21
+        "เกิดอะไรขึ้น อริส!!", // 22
+        "กะจะเดินเล่นเฉยๆ ดันมาเจอมนุษย์ซะงั้น", // 23
+        "เเต่ก็ดี ข้ากําลังหิวได้ที่เลย", // 24
+        "…(ชื่อตัวละครเรา)!!", // 25
+        "นี่เธอเบาดเจ็บตรงไหนรึปล่าว?", // 26
+        "ไม่ ฉันไม่เป็นไร", // 27
+        "อยู่ๆปีศาจมันก็เข้ามาโจมตีเเบบกระทันหัน", // 28
+        "เเต่ก็พอหลบได้ เลยมีเเผลถลอกนิดหน่อยหนะ", // 29
+        "นี่พ่อหนุ่ม ข้าขอเเม่หนูตรงนั้นได้ไหม?", // 30
+        "เเล้วข้าจะไว้ชีวิตเจ้า", // 31
+        "ไม่มีทาง!!", // 32
+        "(เขิน)", // 33 choice1
+        "มันใช่เวลามั้ย!! ไอ่บ้า!!", // 34 choice2
+        "อ่าว…",//35 choice3
+        "ยังไงข้าก็จะกินพวกเจ้าทั้งสองอยู่ดี", // 36
+        "อริส ครั้งนี้ให้ฉันเป็นคนจัดการเอง", // 37
+        "จะไม่เป็นไรหรอ?", // 38
+        "เเค่นี้สบายมาก", // 39
+        "งั้นฝากด้วยนะ", // 40
+        "ตัวเราได้ใช้เวทย์โจมตี ปีศาจเดโมก่อน", // 41
+        "ปีศาจเดโมหลบได้ เเละพุ่งโจมตีใส่เราทันที", // 42
+        "เรากระโดดหลบ เเละปล่อยพลังเวทย์ที่รุนเเรงใส่ ปีศาจเดโม", // 43
+        "ปีศาจเดโมโดนพลังเวทย์เต็มๆ", // 44
+        "ปีศาจเดโม กลัวจะถูกกําจัด เลยใช้ม่านควันสีดําเเละหลบหนี", // 45
+        "พลาดท่าจนได้", // 46
+        "เเต่อย่างน้อยตอนนี้ก็คงจะปลอดภัยเเล้ว", // 47
+        "ฉันคิดว่าปีศาจตัวเมื่อกี้ต้องเกี่ยวข้องกับจอมมารเเน่เลย", // 48
+        "นี่เรา..ยังไม่ได้กินข้าวกันเลยนี่หน่า", // 49
+        "จริงด้วย! งั้นเดี๋ยวฉันรีบไปทําให้นะ", // 50
+        "หลังจากพักผ่อนเเละกินอะไรกันเสร็จเเล้ว", // 51
+        "ฉันรู้สึกร้อนมากเลย..", // 52
+        "จะไปอาบนํ้าไหมละ ดูเหมือนว่าจะมีลําธารใกล้ๆนะ", // 53
+        "จริงหรอ งั้นฉันขอไปอาบนํ้าก่อน", // 54
+        "คนลามก!!...", // 55 choice1
+        "โอเค เดี๋ยวมานะ", // 56 choice2
+        "รู้เเล้วน่า!!",// 57 choice3
+        "อริสกําลังอาบนํ้า", // 58
+        "เเต่จู่ๆ ก็มีเสียง เเปลกๆที่พุ่มไม้", // 59
+        "อริสเห็นเงาคนอยู่หลังพุ่มไม้..", // 60
     };
 
     public part5() {
@@ -254,38 +258,64 @@ public class part5 extends JFrame {
     }
 
     private void handleNext() {
-        if (isChoosing) return;
-        if (isTyping) {
-            if (typewriterTimer != null) typewriterTimer.stop();
-            isTyping = false;
-            dialogueArea.setText("<html><body style='width: 950px;'>" + dialogues[currentIndex] + "</body></html>");
-            return;
-        }
+            if (isChoosing) return;
+            
+            // ป้องกัน Error กรณีดัชนีเกิน
+            if (currentIndex >= dialogues.length) {
+                finishGame();
+                return;
+            }
 
-        if (currentIndex == 9) { 
-            showChoices("ฉันกินได้หมดเลย ขอเเค่เป็นอาหารที่เธอทํา", "ฉันยังไงก็ได้", 10, 11);
-            return; 
-        }
-        if (currentIndex == 10 ) { currentIndex = 12; updateScene(); return; }
+            if (isTyping) {
+                if (typewriterTimer != null) typewriterTimer.stop();
+                isTyping = false;
+                dialogueArea.setText("<html><body style='width: 950px;'>" + dialogues[currentIndex] + "</body></html>");
+                return;
+            }
 
-        if (currentIndex == 31) { 
-            showChoices("ฉันจะไม่ยกอริสให้เเกเด็ดขาด", "ไม่มีวัน เพราะอริสเป็นของฉันคนเดียวเท่านั้น", 32, 33);
-            return; 
-        }
-        if (currentIndex == 32 ) { currentIndex = 34; updateScene(); return; }
+            // --- Choice 1:  ---
+            if (currentIndex == 9) { 
 
-        if (currentIndex == 52) { 
-            showChoices("ให้ฉันไปอาบด้วยมั้ยหละ?", "เดี๋ยวฉันจะรอจรงนี้นะ มีอะไรก็เรียกได้เลย", 53, 54);
-            return; 
-        }
-        if (currentIndex == 53 ) { currentIndex = 55; updateScene(); return; }
+                showChoices("ฉันกินได้หมดเลย ขอเเค่เป็นอาหารที่เธอทํา", "ฉันยังไงก็ได้", "อะไรก็ได้ไปเอามาเถอะ", 10, 11, 12);
+                return; 
+            }
+            if (currentIndex == 10 || currentIndex == 11 || currentIndex == 12) { 
+                currentIndex = 13; 
+                updateScene(); 
+                return; 
+            }
 
-        if (currentIndex < dialogues.length - 1) {
-            currentIndex++;
-            updateScene();
-        } else {
-            finishGame();
-        }
+            // --- Choice 2:---
+            if (currentIndex == 32) { 
+                // มี 2 ตัวเลือก
+                showChoices("ฉันจะไม่ยกอริสให้เเกเด็ดขาด", "ไม่มีวัน เพราะอริสเป็นของฉันคนเดียวเท่านั้น", "เธอคนนี้มีดีตรงไหนกันนะ", 33, 34, 35);
+                return; 
+            }
+            if (currentIndex == 33 || currentIndex == 34 || currentIndex == 35) { 
+                currentIndex = 36; 
+                updateScene(); 
+                return; 
+            }
+
+            // --- Choice 3: ---
+            if (currentIndex == 54) { 
+
+                showChoices("ให้ฉันไปอาบด้วยมั้ยหละ?", "เดี๋ยวฉันจะรอจรงนี้นะ มีอะไรก็เรียกได้เลย", "เร็วๆหน่อยละกัน ฉันไม่อยากรอนาน", 55, 56, 57); 
+                return; 
+            }
+            if (currentIndex == 55 || currentIndex == 56 || currentIndex == 57) { 
+                currentIndex = 58; 
+                updateScene(); 
+                return; 
+            }
+
+            // --- การดำเนินเนื้อเรื่องปกติ ---
+            if (currentIndex < dialogues.length - 1) {
+                currentIndex++;
+                updateScene();
+            } else {
+                finishGame(); // จบที่ Index 60
+            }
     }
 
     private void handleSoundEffects(int index) {
@@ -312,6 +342,7 @@ public class part5 extends JFrame {
     private void updateScene() {
         if (currentIndex >= names.length) nameLabel.setText(names[names.length-1]);
         else nameLabel.setText(names[currentIndex]);
+
 
         if (currentIndex < imagePaths.length) {
             String currentBg = imagePaths[currentIndex];
@@ -355,14 +386,14 @@ public class part5 extends JFrame {
         String path = paths[currentIndex];
         if (path.contains("demogigi")) {
             label.setIcon(getOptimizedImage(path, 900, 800));
-            if (currentIndex >= 39) label.setBounds(220, 70, 900, 800); 
+            if (currentIndex >= 41) label.setBounds(220, 70, 900, 800); 
             else if (currentIndex >= 25) label.setBounds(-100, 50, 900, 800); 
             else label.setBounds(100, 50, 900, 800); 
         }
         else if (path.contains("Alice")) {
             label.setIcon(getOptimizedImage(path, 1200, 800));
             if (currentIndex >= 46) label.setBounds(50, 100, 950, 800); 
-            else if (currentIndex >= 39) label.setIcon(null); 
+            else if (currentIndex >= 41) label.setIcon(null); 
             else if (currentIndex >= 25) label.setBounds(360, 80, 950, 800); 
             else label.setBounds(80, 100, 1200, 800); 
         }
@@ -500,14 +531,20 @@ public class part5 extends JFrame {
         arrowTimer.start();
     }
 
-    private void showChoices(String text1, String text2, int t1, int t2) {
+    private void showChoices(String text1, String text2, String text3, int t1, int t2, int t3) {
         isChoosing = true; 
-        choiceButton1 = createChoiceButton(text1, 380, t1); 
-        choiceButton2 = createChoiceButton(text2, 450, t2); 
-        
+
+        if (choiceButton1 != null) layeredPane.remove(choiceButton1);
+        if (choiceButton2 != null) layeredPane.remove(choiceButton2);
+        if (choiceButton3 != null) layeredPane.remove(choiceButton3);
+
+        choiceButton1 = createChoiceButton(text1, 250, t1); 
+        choiceButton2 = createChoiceButton(text2, 320, t2); 
+        choiceButton3 = createChoiceButton(text3, 390, t3); 
         // ใช้ POPUP_LAYER เพื่อให้ปุ่มอยู่บนสุดเสมอ
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton3, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
     }
 
@@ -600,6 +637,7 @@ public class part5 extends JFrame {
             playEffect("res/sound/click.wav", 0.0f);
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton3);
             isChoosing = false; 
 
             // ตรวจสอบคำตอบ: กินอะไรก็ได้ (10), ไม่ยกให้ใคร (32), สัญญาว่าจะรอ (54)
@@ -623,6 +661,7 @@ public class part5 extends JFrame {
 
             currentIndex = target; 
             updateScene(); 
+            layeredPane.repaint();
         });
 
         return btn;
