@@ -1,6 +1,7 @@
 package flirting_game; // ต้องมีบรรทัดนี้ตามโครงสร้างโฟลเดอร์ของคุณ
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.sound.sampled.*;
 import javax.swing.*; // สำหรับระบบเสียง
@@ -33,24 +34,68 @@ public class menu {
         logoLabel.setBounds(170, 20, logoW, logoH);
         lp.add(logoLabel, JLayeredPane.PALETTE_LAYER);
 
-        // --- 3. Buttons ---
-        int btnW = 300;
-        int btnH = 150;
-        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 0, 5));
-        buttonPanel.setOpaque(false);
-        buttonPanel.setBounds(360, 180, btnW, 380);
+        
+        // --- 3. Buttons (สร้างปุ่มไว้ด้านบนสุดเสมอ!) ---
+     // --- 3. Buttons Setup ---
+        int btnW = 250;
+        int btnH = 155;
+        
+        // กำหนดขนาดพื้นที่ปุ่มให้ใหญ่พอสำหรับอนิเมชันขยายตัวตอนชี้เมาส์
+        int buttonBoundsW = btnW + 10;
+        int buttonBoundsH = btnH + 10;
 
-        JButton startBtn = createImageButton("res/buttons/buttonStart.png", btnW, btnH);
-        JButton onlineBtn = createImageButton("res/buttons/buttonOnline.png", btnW, btnH);
+        JButton startBtn   = createImageButton("res/buttons/buttonStart.png", btnW, btnH);
+        JButton onlineBtn  = createImageButton("res/buttons/buttonOnline.png", btnW, btnH);
         JButton galleryBtn = createImageButton("res/buttons/buttonGallery.png", btnW, btnH);
+        JButton exitBtn    = createImageButton("res/buttons/buttonExit.png", btnW, btnH);
+
+        // --- 4. สร้าง Panel (null layout) ---
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(null);
+        buttonPanel.setOpaque(false);
+
+        // ปรับขนาด Panel ให้กว้างพอสำหรับปุ่ม
+        buttonPanel.setBounds(232, 180, 560, 350); 
+
+        // ระยะห่างที่กิมต้องการ (ปรับตามค่าเดิมที่กิมตั้งไว้)
+        int gapX = -10; 
+        int gapY = -80;
         JButton settingBtn = createImageButton("res/buttons/buttonSetting.png", btnW, btnH);
-        JButton exitBtn = createImageButton("res/buttons/buttonExit.png", btnW, btnH);
+
+        // แถวที่ 1
+        startBtn.setBounds(70, 0, buttonBoundsW, buttonBoundsH);
+        onlineBtn.setBounds(btnW + gapX, 0, buttonBoundsW, buttonBoundsH);
+
+        // แถวที่ 2
+        galleryBtn.setBounds(70, btnH + gapY, buttonBoundsW, buttonBoundsH);
+        settingBtn.setBounds(btnW + gapX, btnH + gapY, buttonBoundsW, buttonBoundsH);
+
+        // แถวที่ 3 (Exit)
+        int centerX = (560 - buttonBoundsW) / 2;
+        exitBtn.setBounds(centerX, (btnH + gapY) * 2, buttonBoundsW, buttonBoundsH);
+
+        // *** สำคัญ: แอดปุ่มจาก "ล่างขึ้นบน" เพื่อไม่ให้ Hitbox ปุ่มบนไปบังปุ่มล่าง ***
+        buttonPanel.add(exitBtn);
+        buttonPanel.add(settingBtn);
+        buttonPanel.add(galleryBtn);
+        buttonPanel.add(onlineBtn);
+        buttonPanel.add(startBtn);
+
+        lp.add(buttonPanel, JLayeredPane.MODAL_LAYER);
+        
+
+        // --- ฟังก์ชันปุ่ม Gallery ---
+        galleryBtn.addActionListener(e -> {
+            SoundManager.stopBGM(); // หยุดเพลงเมนู
+            new GalleryPage().setVisible(true); // เปิดหน้า Gallery
+            frame.dispose(); // ปิดหน้าเมนู
+        });
 
         // --- ฟังก์ชันปุ่ม Setting (ระบบปรับเสียง) ---
         settingBtn.addActionListener(e -> {
             showSettings(frame);
         });
-        
+
         // --- ฟังก์ชันปุ่ม Online ---
         onlineBtn.addActionListener(e -> {
             UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 18));
@@ -60,12 +105,12 @@ public class menu {
                 //สั่งหยุดเพลงก่อนไปหน้าถัดไป
                 SoundManager.stopBGM();
                 // เก็บค่าลง relationdata 
-                relationdata.isOnlineMode = true;
-                relationdata.playerName = name.trim();
+                // relationdata.isOnlineMode = true;
+                // relationdata.playerName = name.trim();
                 new part1().setVisible(true); 
                 frame.dispose();
             } else if (name != null) {
-                JOptionPane.showMessageDialog(frame, "กรุณาใส่ชื่อก่อนเข้าเล่นครับ");
+                JOptionPane.showMessageDialog(frame, "กรุณาใส่ชื่อก่อนเข้าเล่น");
             }
         });
 
@@ -88,11 +133,6 @@ public class menu {
             }
         });
 
-        buttonPanel.add(startBtn);
-        buttonPanel.add(onlineBtn);
-        buttonPanel.add(galleryBtn);
-        buttonPanel.add(settingBtn);
-        buttonPanel.add(exitBtn);
         
         lp.add(buttonPanel, JLayeredPane.MODAL_LAYER);
 
@@ -154,13 +194,43 @@ public class menu {
 
     private static JButton createImageButton(String path, int w, int h) {
         ImageIcon normalIcon = getScaledIcon(path, w, h);
-        ImageIcon hoverIcon = getScaledIcon(path, w + 10, h + 10); 
+        ImageIcon hoverIcon = getScaledIcon(path, w + 10, h + 10); // เผื่อที่ให้ขยายเยอะขึ้นนิดนึง
 
-        JButton button = new JButton(normalIcon);
+        // สร้าง BufferedImage เพื่อเช็ค Pixel (Hitbox แบบละเอียด)
+        BufferedImage pixelMap = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = pixelMap.createGraphics();
+        normalIcon.paintIcon(null, g2d, 0, 0);
+        g2d.dispose();
+
+        JButton button = new JButton(normalIcon) {
+            // Override contains เพื่อเช็ค Pixel Transparency (ความโปร่งใส)
+            @Override
+            public boolean contains(int x, int y) {
+                int iconX = (getWidth() - w) / 2;
+                int iconY = (getHeight() - h) / 2;
+
+                // 1. เช็คกรอบสี่เหลี่ยมก่อน (เพื่อความเร็ว)
+                if (x < iconX || x >= iconX + w || y < iconY || y >= iconY + h) {
+                    return false;
+                }
+
+                // 2. เช็คค่าสีของ Pixel จริงๆ (ถ้าโปร่งใส = ไม่โดน)
+                int imgX = x - iconX;
+                int imgY = y - iconY;
+                int pixel = pixelMap.getRGB(imgX, imgY);
+                
+                // เช็คค่า Alpha (ความทึบ) ว่ามากกว่า 10 หรือไม่ (ตัดส่วนเงาจางๆ หรือส่วนใสออก)
+                return ((pixel >> 24) & 0xff) > 10;
+            }
+        };
         button.setBorder(BorderFactory.createEmptyBorder());
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // --- เพิ่ม 2 บรรทัดนี้เพื่อให้รูปอยู่กลาง Hitbox เสมอ ---
+        button.setHorizontalAlignment(SwingConstants.CENTER);
+        button.setVerticalAlignment(SwingConstants.CENTER);
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
