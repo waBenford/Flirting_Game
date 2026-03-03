@@ -25,7 +25,7 @@ public class part3 extends JFrame {
     private boolean isTyping = false;
     private Clip bgmClip;      
     private Clip effectClip;   
-    private JButton choiceButton1, choiceButton2;
+    private JButton choiceButton1, choiceButton2, choiceButton3, choiceButton4;
     private boolean isChoosing = false;
     private float alpha = 1.0f; 
     private JPanel fadeOverlay;
@@ -53,12 +53,12 @@ public class part3 extends JFrame {
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
         "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
-        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s2.png", "res/scene3/s2.png", 
-        "res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s3.png", "res/scene3/s3.png", 
-        "res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
-        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
-        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg",
-        "res/scene3/s1.jpg"
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s2.png", 
+        "res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s2.png", "res/scene3/s3.png", 
+        "res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s3.png", "res/scene3/s1.jpg", 
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", 
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", "res/scene3/s1.jpg", 
+        "res/scene3/s1.jpg", "res/scene3/s1.jpg"
     };
 
     private String[] charPaths = {
@@ -67,7 +67,7 @@ public class part3 extends JFrame {
         "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png",
         "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png",
         "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png", 
-        "res/Charactor/Alice-sad2_1.png","res/Charactor/Alice-sad1_1.png","res/empty.png", "res/empty.png","res/empty.png", "res/empty.png", 
+        "res/Charactor/Alice-sad2_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad1_1.png","res/empty.png", "res/empty.png","res/empty.png", "res/empty.png", 
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice-cry1_1.png","res/Charactor/Alice-cry2_1.png", 
         "res/Charactor/Alice-cry1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad2_1.png", 
         "res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png",
@@ -75,9 +75,9 @@ public class part3 extends JFrame {
     };
 
     private String[] names = {
-        "อริส", "ฉัน", "ฉัน", "อริส", "ฉัน", "อริส", "อริส", "อริส",
-        "อริส", "อริส", "อริส", "ฉัน", "อริส", "อริส", "อริส", "อริส",
-        "ฉัน", "ฉัน", "ฉัน", "อริส", "อริส", "ฉัน", "อริส", "อริส", "อริส", "อริส", "อริส", 
+        "อริส", "ฉัน", "ฉัน", "อริส", "ฉัน", "อริส", "อริส", "อริส", //0-7
+        "อริส", "อริส", "อริส", "ฉัน", "อริส", "อริส", "อริส", "อริส",//8-15
+        "อริส", "อริส", "ฉัน","ฉัน", "อริส", "อริส", "ฉัน", "อริส", "อริส", "อริส", "อริส", "อริส", 
         "อริส", "อริส","อริส"," ","ฉัน","อริส","อริส","อริส","อริส","อริส","อริส","อริส",
         "อริส", "ฉัน", "ฉัน", "ฉัน", "ฉัน", "ฉัน", "อริส", "อริส", "ฉัน"
     };
@@ -88,9 +88,11 @@ public class part3 extends JFrame {
         "เเต่ก็ช่างมันเถอะ เดี๋ยวฉันจะเล่าทุกอย่างให้ฟังละกัน??", "ในโลกนี้หนะ เป็นโลกที่ผู้คนก็ต่างใช้พลังเวทย์กันได้",
         "เเต่ก็มีบางคนที่ไม่สามารถใช้มันได้", "เเต่ถึงอย่างงั้นก็มีคนที่สามารถไต่เต้าไปจนถึงระดับสูง",
         "เเม้จะไม่มีพลังเวทย์ก็ตาม", "..เอ่อ..เเล้วปีศาจหละ??", "อ้อ..จริงด้วยเกือบลืมไปเลย",
-        "โลกนี้จะมีสองเผ่าอยู่หลักๆ", "เผ่ามนุษย์เเละเผ่าปีศาจ", 
-        "ไม่เหมือนกันสักหน่อย ปีศาจหน่ะเป็นเผ่าที่ชั่วร้าย", 
-        "อันนี้ฉันก็ไม่รู้เหมือนกัน", "เเล้วเธออยู่บ้านคนเดียวหรอ??",
+        "โลกนี้จะมีสองเผ่าอยู่หลักๆ", "เผ่ามนุษย์เเละเผ่าปีศาจ", //14
+        "ไม่เหมือนกันสักหน่อย ปีศาจหน่ะเป็นเผ่าที่ชั่วร้าย",//choice1 //15
+        "อันนี้ฉันก็ไม่รู้เหมือนกัน",//choice2 //16
+        "ฉันสิต้องตกใจ ไปอยู่ไหนมาทําไมไม่รู้",//choice3 //17
+        "เเล้วเธออยู่บ้านคนเดียวหรอ??", //18
         "..พ่อกับเเม่เธอหละ??", "ฉันอยู่คนเดียวมาตั้งเเต่เด็กๆเเล้วหละ",
         "พ่อกับเเม่ของฉันท่านเสียไปนานเเล้ว", "เอ่อ..เธอพอจะเล่าให้ฉันฟังได้มั้ย",
         "..มันเป็นเรื่องเมื่อ6ปีที่เเล้ว", "หมู่บ้านของฉัน พวกเราอยู่กันอย่างมีความสุข",
@@ -98,14 +100,18 @@ public class part3 extends JFrame {
         "มีปีศาจที่เเข็งเเกร่งตัวนึง ได้มาทําลายหมู่บ้านของพวกเรา",
         "มันพรากชีวิตของผู้คนไปมากมาย หนึ่งในนั้นก็มีพ่อเเม่ของฉันด้วย",
         "พ่อเเม่ของฉันปกป้องฉันจนวินาทีสุดท้าย..", "จากเหตุการณ์ครั้งนั้น ฉันเลยรอดมาได้..",
-        "อริสกําลังเศร้า..", "ขอโทษนะที่ถามอะไรเเบบนั้น", "ไม่เป็นไรหหรอก", 
-        "ขอบคุณนะ..", "...", "ฉันเลยคิดว่าสักวันนึง ฉันจะต้องออกเดินทาง",
-        "ฝึกฝนตัวเองให้เเข็งเเกร่งมากขึ้น", "เพื่อที่ฉันจะได้เเก้เเค้นให้พ่อกับเเม่",
+        "อริสกําลังเศร้า..", "ขอโทษนะที่ถามอะไรเเบบนั้น", "ไม่เป็นไรหหรอก", //33
+        "ขอบคุณนะ..", //choice1 //34
+        "...", //choice2 //35
+        "อื้อ",//choice3 //36
+        "....",//choice4 //37
+        "ฉันเลยคิดว่าสักวันนึง ฉันจะต้องออกเดินทาง",
+        "ฝึกฝนตัวเองให้เเข็งเเกร่งมากขึ้น", "เพื่อที่ฉันจะได้เเก้เเค้นให้พ่อกับเเม่",//40
         "นี่...", "เธออยากจะร่วมเดินทางกับฉันมั้ย?",
-        "เธอเป็นคนที่จิตใจดี เเละอ่อนโยนมาก", "เพราะอย่างงั้นฉันเลยอยากที่จะปกป้องเธอ",
+        "เธอเป็นคนที่จิตใจดี เเละอ่อนโยนมาก", "เพราะอย่างงั้นฉันเลยอยากที่จะปกป้องเธอ", //41-44
         "ไม่มีเหตุผลเลยที่ฉันปฏิเสธเธอ", "เเน่นอน!! ฉันจะออกเดินทางกับเธอ",
         "ฉันจะต้องเเข็งเเกร่งขึ้นให้ได้เหมือนกัน", "ขอบคุณนะ …",
-        "เออ..ว่าเเต่เธอชื่ออะไรกันเเน่", "ฉันชื่อ..."
+        "เออ..ว่าเเต่เธอชื่ออะไรกันเเน่", "ฉันชื่อ..." //45-50
     };
 
     public part3() {
@@ -190,11 +196,21 @@ public class part3 extends JFrame {
 
         // 3. ระบบเลือกตอบ (Choice) ตามเนื้อเรื่องของ Part 3
         if (currentIndex == 14) {
-            showChoices("..ปีศาจนี่เหมือนผีรึเปล่า??", "..เอ่อ..แล้วเผ่าอื่นๆหละ??", 15, 16);
+            showChoices("..ปีศาจนี่เหมือนผีรึปล่าว??", "..เอ่อ..เเล้วเผ่าอื่นๆหละ??","..มีปีศาจด้วยหรอเนี่ย!!","", 15, 16, 17,0);
             return;
         }
-        if (currentIndex == 32) {
-            showChoices("เข้าไปปลอบอริส", "นั่งอยู่เฉยๆ", 33, 34);
+        if (currentIndex == 15 || currentIndex == 16 || currentIndex == 17) {
+            currentIndex = 18;
+            updateScene();
+            return;
+        }
+        if (currentIndex == 33) {
+            showChoices("เข้าไปปลอบอริส", "นั่งอยู่เฉยๆ","เธอต้องเข้มเเข็งให้มากกว่านี้นะ","ร้องไห้ไปก็ไม่ช่วยอะไรหรอก", 34, 35, 36,37);
+            return;
+        }
+        if (currentIndex == 34 || currentIndex == 35 || currentIndex == 36 || currentIndex == 37) {
+            currentIndex = 38;
+            updateScene();
             return;
         }
 
@@ -541,7 +557,7 @@ public class part3 extends JFrame {
         else if (index == 16) playEffect("res/sound/wakarunai.wav", 5.0f);
         if (index == 20) { stopBGM(); playSE("res/sound/soundtrack4.wav", true, -5.0f); }
         if (index == 22) { stopEffect(); playSE("res/sound/village.wav", true, -5.0f); }
-        if (index == 26) { stopEffect(); screenShake(10, 1000); playSE("res/sound/monster.wav", false, -10.0f); playSE("res/sound/housefire.wav", false, -10.0f); }
+        if (index == 27) { stopEffect(); screenShake(10, 1000); playSE("res/sound/monster.wav", false, -10.0f); playSE("res/sound/housefire.wav", false, -10.0f); }
         if (index == 30) { stopEffect(); playSE("res/sound/fireplace.wav", true, 0.0f); playEffect("res/sound/cry.wav", 5.0f); }
         if (index == 33) playEffect("res/sound/Arigato.wav", 5.0f);
     }
@@ -578,12 +594,21 @@ public class part3 extends JFrame {
         });
     }
 
-    private void showChoices(String text1, String text2, int t1, int t2) {
+    private void showChoices(String text1, String text2, String text3, String text4, int t1, int t2, int t3, int t4) {
         isChoosing = true;
-        choiceButton1 = createChoiceButton(text1, 380, t1); //y: ขึ้น=ลง
-        choiceButton2 = createChoiceButton(text2, 450, t2); //y: ขึ้น=ลง
+        choiceButton1 = createChoiceButton(text1, 250, t1); //y: ขึ้น=ลง
+        choiceButton2 = createChoiceButton(text2, 320, t2);
+        choiceButton3 = createChoiceButton(text3, 390, t3);
+
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton3, JLayeredPane.POPUP_LAYER);
+
+        // สร้างปุ่มที่ 4 เฉพาะเมื่อมีข้อความเท่านั้น (ฉากที่ 14 จะไม่สร้างปุ่มนี้)
+        if (!text4.isEmpty()) {
+        choiceButton4 = createChoiceButton(text4, 460, t4);
+        layeredPane.add(choiceButton4, JLayeredPane.POPUP_LAYER);
+    }
         layeredPane.repaint();
     }
 
@@ -703,9 +728,13 @@ public class part3 extends JFrame {
         // --- Logic การทำงานและระบบ Affinity ---
         btn.addActionListener(e -> {
             playEffect("res/sound/click.wav", 0.0f);
-            layeredPane.remove(choiceButton1); 
-            layeredPane.remove(choiceButton2);
+            if (choiceButton1 != null) layeredPane.remove(choiceButton1);
+            if (choiceButton2 != null) layeredPane.remove(choiceButton2);
+            if (choiceButton3 != null) layeredPane.remove(choiceButton3);
+            if (choiceButton4 != null) layeredPane.remove(choiceButton4);
             isChoosing = false;
+            currentIndex = target; 
+            updateScene();
 
             // ตรวจสอบเงื่อนไขคะแนนความสนิท (อ้างอิงจาก target ของ Part 3)
             if (target == 33) {
@@ -724,8 +753,8 @@ public class part3 extends JFrame {
             affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity());
             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
 
-            currentIndex = target; 
-            updateScene();
+            layeredPane.revalidate();
+            layeredPane.repaint();
         });
 
         return btn;
