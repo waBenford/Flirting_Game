@@ -323,30 +323,96 @@ public class part6 extends JFrame {
 
     private void showChoices(String text1, String text2, int t1, int t2) {
         isChoosing = true;
-        choiceButton1 = createChoiceButton(text1, 380, t1); 
-        choiceButton2 = createChoiceButton(text2, 450, t2); 
+        // ปรับพิกัด Y ให้อยู่เหนือกล่องข้อความ (กล่องข้อความอยู่ที่ Y=520)
+        // ปุ่มแรกอยู่ที่ 350, ปุ่มสองอยู่ที่ 425
+        choiceButton1 = createChoiceButton(text1, 350, t1); 
+        choiceButton2 = createChoiceButton(text2, 425, t2); 
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
     }
 
     private JButton createChoiceButton(String text, int y, int target) {
-        JButton btn = new JButton(text);
-        btn.setBounds(800, y, 350, 60); 
-        btn.setFont(new Font("Tahoma", Font.BOLD, 16));
+        JButton btn = new JButton(text) {
+            private double scale = 1.0;
+            private int alphaMod = 170; // ความโปร่งแสงเริ่มต้น
+            private Timer animTimer;
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                int w = getWidth();
+                int h = getHeight();
+                
+                // Animation Scale
+                g2.translate(w / 2, h / 2);
+                g2.scale(scale, scale);
+                g2.translate(-w / 2, -h / 2);
+                
+                // พื้นหลังไล่เฉดสีขาว-เทาอ่อน สไตล์ Glassmorphism
+                GradientPaint gp = new GradientPaint(0, 0, new Color(255, 255, 255, alphaMod), 
+                                                    0, h, new Color(230, 230, 230, alphaMod));
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, w, h, 20, 20);
+                
+                // เส้นขอบสีชมพูเข้ม (Theme อริส)
+                g2.setColor(new Color(255, 102, 153));
+                g2.setStroke(new BasicStroke(2.0f));
+                g2.drawRoundRect(1, 1, w - 2, h - 2, 18, 18);
+                
+                g2.dispose();
+                super.paintComponent(g);
+            }
+
+            {
+                addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseEntered(MouseEvent e) { startAnim(1.03, 230); }
+                    @Override
+                    public void mouseExited(MouseEvent e) { startAnim(1.0, 170); }
+                });
+            }
+
+            private void startAnim(double ts, int ta) {
+                if (animTimer != null) animTimer.stop();
+                animTimer = new Timer(15, e -> {
+                    scale += (ts - scale) * 0.2;
+                    if (alphaMod < ta) alphaMod += 10; else if (alphaMod > ta) alphaMod -= 10;
+                    if (Math.abs(scale - ts) < 0.001 && alphaMod == ta) ((Timer)e.getSource()).stop();
+                    repaint();
+                });
+                animTimer.start();
+            }
+        };
+
+        // ตำแหน่ง X=800 คือด้านขวาบนของกล่องข้อความ
+        btn.setBounds(800, y, 380, 60); 
+        btn.setFont(new Font("Tahoma", Font.BOLD, 17));
+        btn.setForeground(new Color(50, 50, 50));
+        btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         btn.addActionListener(e -> {
             playEffect("res/sound/click.wav", 0.0f);
-            layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton1); 
+            layeredPane.remove(choiceButton2);
             isChoosing = false; 
-            if (target == 8 || target == 13 || target == 36) relationdata.aliceRel.addAffinity(10); 
-            else relationdata.aliceRel.decreaseAffinity(5);
             
-            if (relationdata.isOnlineMode && networkOut != null) {
-                new Thread(() -> networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity())).start();
+            // อัปเดตค่าความสัมพันธ์
+            if (target == 8 || target == 13 || target == 36) {
+                relationdata.aliceRel.addAffinity(10); 
+            } else {
+                relationdata.aliceRel.decreaseAffinity(5);
             }
+            
             if (affinityLabel != null) affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
             jumpToIndex(target);
         });
+        
         return btn;
     }
 
