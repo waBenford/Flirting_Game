@@ -23,6 +23,7 @@ public class part7 extends JFrame {
     private Clip effectClip;
     private JButton choiceButton1, choiceButton2;
     private boolean isChoosing = false;
+    private boolean isFinishing = false;
     private Timer typewriterTimer;
     private int charIndex = 0;
     private boolean isTyping = false;
@@ -245,7 +246,7 @@ public class part7 extends JFrame {
     }
 
     private void handleNext() {
-            if (isChoosing) return;
+            if (isChoosing || isFinishing) return;
             if (isTyping) {
                 stopTypewriter();
                 dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
@@ -768,9 +769,46 @@ public class part7 extends JFrame {
     }
 
     private void finishGame() {
-        UIManager.put("OptionPane.messageFont", THAI_FONT);
-        JOptionPane.showMessageDialog(null, "End Part 6!");
-        System.exit(0);
+        if (isFinishing) return; // ป้องกันการเรียกซ้ำถ้าฟังก์ชันกำลังทำงานอยู่
+        isFinishing = true;      // ล็อคสถานะทันที
+
+        // ตรวจสอบว่ามี fadeOverlay หรือไม่
+        if (fadeOverlay == null) {
+            fadeOverlay = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setColor(new Color(0, 0, 0, (int)(alpha * 255)));
+                    g2d.fillRect(0, 0, getWidth(), getHeight());
+                }
+            };
+            fadeOverlay.setBounds(0, 0, 1280, 800);
+            fadeOverlay.setOpaque(false);
+        }
+        
+        if (fadeOverlay.getParent() == null) {
+            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        }
+
+        // เริ่มการ Fade Out (ค่อยๆ ดำ)
+        alpha = 0.0f;
+        Timer fadeOutTimer = new Timer(30, e -> {
+            alpha += 0.03f;
+            if (alpha >= 1.0f) {
+                alpha = 1.0f;
+                ((Timer)e.getSource()).stop();
+                
+                stopAllSounds(); // หยุดเสียงทั้งหมดของ Part 7
+                
+                // สลับหน้าจอไป Part 8
+                SwingUtilities.invokeLater(() -> {
+                    new part8().setVisible(true); // เปิดพาร์ทถัดไป
+                    dispose(); // ปิดหน้าจอ Part 7
+                });
+            }
+            fadeOverlay.repaint();
+        });
+        fadeOutTimer.start();
     }
 
     private ImageIcon getOptimizedImage(String path, int w, int h) {

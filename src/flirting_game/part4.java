@@ -22,6 +22,7 @@ public class part4 extends JFrame {
     private Clip effectClip;   
     private JButton choiceButton1, choiceButton2, choiceButton3, choiceButton4;
     private boolean isChoosing = false;
+    private boolean isFinishing = false;
     private Timer typewriterTimer;
     private int charIndex = 0;
     private boolean isTyping = false;
@@ -62,7 +63,7 @@ public class part4 extends JFrame {
         "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", 
         "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", "res/scene4/s7.png", 
         "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", 
-        "res/scene4/s3.png", "res/scene4/s3.png"
+        "res/scene4/s3.png", "res/scene4/s3.png","res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png"
     };
     
     private String[] charPaths = {
@@ -83,7 +84,7 @@ public class part4 extends JFrame {
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/factor/demon2.PNG", 
         "res/Charactor/factor/demon2.png", "res/Charactor/factor/demon2.png", "res/Charactor/factor/demon2.png", 
         "res/Charactor/factor/demon2.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png"
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png", "res/empty.png", "res/empty.png"
     };
 
     private String[] charPaths2 = {
@@ -225,7 +226,7 @@ public class part4 extends JFrame {
     }
 
         private void handleNext() {
-            if (isChoosing || isFading || isAnimatingEntry) return;
+            if (isChoosing || isFading || isAnimatingEntry || isFinishing) return; // เพิ่ม isFinishing
 
             if (isTyping) { 
                 if(typewriterTimer != null) typewriterTimer.stop(); 
@@ -754,6 +755,8 @@ public class part4 extends JFrame {
         return btn;
     }
     private void finishPart() {
+        if (isFinishing) return; // ล็อคป้องกันการเรียกซ้ำ
+        isFinishing = true;
         isFading = true; // ล็อคการคลิกซ้ำ
         stopBGM();
         stopEffect();
