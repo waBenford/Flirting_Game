@@ -105,8 +105,8 @@ public class menu {
                 //สั่งหยุดเพลงก่อนไปหน้าถัดไป
                 SoundManager.stopBGM();
                 // เก็บค่าลง relationdata 
-                // relationdata.isOnlineMode = true;
-                // relationdata.playerName = name.trim();
+                relationdata.isOnlineMode = true;
+                relationdata.playerName = name.trim();
                 new part1().setVisible(true); 
                 frame.dispose();
             } else if (name != null) {

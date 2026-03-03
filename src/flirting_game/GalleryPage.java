@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.*;
 
 public class GalleryPage extends JFrame {
+    private JLayeredPane layeredPane;
 
     public GalleryPage() {
         setTitle("Gallery");
@@ -13,13 +14,55 @@ public class GalleryPage extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
 
-        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
-        // --- เล่นเพลงสำหรับหน้า Gallery (ถ้ามี) ---
-        // SoundManager.playBGM("res/sound/gallery_music.wav");
+        // 1. ตรวจสอบสถานะออนไลน์และดึงข้อมูลจาก SQL ก่อนแสดงผล
+        if (relationdata.isOnlineMode) {
+            syncGalleryFromSQL(); 
+        } else {
+            refreshGalleryUI(); // ถ้าออฟไลน์ให้แสดงตามค่าที่มีในเครื่อง
+        }
+    }
 
-        // 1. Background (สมมติว่ามีไฟล์นี้อยู่)
+    // --- ระบบดึงข้อมูลฉากจบจาก SQL (Sync) ---
+    private void syncGalleryFromSQL() {
+        new Thread(() -> {
+            try (java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
+                 java.io.PrintWriter out = new java.io.PrintWriter(socket.getOutputStream(), true);
+                 java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()))) {
+                
+                // ส่งชื่อและระบุพาร์ทเพื่อขอโหลดข้อมูลสถานะฉากจบ
+                out.println("SET_NAME:" + relationdata.playerName);
+                out.println("SET_PART:9"); 
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("LOAD_ENDINGS:")) {
+                        String[] eds = line.substring(13).split(",");
+                        // อัปเดตตัวแปรในเครื่องตามข้อมูลจริงใน SQL
+                        relationdata.isEnding1Unlocked = eds[0].equals("1");
+                        relationdata.isEnding2Unlocked = eds[1].equals("1");
+                        relationdata.isEnding3Unlocked = eds[2].equals("1");
+                        
+                        // เมื่อโหลดข้อมูลเสร็จ ให้วาด UI ใหม่ทันที
+                        SwingUtilities.invokeLater(() -> refreshGalleryUI());
+                        break; 
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                // หากเชื่อมต่อไม่ได้ ให้แสดงผลตามค่าที่มีอยู่
+                SwingUtilities.invokeLater(() -> refreshGalleryUI());
+            }
+        }).start();
+    }
+
+    // --- ฟังก์ชันสำหรับวาด UI ทั้งหมดให้เหมือนเดิม ---
+    private void refreshGalleryUI() {
+        layeredPane.removeAll();
+
+        // 1. Background
         ImageIcon bgIcon = new ImageIcon("res/menu/bg.png");
         JLabel background = new JLabel(new ImageIcon(bgIcon.getImage().getScaledInstance(1024, 600, Image.SCALE_SMOOTH)));
         background.setBounds(0, 0, 1024, 600);
@@ -30,54 +73,53 @@ public class GalleryPage extends JFrame {
         titleLabel.setFont(new Font("Tahoma", Font.BOLD, 40));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBounds(0, 30, 1024, 50);
-        layeredPane.add(titleLabel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(titleLabel, JLayeredPane.MODAL_LAYER);
 
-        // 3. Ending Placeholders
-        JPanel endingsPanel = new JPanel(new GridLayout(1, 3, 40, 0)); // 1 แถว, 3 คอลัมน์, ระยะห่างแนวนอน 40px
-        endingsPanel.setBounds(62, 120, 900, 350);
-        endingsPanel.setOpaque(false);
+        // 3. ฉากจบทั้ง 3 ช่อง (ดึงค่าจาก relationdata ที่อัปเดตแล้ว)
+        layeredPane.add(createEndingSlot(1, 100, 150, relationdata.isEnding1Unlocked, "res/gallery/ending1_thumb.png", "res/gallery/ending1.png"), JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(createEndingSlot(2, 400, 150, relationdata.isEnding2Unlocked, "res/gallery/ending2_thumb.png", "res/gallery/ending2.png"), JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(createEndingSlot(3, 700, 150, relationdata.isEnding3Unlocked, "res/gallery/ending3_thumb.png", "res/gallery/ending3.png"), JLayeredPane.PALETTE_LAYER);
 
-        // สร้างปุ่มสำหรับฉากจบแต่ละอัน
-        JButton ending1 = createEndingSlot("res/gallery/ending1.png", "res/gallery/ending1_thumb.png", relationdata.isEnding1Unlocked);
-        JButton ending2 = createEndingSlot("res/gallery/ending2.png", "res/gallery/ending2_thumb.png", relationdata.isEnding2Unlocked);
-        JButton ending3 = createEndingSlot("res/gallery/ending3.png", "res/gallery/ending3_thumb.png", relationdata.isEnding3Unlocked);
-
-        endingsPanel.add(ending1);
-        endingsPanel.add(ending2);
-        endingsPanel.add(ending3);
-
-        layeredPane.add(endingsPanel, JLayeredPane.PALETTE_LAYER);
-
-        // 4. Back Button
-        JButton backButton = new JButton("กลับเมนูหลัก");
-        backButton.setFont(new Font("Tahoma", Font.BOLD, 20));
-        backButton.setBounds(412, 500, 200, 50);
-        backButton.addActionListener(e -> {
-            // กลับไปหน้าเมนู
-            menu.main(new String[0]);
-            dispose();
+        // 4. ปุ่มกลับเมนูหลัก
+        JButton backBtn = new JButton("กลับเมนูหลัก");
+        backBtn.setFont(new Font("Tahoma", Font.BOLD, 16));
+        backBtn.setBounds(412, 500, 200, 40);
+        backBtn.addActionListener(e -> { 
+            new menu().main(null); 
+            dispose(); 
         });
-        layeredPane.add(backButton, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(backBtn, JLayeredPane.MODAL_LAYER);
+
+        layeredPane.revalidate();
+        layeredPane.repaint();
     }
 
-    private JButton createEndingSlot(String fullImage, String thumbImage, boolean isUnlocked) {
-        ImageIcon unlockedIcon = getScaledIcon(thumbImage, 270, 350);
-        ImageIcon lockedIcon = getScaledIcon("res/gallery/locked.png", 270, 350); // รูปสำหรับฉากจบที่ยังไม่ปลดล็อค
-
-        JButton slot = new JButton();
+    private JPanel createEndingSlot(int id, int x, int y, boolean isUnlocked, String thumbPath, String fullPath) {
+        JPanel slot = new JPanel(new BorderLayout());
+        slot.setBounds(x, y, 220, 300);
         slot.setOpaque(false);
-        slot.setContentAreaFilled(false);
-        slot.setBorderPainted(false);
+
+        // ถ้าปลดล็อคแล้วให้โชว์รูป Thumb ถ้าไม่ให้โชว์ locked.png
+        String displayPath = isUnlocked ? thumbPath : "res/gallery/locked.png";
+        ImageIcon icon = getScaledIcon(displayPath, 220, 250);
+        
+        JButton imgBtn = new JButton(icon);
+        imgBtn.setContentAreaFilled(false);
+        imgBtn.setBorderPainted(true);
+        imgBtn.setFocusPainted(false);
+        imgBtn.setEnabled(isUnlocked); // กดดูได้เฉพาะอันที่ปลดแล้ว
 
         if (isUnlocked) {
-            slot.setIcon(unlockedIcon);
-            slot.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            // เพิ่ม action listener เพื่อดูภาพเต็ม
-            slot.addActionListener(e -> viewEnding(fullImage));
-        } else {
-            slot.setIcon(lockedIcon);
-            slot.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            imgBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            imgBtn.addActionListener(e -> viewEnding(fullPath));
         }
+
+        JLabel label = new JLabel("Ending " + id, SwingConstants.CENTER);
+        label.setFont(new Font("Tahoma", Font.BOLD, 18));
+        label.setForeground(Color.WHITE);
+
+        slot.add(imgBtn, BorderLayout.CENTER);
+        slot.add(label, BorderLayout.SOUTH);
 
         return slot;
     }
@@ -97,7 +139,7 @@ public class GalleryPage extends JFrame {
     private ImageIcon getScaledIcon(String path, int width, int height) {
         ImageIcon icon = new ImageIcon(path);
         if (icon.getIconWidth() == -1) {
-            // สร้างภาพ Placeholder กรณีหาไฟล์ไม่เจอ
+            // สร้างภาพ Placeholder กรณีหาไฟล์ไม่เจอ (ขึ้นเครื่องหมาย ?)
             BufferedImage placeholder = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2d = placeholder.createGraphics();
             g2d.setColor(Color.DARK_GRAY);
@@ -109,8 +151,10 @@ public class GalleryPage extends JFrame {
             g2d.dispose();
             return new ImageIcon(placeholder);
         }
-        Image img = icon.getImage();
-        Image newImg = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-        return new ImageIcon(newImg);
+        return new ImageIcon(icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new GalleryPage().setVisible(true));
     }
 }
