@@ -39,7 +39,8 @@ public class part9 extends JFrame {
             if (i < 10) paths[i] = "res/scene9/s1.png";
             else if (i < 65) paths[i] = "res/scene9/s2.png";
             else if (i < 90) paths[i] = "res/scene9/s3.png";
-            else if (i < 96) paths[i] = "res/scene9/s4.png";
+            else if (i < 95) paths[i] = "res/scene9/s4.png";
+            else if (i < 174) paths[i] = "res/scene9/s3.png";
             else paths[i] = "res/scene9/s5.png"; // ฉากที่ 105 (ดัชนี 104)
         }
         return paths;
@@ -62,99 +63,100 @@ public class part9 extends JFrame {
             // 24-35: ปีศาจมาเพิ่ม + Nebula ปรากฏตัว
             "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png", 
             "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", // Nebula (ถ้ามีรูป Nebula ให้เปลี่ยน res/empty.png เป็น path รูป Nebula)
+            "res/empty.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Dan/dan-normal1.png", // Nebula (ถ้ามีรูป Nebula ให้เปลี่ยน res/empty.png เป็น path รูป Nebula)
             
             // 36-40: คุยกับ Nebula
-            "res/Charactor/Alice/Girl/Alice-normal1.png","res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Alice/Girl/Alice-normal1.png","res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
             
             // 41-51: Choices Nebula + ตกลงเดินทางด้วยกัน
-            "res/empty.png", "res/empty.png", // 41, 42 (Choices Nebula)
-            "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png",  "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png", 
+            "res/Charactor/Nebula/Nebula-shy2.png","res/Charactor/Nebula/Nebula-normal2.png", // 41, 42 (Choices Nebula)
+            "res/Charactor/Dan/dan-normal2.png","res/Charactor/Nebula/Nebula-shy1.png","res/Charactor/Alice/Girl/Alice-normal1.png","res/Charactor/Nebula/Nebula-normal1.png",
+            "res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Dan/dan-normal1.png","res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Nebula/Nebula-normal1.png", 
             
             // 52-62: ระหว่างเดินทาง
-            "res/empty.png", "res/empty.png", // 52, 53 (Choices)
-            "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/empty.png",
-            "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Nebula/Nebula-shy1.png","res/Charactor/Nebula/Nebula-shy2.png", // 52, 53 (Choices)
+            "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png",
+            "res/Charactor/Dan/dan-normal1.png","res/Charactor/Alice/Girl/Alice-normal1.png","res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal1.png",
             
             // 63-77: เข้าใกล้หุบเขาเงามืด
-            "res/empty.png", "res/empty.png", // 63, 64 (Choices)
-            "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png",  "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Nebula/Nebula-shy2.png","res/Charactor/Nebula/Nebula-normal1.png", // 63, 64 (Choices)
+            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png","res/Charactor/Alice/Girl/Alice-normal2.png","res/empty.png","res/empty.png",
+            "res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Dan/dan-normal2.png","res/Charactor/Alice/Girl/Alice-normal1.png",
+            "res/empty.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal2.png",
             
             // 78-89: พักผ่อน + เดินทางต่อ
-            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", // 78, 79 (พักผ่อน)
-            "res/empty.png", "res/empty.png", // 80, 81 (Choices)
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Dan/dan-normal2.png", // 78, 79 (พักผ่อน)
+            "res/Charactor/Alice/Girl/Alice-normal2.png","res/Charactor/Nebula/Nebula-normal2.png", // 80, 81 (Choices)
+            "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal2.png",
+            "res/Charactor/Nebula/Nebula-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png",
             
             // 90-101: ถึงป้อม Grey + เผชิญหน้า
-            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/empty.png","res/Charactor/Dan/dan-normal2.png","res/Charactor/Alice/Girl/Alice-normal1.png","res/Charactor/Nebula/Nebula-normal2.png",
+            "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png",
+            "res/Charactor/Gray/Gray-normal2.png","res/Charactor/Gray/Gray-normal1.png","res/Charactor/Gray/Gray-normal2.png","res/Charactor/Gray/Gray-normal1.png",
             
             // 102-114: Grey ปล่อยพลัง + การต่อสู้ดุเดือด
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Gray/Gray-normal1.png","res/Charactor/Gray/Gray-normal2.png","res/Charactor/Gray/Gray-normal1.png",
+            "res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Gray/Gray-normal2.png","res/Charactor/Gray/Gray-shout.png","res/Charactor/Gray/Gray-shout.png",
+            "res/empty.png","res/Charactor/Alice/Girl/Alice-fight1.png","res/Charactor/Dan/dan-fight1.png","res/Charactor/Gray/Gray-shout.png","res/Charactor/Gray/Gray-fight1.png",
             
             // 115-125: เวทย์ทำลายล้าง
-            "res/Charactor/Alice/Girl/Alice-fight1.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Gray/Gray-fight1.png","res/Charactor/Alice/Girl/Alice-fight2.png","res/empty.png","res/Charactor/Alice/Girl/Alice-fight1.png",
+            "res/Charactor/Nebula/Nebula-fight2.png","res/Charactor/Gray/Gray-fight1.png","res/Charactor/Gray/Gray-fight1.png","res/empty.png",
+            "res/Charactor/Dan/dan-fight1.png","res/Charactor/Dan/dan-fight2.png","res/Charactor/Nebula/Nebula-fight1.png",
             
             // 126-131: Dan ตัดสินใจสละชีพ
-            "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png",
-            "res/empty.png", "res/Charactor/Dan/dan-normal2.png",
+            "res/Charactor/Nebula/Nebula-fight2.png","res/Charactor/Dan/dan-fight2.png","res/Charactor/Dan/dan-fight1.png","res/Charactor/Dan/dan-fight2.png",
+            "res/Charactor/Dan/dan-fight1.png","res/Charactor/Dan/dan-fight2.png",
             
             // 132-143: Dan พุ่งเข้าหา Grey
-            "res/Charactor/Alice/Girl/Alice-cry1.png", "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/empty.png",
-            "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-cry1.png",
+            "res/Charactor/Dan/dan-fight1.png","res/Charactor/Dan/dan-fight2.png","res/Charactor/Dan/dan-fight2.png","res/Charactor/Alice/Girl/Alice-fight2.png",
+            "res/Charactor/Dan/dan-fight1.png","res/Charactor/Gray/Gray-fight1.png","res/Charactor/Gray/Gray-fight1.png","res/Charactor/Dan/dan-fight1.png",
+            "res/Charactor/Dan/dan-fight2.png","res/Charactor/Gray/Gray-fight1.png","res/Charactor/Gray/Gray-shout.png","res/Charactor/Gray/Gray-shout.png", 
             
             // 144-151: Dan สั่งเสีย
-            "res/Charactor/Alice/Girl/Alice-cry2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-cry2.png", "res/Charactor/Dan/dan-normal1.png",
-            "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png",
+            "res/empty.png","res/empty.png","res/empty.png","res/Charactor/Alice/Girl/Alice-cry2.png",
+            "res/Charactor/Dan/dan-normal2.png","res/Charactor/Dan/dan-normal1.png","res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", //ถึงแถวนี้
             
             // 152-159: Dan เสียชีวิต
-            "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-cry2.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+            "res/Charactor/Dan/dan-normal2.png","res/Charactor/Dan/dan-normal2.png","res/Charactor/Dan/dan-normal1.png", "res/empty.png",
+            "res/empty.png", "res/empty.png","res/Charactor/Alice/Girl/Alice-cry2.png","res/Charactor/Nebula/Nebula-fight1.png",
             
             // 160-170: การโจมตีสุดท้ายของ Nebula และอริส
-            "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight1.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+            "res/Charactor/Nebula/Nebula-fight2.png","res/Charactor/Nebula/Nebula-fight1.png","res/Charactor/Nebula/Nebula-fight2.png",
+            "res/Charactor/Nebula/Nebula-fight1.png","res/Charactor/Nebula/Nebula-fight1.png","res/Charactor/Alice/Girl/Alice-fight2.png","res/Charactor/Alice/Girl/Alice-fight2.png",
+            "res/Charactor/Alice/Girl/Alice-fight2.png","res/Charactor/Gray/Gray-injured.png","res/Charactor/Gray/Gray-injured.png","res/Charactor/Gray/Gray-injured.png",
             
-            // 171-178: บทส่งท้าย (ฝังดาบ)
-            "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-            "res/Charactor/Alice/Girl/Alice-cry1.png", "res/empty.png", "res/empty.png", "res/empty.png"
+            // 171-181: บทส่งท้าย (ฝังดาบ)
+            "res/empty.png", "res/empty.png","res/Charactor/Alice/Girl/Alice-fight2.png","res/Charactor/Alice/Girl/Alice-cry1.png",
+            "res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal2.png","res/empty.png",
+            "res/Charactor/Alice/Girl/Alice-cry2.png","res/empty.png","res/empty.png",
         };
 
     private String[] names = { 
         " ", " ","Dan","อริส","ฉัน","Dan","Dan","อริส",
-        "อริส","อริส","Dan","Dan","อริส","ฉัน"," ","ปีศาจ",
+        "อริส","อริส","Dan","Dan","อริส","ฉัน"," ","ปีศาจ", //0-15
         "Dan","อริส","ฉัน","อริส","Dan","ฉัน","ปีศาจ","Dan",
-        "อริส","ฉัน"," "," ","ปีศาจ"," ","Dan","อริส",
+        "อริส","ฉัน"," "," ","ปีศาจ"," ","Dan","อริส", //16-31
         "ฉัน","Nebula","ฉัน","Dan","อริส","Nebula","Dan","ฉัน",
-        "ฉัน","Nebula","Nebula","Dan","Nebula","อริส","Nebula","Nebula",
+        "ฉัน","Nebula","Nebula","Dan","Nebula","อริส","Nebula","Nebula", //32-47
         "Nebula","Dan","Nebula","ฉัน","Nebula","Nebula"," ","Dan",
-        "Dan","Nebula","Dan","อริส","Nebula","ฉัน","Nebula","Nebula","Nebula",
-        "Dan","Dan","อริส","ฉัน"," ","Nebula","Nebula","Dan",
-        "อริส","ฉัน","Nebula","Nebula","Nebula","Dan","อริส","Nebula",
-        "Nebula","Nebula","Nebula","ฉัน","Nebula"," "," "," ",
-        " ","Dan","อริส","Nebula","ฉัน"," "," ","Grey",
-        "Grey","Grey","Nebula","Grey","Grey","Grey","Nebula",
-        "Grey","Grey"," "," ","อริส","Dan","Grey","Grey",
-        "ฉัน","อริส"," ","อริส","Nebula","Grey"," "," ",
-        "Dan","Dan","Nebula","Nebula","Dan","Dan","ฉัน","Dan",
-        "Dan","Dan","ฉัน","Dan","Dan","Dan","อริส","Dan",
-        " ","Grey"," "," ","Grey"," "," "," ",
-        " ","ฉัน","อริส","Dan","ฉัน"," ","Dan","Dan",
-        "Dan","Dan","Dan"," "," "," ","อริส","ฉัน",
-        "Nebula","Nebula","ฉัน"," ","Nebula","อริส","ฉัน"," ",
-        " ","Grey","Grey"," "," "," ","อริส","ฉัน",
-        "Nebula","Nebula"," ","ฉัน","อริส"," "," ",
+        "Dan","Nebula","Dan","อริส","Nebula","ฉัน","Nebula","Nebula","Nebula", //48-64
+        "Dan","Dan","อริส","ฉัน"," ","Nebula","Nebula","Dan",//65-72
+        "อริส","ฉัน","Nebula","Nebula","Nebula","Dan","อริส","Nebula", //73-80
+        "Nebula","Nebula","Nebula","ฉัน","Nebula"," "," "," ", //81-88
+        " ","Dan","อริส","Nebula","ฉัน"," "," "," ", //89-96
+        "Grey","Grey","Grey","Grey","Nebula","Grey","Grey",
+        "Grey","Nebula","Grey","Grey"," "," ","อริส","Dan",//97-111
+        "Grey"," ","ฉัน","อริส"," ","อริส","Nebula","Grey",
+        " "," ","Dan","Dan","Nebula","Nebula","Dan","ฉัน",//112-127
+        "Dan","Dan","Dan","ฉัน","Dan","Dan","อริส","Dan",
+        " ","Grey"," "," ","Grey"," "," "," ",//128-143
+        " ","ฉัน","อริส","Dan","ฉัน","Dan","Dan","Dan",//144-151
+        "Dan","Dan"," "," ","อริส","ฉัน","Nebula","Nebula",
+        "Nebula","ฉัน"," ","Nebula","อริส","อริส"," ","Grey",//152-167
+        "Grey"," "," "," ","อริส"," ","Nebula","Nebula", //168-175
+        " ","ฉัน","อริส"," "," ", //176-180
     };
     
     // บทพูด 1-60 (สามารถเพิ่มให้ครบ 105 ได้ในลักษณะเดียวกัน)
