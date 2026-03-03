@@ -37,6 +37,8 @@ public class part5 extends JFrame {
     private JLabel onlineCountLabel, affinityStatusLabel;
     private java.io.PrintWriter networkOut;
 
+    private boolean isFinishing = false;
+
     private float bgAlpha = 1.0f; // ค่าความโปร่งใสของพื้นหลัง
     private Timer bgFadeTimer;    // Timer สำหรับ Fade พื้นหลัง
     private String lastBgPath = ""; // เก็บเส้นทางรูปภาพล่าสุดเพื่อเช็คการเปลี่ยนแปลง
@@ -258,7 +260,7 @@ public class part5 extends JFrame {
     }
 
     private void handleNext() {
-            if (isChoosing) return;
+            if (isChoosing || isFinishing) return;
             
             // ป้องกัน Error กรณีดัชนีเกิน
             if (currentIndex >= dialogues.length) {
@@ -759,13 +761,16 @@ public class part5 extends JFrame {
     }
 
     private void finishGame() {
+        if (isFinishing) return; // ถ้ากำลังจบอยู่แล้ว ให้กดซ้ำไม่ได้
+        isFinishing = true;      // ล็อคสถานะทันที
+
         // เริ่มกระบวนการ Fade Out ก่อน
         startFadeOut(() -> {
             stopAllSounds(); // หยุดเสียงของ Part 5
             
             // เมื่อหน้าจอมืดสนิทแล้ว จึงสลับหน้าจอไป Part 6
             SwingUtilities.invokeLater(() -> {
-                new part6().setVisible(true); // เปิด Part 6
+                new part6().setVisible(true); // จะเปิดเพียงครั้งเดียวเพราะโดนล็อคไว้แล้ว
                 dispose(); // ปิดหน้าจอ Part 5
             });
         });

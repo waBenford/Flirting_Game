@@ -14,7 +14,7 @@ import javax.swing.*;
 
 public class part6 extends JFrame {
     private JLayeredPane layeredPane;
-    private JLabel backgroundLabel, characterLabel, dialogueArea, nameLabel;
+    private JLabel backgroundLabel, characterLabel, characterLabel2, dialogueArea, nameLabel;
     private VisualNovelBox dialoguePanel;
     private float alpha = 1.0f;
     private JPanel fadeOverlay;
@@ -29,7 +29,6 @@ public class part6 extends JFrame {
     private boolean isFading = false;
     private Map<String, ImageIcon> imageCache = new HashMap<>();
     
-    // UI ระบบความสัมพันธ์และ Network ที่ส่งต่อมาจาก Part 5
     private JLabel affinityLabel, statusLabel;
     private JPanel statusOverlay;
     private JLabel onlineCountLabel, affinityStatusLabel;
@@ -37,12 +36,11 @@ public class part6 extends JFrame {
 
     private String lastBgPath = "";
     private String lastCharPath = "";
+    private float charAlpha = 0.0f; 
+    private Timer charFadeTimer;
 
-    private float charAlpha1 = 0.0f; 
-    private Timer charFadeTimer1;
-    
-    private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 28);
-    private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
+    // Font สำหรับภาษาไทย
+    private final Font thaiFont = new Font("Tahoma", Font.BOLD, 18);
 
     private String[] imagePaths = {
        "res/scene6/s1new.png", "res/scene6/s1new.png", "res/scene6/s1new.png", "res/scene6/s1new.png",
@@ -63,7 +61,7 @@ public class part6 extends JFrame {
     private String[] charPaths = {
        "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png", "res/Charactor/Dan/dan-showhand1.png",
        "res/Charactor/Dan/dan-showhand1.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower3.png", 
-       "res/scene5/Alice-shower1.png", "res/scene5/Alice-shower1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",
+       "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-shy1.png", "res/Charactor/Alice/Girl/Alice-shy2.png", "res/Charactor/Dan/dan-normal1.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", 
@@ -97,7 +95,7 @@ public class part6 extends JFrame {
         "คนที่สามารถสั่งเจ้าพวกนั้นได้คงต้องเป็นคนที่เเข็งเเกร่งมากเเน่ๆ", "คนเดียวที่ทําเเบบนั้นได้ คือจอมมาร", 
         "เพราะเเบบนั้นพวกเราเลยออกเดินทางเพื่อไปยังที่อยู่ของจอมมาร","เเหละจบเรื่องนี้ จะได้ไม่มีผู้คนต้องบาดเจ็บ",
         "มันค่อนข้างอันตรายนะ", "ป่า Death End เป็นป่าที่มีความซับซ้อนของเส้นทาง", 
-        "อีกทั้งยังมีปีศาจเเละต้นไม้อาถรรพ์ที่สามารถทําร้ายเราได้ตลอดเวลา","ฉันก็เคยเข้าไปครั้งนึง เเต่ก็สามารถรอดออกมาได้", 
+        "อีกทั้งยังมีปีศาจเเละต้นไม้าอาถรรพ์ที่สามารถทําร้ายเราได้ตลอดเวลา","ฉันก็เคยเข้าไปครั้งนึง เเต่ก็สามารถรอดออกมาได้", 
         "งั้นนายช่วยมาร่วมเดินทางกับพวกเราหน่อยจะได้มั้ย", "นี่นายเเน่ใจเเล้วหรอ?", "หมอนั่นอาจจะเป็นคนไม่ดีก็ได้นะ",
         "ไม่เป็นไรหรอก ดูเเล้วคนๆนี้ก็ไม่น่ามีพิษภัยอะไร", 
         "เข้าใจเเล้ว...","เอาตามนั้นก็ได้", 
@@ -134,18 +132,13 @@ public class part6 extends JFrame {
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
         // 2. ตัวละคร
-        characterLabel = new JLabel() {
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha1)); 
-                super.paintComponent(g2d); 
-                g2d.dispose();
-            }
-        };
-        characterLabel.setBounds(40, 100, 1200, 900); 
+        characterLabel = createCharacterLabel(); 
+        characterLabel2 = createCharacterLabel();
+        
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(characterLabel2, JLayeredPane.PALETTE_LAYER);
 
-        // อัปเดตชื่อตัวละครจาก relationdata แบบที่ Part 5 ทำ
+        // แก้ไขชื่อผู้เล่น
         for (int i = 0; i < dialogues.length; i++) {
             if (dialogues[i].contains("(ชื่อตัวละครเรา)")) {
                 dialogues[i] = dialogues[i].replace("(ชื่อตัวละครเรา)", relationdata.playerName);
@@ -153,14 +146,11 @@ public class part6 extends JFrame {
         }
 
         setupDialogueUI();
-        
-        // ติดตั้งระบบความสัมพันธ์และ Network ให้ทำงานต่อจาก Part 5
-        setupRelationshipUI();
+        setupRelationshipUI(); // <--- ส่วนที่แก้ Font ภาษาไทย
         setupStatusOverlay();
         setupTabKeyBinding();
         initNetwork();
         
-        // สร้างฉาก Fade In
         fadeOverlay = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -182,6 +172,82 @@ public class part6 extends JFrame {
                 handleNext();
             }
         });
+    }
+
+    private JLabel createCharacterLabel() {
+        return new JLabel() {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha)); 
+                super.paintComponent(g2d); 
+                g2d.dispose();
+            }
+        };
+    }
+
+    private void updateScene() {
+        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+        if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
+
+        // พื้นหลัง
+        if (currentIndex < imagePaths.length) {
+            String currentBg = imagePaths[currentIndex];
+            if (!currentBg.equals(lastBgPath)) {
+                backgroundLabel.setIcon(getOptimizedImage(currentBg, 1280, 800));
+                lastBgPath = currentBg;
+            }
+        }
+
+        // ตัวละคร (Dual System)
+        if (currentIndex < charPaths.length) {
+            String currentChar = charPaths[currentIndex];
+            
+            boolean isDualScene = (currentIndex >= 10 && currentIndex <= 44);
+
+            if (isDualScene) {
+                characterLabel.setBounds(-200, 50, 1000, 900); 
+                characterLabel2.setBounds(200, 50, 1400, 1000); 
+
+                if (currentChar.toLowerCase().contains("dan")) {
+                    characterLabel2.setIcon(getOptimizedImage(currentChar, 1400, 1000));
+                } else if (!currentChar.contains("empty")) {
+                    characterLabel.setIcon(getOptimizedImage(currentChar, 1000, 900));
+                }
+            } else {
+                characterLabel.setBounds(140, 50, 1000, 950);
+                characterLabel2.setIcon(null);
+                if (currentChar.contains("empty")) characterLabel.setIcon(null);
+                else characterLabel.setIcon(getOptimizedImage(currentChar, 1000, 900));
+            }
+
+            if (!currentChar.equals(lastCharPath)) {
+                startCharacterFadeIn();
+                lastCharPath = currentChar;
+            }
+        }
+        handleSoundEffects(currentIndex);
+        layeredPane.repaint();
+    }
+
+    private void setupRelationshipUI() {
+        JPanel relPanel = new JPanel(new GridLayout(2, 1)); 
+        relPanel.setBounds(20, 20, 280, 80); // ปรับตำแหน่งซ้ายบน
+        relPanel.setBackground(new Color(0, 0, 0, 180)); 
+        relPanel.setBorder(BorderFactory.createLineBorder(new Color(255, 105, 180), 2));
+        
+        affinityLabel = new JLabel("อริส: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(thaiFont); // ใช้ Font ไทยที่กำหนดไว้
+        affinityLabel.setForeground(Color.WHITE);
+        affinityLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        
+        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
+        statusLabel.setFont(thaiFont); // ใช้ Font ไทยที่กำหนดไว้
+        statusLabel.setForeground(Color.PINK);
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        
+        relPanel.add(affinityLabel); 
+        relPanel.add(statusLabel);
+        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
     }
 
     private void setupDialogueUI() {
@@ -208,59 +274,12 @@ public class part6 extends JFrame {
         nextArrow.setForeground(new Color(0, 153, 255));
         nextArrow.setBounds(750, 130, 30, 30);
         dialoguePanel.add(nextArrow);
-        Timer arrowTimer = new Timer(500, ev -> nextArrow.setVisible(!nextArrow.isVisible()));
-        arrowTimer.start();
+        new Timer(500, ev -> nextArrow.setVisible(!nextArrow.isVisible())).start();
     }
 
-    private void updateScene() {
-        if (currentIndex < names.length) {
-            nameLabel.setText(names[currentIndex]);
-        }
-
-        if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
-
-        // --- เช็คภาพพื้นหลัง: ถ้าเป็นภาพเดิม ไม่ต้องโหลดใหม่ ---
-        if (currentIndex < imagePaths.length) {
-            String currentBg = imagePaths[currentIndex];
-            if (!currentBg.equals(lastBgPath)) {
-                backgroundLabel.setIcon(getOptimizedImage(currentBg, 1280, 800));
-                lastBgPath = currentBg;
-            }
-        }
-
-        if (currentIndex < charPaths.length) {
-            String currentChar = charPaths[currentIndex];
-            if (!currentChar.equals(lastCharPath)) {
-                // ถ้าเปลี่ยนจากไม่มีตัวละคร เป็นมีตัวละคร หรือเปลี่ยนรูปใหม่ ให้ทำ Fade
-                if (!currentChar.contains("empty")) {
-                    startCharacterFadeIn();
-                } else {
-                    charAlpha1 = 0.0f; // ถ้าเป็น empty ให้หายไปทันที
-                }
-
-                if (currentChar.contains("dan-normal2")) {
-                    characterLabel.setBounds(-60, 100, 1500, 1000);
-                    characterLabel.setIcon(getOptimizedImage(currentChar, 1500, 1000));
-                } else if (currentChar.contains("dan")) {
-                    characterLabel.setBounds(-50, 100, 1400, 1000);
-                    characterLabel.setIcon(getOptimizedImage(currentChar, 1400, 1000));
-                } else if (currentChar.contains("empty")) {
-                    characterLabel.setIcon(null);
-                } else {
-                    characterLabel.setBounds(40, 100, 1200, 900);
-                    characterLabel.setIcon(getOptimizedImage(currentChar, 1200, 900));
-                }
-                lastCharPath = currentChar;
-            }
-        }
-        handleSoundEffects(currentIndex);
-        layeredPane.repaint();
-    }
-
+    // --- ส่วนที่เหลือของโค้ดคงเดิม ---
     private void handleNext() {
         if (isChoosing || isFading) return; 
-
-        // ถ้ากำลังพิมพ์ ให้หยุดพิมพ์และแสดงข้อความเต็มทันที
         if (isTyping) {
             stopTypewriter();
             dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
@@ -268,43 +287,29 @@ public class part6 extends JFrame {
         }
 
         if (currentIndex == 7) { showChoices("ก็เธอสําคัญกับฉันนี่", "ใครๆก็ต้องช่วยเพื่อนอยู่แล้ว", 8, 9); return; }
-        if (currentIndex == 8) { currentIndex = 10; updateScene(); return; }
+        if (currentIndex == 8) { jumpToIndex(10); return; }
         if (currentIndex == 12) { showChoices("ตอนนี้อาจจะยังไม่ใช่เเต่อนาคตไม่เเน่", "ถ้าเธออยากเป็นก็ได้นะ", 13, 14); return; }
-        if (currentIndex == 13) { currentIndex = 15; updateScene(); return; }
+        if (currentIndex == 13) { jumpToIndex(15); return; }
         if (currentIndex == 35) { showChoices("ถ้าเกิดอะไรขึ้น ฉันจะปกป้องเธอเอง", " เพราะงั้น ไม่ต้องห่วงหรอก", 36, 37); return; }
-        if (currentIndex == 36) { currentIndex = 38; updateScene(); return; }
+        if (currentIndex == 36) { jumpToIndex(38); return; }
 
         int nextIndex = currentIndex + 1;
-        jumpToIndex(nextIndex);
-
         if (nextIndex < dialogues.length) {
-            // ตรวจสอบว่าภาพพื้นหลังเปลี่ยนหรือไม่
-            String currentBG = imagePaths[currentIndex];
-            String nextBG = imagePaths[nextIndex];
-
-            if (!currentBG.equals(nextBG)) {
-                // ถ้าภาพเปลี่ยน ให้เรียกใช้ระบบ Fade ฉาก
-                performSceneFade(() -> {
-                    currentIndex = nextIndex;
-                    syncOnline(); 
-                    updateScene();
-                });
+            if (!imagePaths[currentIndex].equals(imagePaths[nextIndex])) {
+                performSceneFade(() -> { currentIndex = nextIndex; syncOnline(); updateScene(); });
             } else {
-                // ถ้าภาพเดิม อัปเดตปกติ
-                currentIndex = nextIndex;
-                syncOnline();
-                updateScene();
+                currentIndex = nextIndex; syncOnline(); updateScene();
             }
         } else {
             finishGame();
         }
     }
 
-    private void syncOnline() {
-        if (relationdata.isOnlineMode && networkOut != null) {
-            networkOut.println("SYNC_INDEX:" + currentIndex);
-        }
+    private void jumpToIndex(int target) {
+        currentIndex = target; syncOnline(); updateScene();
     }
+
+    private void syncOnline() { if (relationdata.isOnlineMode && networkOut != null) networkOut.println("SYNC_INDEX:" + currentIndex); }
 
     private void handleSoundEffects(int index) {
         if (index == 8) playEffect("res/sound/baka.wav", 5.0f);
@@ -318,8 +323,10 @@ public class part6 extends JFrame {
 
     private void showChoices(String text1, String text2, int t1, int t2) {
         isChoosing = true;
-        choiceButton1 = createChoiceButton(text1, 380, t1); 
-        choiceButton2 = createChoiceButton(text2, 450, t2); 
+        // ปรับพิกัด Y ให้อยู่เหนือกล่องข้อความ (กล่องข้อความอยู่ที่ Y=520)
+        // ปุ่มแรกอยู่ที่ 350, ปุ่มสองอยู่ที่ 425
+        choiceButton1 = createChoiceButton(text1, 350, t1); 
+        choiceButton2 = createChoiceButton(text2, 425, t2); 
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
@@ -328,101 +335,84 @@ public class part6 extends JFrame {
     private JButton createChoiceButton(String text, int y, int target) {
         JButton btn = new JButton(text) {
             private double scale = 1.0;
-            private int alphaMod = 150; 
+            private int alphaMod = 170; // ความโปร่งแสงเริ่มต้น
             private Timer animTimer;
 
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                int centerX = getWidth() / 2;
-                int centerY = getHeight() / 2;
-                g2.translate(centerX, centerY);
+                
+                int w = getWidth();
+                int h = getHeight();
+                
+                // Animation Scale
+                g2.translate(w / 2, h / 2);
                 g2.scale(scale, scale);
-                g2.translate(-centerX, -centerY);
-
-                g2.setColor(new Color(255, 255, 255, alphaMod));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
-
-                g2.setColor(new Color(225, 105, 180)); 
-                g2.setStroke(new BasicStroke(2));   
-                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
-
+                g2.translate(-w / 2, -h / 2);
+                
+                // พื้นหลังไล่เฉดสีขาว-เทาอ่อน สไตล์ Glassmorphism
+                GradientPaint gp = new GradientPaint(0, 0, new Color(255, 255, 255, alphaMod), 
+                                                    0, h, new Color(230, 230, 230, alphaMod));
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, w, h, 20, 20);
+                
+                // เส้นขอบสีชมพูเข้ม (Theme อริส)
+                g2.setColor(new Color(255, 102, 153));
+                g2.setStroke(new BasicStroke(2.0f));
+                g2.drawRoundRect(1, 1, w - 2, h - 2, 18, 18);
+                
                 g2.dispose();
-                super.paintComponent(g); 
+                super.paintComponent(g);
             }
 
             {
                 addMouseListener(new MouseAdapter() {
                     @Override
-                    public void mouseEntered(MouseEvent e) { startAnimation(1.05, 200); }
+                    public void mouseEntered(MouseEvent e) { startAnim(1.03, 230); }
                     @Override
-                    public void mouseExited(MouseEvent e) { startAnimation(1.0, 150); }
-                    @Override
-                    public void mousePressed(MouseEvent e) { scale = 0.95; repaint(); }
+                    public void mouseExited(MouseEvent e) { startAnim(1.0, 170); }
                 });
             }
 
-            private void startAnimation(double targetScale, int targetAlpha) {
-                if (animTimer != null && animTimer.isRunning()) animTimer.stop();
-                animTimer = new Timer(15, ev -> {
-                    if (scale < targetScale) scale += 0.01;
-                    else if (scale > targetScale) scale -= 0.01;
-
-                    if (alphaMod < targetAlpha) alphaMod += 5;
-                    else if (alphaMod > targetAlpha) alphaMod -= 5;
-
-                    if (Math.abs(scale - targetScale) < 0.01 && alphaMod == targetAlpha) {
-                        scale = targetScale;
-                        ((Timer)ev.getSource()).stop();
-                    }
+            private void startAnim(double ts, int ta) {
+                if (animTimer != null) animTimer.stop();
+                animTimer = new Timer(15, e -> {
+                    scale += (ts - scale) * 0.2;
+                    if (alphaMod < ta) alphaMod += 10; else if (alphaMod > ta) alphaMod -= 10;
+                    if (Math.abs(scale - ts) < 0.001 && alphaMod == ta) ((Timer)e.getSource()).stop();
                     repaint();
                 });
                 animTimer.start();
             }
         };
 
-        btn.setBounds(800, y, 350, 60); 
-        btn.setFont(new Font("Tahoma", Font.BOLD, 16));
-        btn.setForeground(new Color(45, 65, 115)); 
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR)); 
-
-        btn.setContentAreaFilled(false);
+        // ตำแหน่ง X=800 คือด้านขวาบนของกล่องข้อความ
+        btn.setBounds(800, y, 380, 60); 
+        btn.setFont(new Font("Tahoma", Font.BOLD, 17));
+        btn.setForeground(new Color(50, 50, 50));
         btn.setFocusPainted(false);
-        btn.setBorderPainted(false); 
-        
-        // --- อัปเดตการคิดคะแนน Affinity แบบเดียวกับ Part 5 ---
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         btn.addActionListener(e -> {
             playEffect("res/sound/click.wav", 0.0f);
-            layeredPane.remove(choiceButton1);
+            layeredPane.remove(choiceButton1); 
             layeredPane.remove(choiceButton2);
             isChoosing = false; 
-
+            
+            // อัปเดตค่าความสัมพันธ์
             if (target == 8 || target == 13 || target == 36) {
                 relationdata.aliceRel.addAffinity(10); 
             } else {
-                relationdata.aliceRel.decreaseAffinity(5); 
+                relationdata.aliceRel.decreaseAffinity(5);
             }
-
-            // --- แก้ไขตรงนี้: แยก Network ออกเป็น Thread ใหม่ ---
-            if (relationdata.isOnlineMode && networkOut != null) {
-                new Thread(() -> {
-                    networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
-                    networkOut.println("SYNC_INDEX:" + target);
-                }).start();
-            }
-
-            if (affinityLabel != null) {
-                affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
-            }
-            if (statusLabel != null) statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+            
+            if (affinityLabel != null) affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
             jumpToIndex(target);
-
-            currentIndex = target; 
-            updateScene(); 
         });
-
+        
         return btn;
     }
 
@@ -431,69 +421,22 @@ public class part6 extends JFrame {
         if (!imageCache.containsKey(key)) imageCache.put(key, scaleImage(path, w, h));
         return imageCache.get(key);
     }
-    
-    // ----------- ส่วนของ UI Network และ ความสัมพันธ์ที่ยกมาจาก Part 5 -----------
-
-    private void setupRelationshipUI() {
-        // 1. ปรับตำแหน่งติดซ้ายบน (0, 0) และลดความสูงลงเพื่อให้พอดีกับคนเดียว
-        JPanel relPanel = new JPanel(new GridLayout(2, 1, 0, 0)); 
-        relPanel.setBounds(0, 0, 280, 75); 
-        
-        // 2. ใช้พื้นหลังสีดำโปร่งแสงเพื่อให้ข้อความอ่านง่ายบนทุกพื้นหลัง
-        relPanel.setBackground(new Color(0, 0, 0, 190)); 
-        relPanel.setOpaque(true);
-
-        // 3. เพิ่มกรอบสีชมพูหนา 2 พิกเซล และใส่ระยะห่าง (Padding) ด้านใน
-        relPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 105, 180), 2), // กรอบสีชมพู
-            BorderFactory.createEmptyBorder(5, 15, 5, 10) // ระยะห่างจากขอบ
-        ));
-
-        // 4. ตั้งค่าการแสดงผลของ อริส (ใช้โทนสีเดียวกับ Part 7)
-        affinityLabel = new JLabel("อริส: " + relationdata.aliceRel.getAffinity());
-        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18)); 
-        affinityLabel.setForeground(new Color(255, 192, 203)); // สีชมพูสว่าง
-
-        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
-        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        statusLabel.setForeground(Color.WHITE); // สีขาวอ่านง่าย
-
-        relPanel.add(affinityLabel);
-        relPanel.add(statusLabel);
-        
-        // นำไปวางไว้ในเลเยอร์ POPUP เพื่อให้อยู่หน้าสุดเสมอ
-        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
-    }
 
     private void setupStatusOverlay() {
-        statusOverlay = new JPanel(new BorderLayout(10, 10));
-        statusOverlay.setBackground(new Color(0, 0, 0, 210)); 
+        statusOverlay = new JPanel(new BorderLayout());
         statusOverlay.setBounds(440, 150, 400, 400); 
-        statusOverlay.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        statusOverlay.setBackground(new Color(0, 0, 0, 210)); 
         statusOverlay.setVisible(false);
-
-        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
-        onlineCountLabel.setForeground(Color.CYAN); onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
-
-        JLabel titleLabel = new JLabel("--- ความสัมพันธ์ทั้งหมด ---", SwingConstants.CENTER);
-        titleLabel.setForeground(Color.YELLOW); titleLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
-
-        affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล...", SwingConstants.CENTER);
-        affinityStatusLabel.setForeground(Color.WHITE); affinityStatusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        affinityStatusLabel.setVerticalAlignment(SwingConstants.TOP);
-
-        statusOverlay.add(titleLabel, BorderLayout.NORTH);
+        affinityStatusLabel = new JLabel("", SwingConstants.CENTER);
+        affinityStatusLabel.setForeground(Color.WHITE);
         statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER);
-        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH); 
         layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
     }
 
     private void setupTabKeyBinding() {
         layeredPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("TAB"), "toggleTab");
         layeredPane.getActionMap().put("toggleTab", new AbstractAction() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                statusOverlay.setVisible(!statusOverlay.isVisible()); 
-            }
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) { statusOverlay.setVisible(!statusOverlay.isVisible()); }
         });
     }
 
@@ -501,294 +444,88 @@ public class part6 extends JFrame {
         if (!relationdata.isOnlineMode) return;
         new Thread(() -> {
             try {
-                java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
-                networkOut = new java.io.PrintWriter(socket.getOutputStream(), true);
-                java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
-
-                networkOut.println("SET_NAME:" + relationdata.playerName);
-                networkOut.println("SET_PART:6"); // แจ้งว่าอยู่ Part 6 แล้ว
-
-                String line;
-                while ((line = in.readLine()) != null) {
-                    // ค้นหาในเมธอด initNetwork()
-                    if (line.startsWith("LOAD_AFFINITY:")) {
-                        int score = Integer.parseInt(line.substring(14));
-                        relationdata.aliceRel.setAffinity(score);
-                        SwingUtilities.invokeLater(() -> {
-                            // แก้ไขตรงนี้เช่นกันครับ
-                            affinityLabel.setText("อริส: " + score); 
-                            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
-                        });
-                    } else if (line.startsWith("ALL_STATS:")) {
-                        updateLeaderboardUI(line.substring(10));
-                    }
-                }
+                java.net.Socket s = new java.net.Socket(relationdata.serverIP, 5000);
+                networkOut = new java.io.PrintWriter(s.getOutputStream(), true);
             } catch (Exception e) {}
         }).start();
     }
 
-    private void updateLeaderboardUI(String data) {
-        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'>");
-        sb.append("<table width='320' style='color:white; font-family:Tahoma;'>");
-        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน (อริส)</th></tr>");
-        
-        for (String p : data.split(",")) {
-            if (p.contains("=")) {
-                String[] parts = p.split("=");
-                String name = parts[0];
-                String rawScores = parts[1]; // เช่น "10/0"
-                
-                // --- แก้ไขตรงนี้: แยกเอาเฉพาะคะแนนแรกมาแสดง ---
-                String aliceScore = rawScores;
-                if (rawScores.contains("/")) {
-                    aliceScore = rawScores.split("/")[0]; // เอาเฉพาะตัวหน้าเครื่องหมาย /
-                }
-
-                String color = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
-                sb.append("<tr>")
-                .append("<td style='color:").append(color).append(";'>").append(name).append("</td>")
-                .append("<td align='right' style='color:#FF69B4;'>").append(aliceScore).append(" pt</td>")
-                .append("</tr>");
-            }
-        }
-        sb.append("</table></body></html>");
-        
-        SwingUtilities.invokeLater(() -> {
-            affinityStatusLabel.setText(sb.toString());
-            onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length);
-        });
-    }
-    
-    // ----------- ส่วนควบคุมเสียงและ Effect -----------
-
-    public void playEffect(String path, float volume) {
+    private void playSE(String path, boolean loop, float vol) {
         try {
-            File soundFile = new File(path); 
-            if (soundFile.exists()) {
-                AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
-                stopEffect(); 
-                effectClip = AudioSystem.getClip(); 
-                effectClip.open(audioIn);
-
-                FloatControl gainControl = (FloatControl) effectClip.getControl(FloatControl.Type.MASTER_GAIN);
-                gainControl.setValue(volume); 
-                effectClip.start();
-            } 
-        } catch (Exception e) { 
-            e.printStackTrace(); 
-        }
+            AudioInputStream ai = AudioSystem.getAudioInputStream(new File(path));
+            bgmClip = AudioSystem.getClip(); bgmClip.open(ai);
+            FloatControl fc = (FloatControl) bgmClip.getControl(FloatControl.Type.MASTER_GAIN);
+            fc.setValue(vol); if (loop) bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
+            bgmClip.start();
+        } catch (Exception e) {}
     }
 
-    private void jumpToIndex(int targetIndex) {
-        if (targetIndex < dialogues.length && targetIndex < imagePaths.length) {
-            String currentBG = imagePaths[currentIndex];
-            String nextBG = imagePaths[targetIndex];
-
-            if (!currentBG.equals(nextBG)) {
-                // ถ้าภาพเปลี่ยน ให้ Fade
-                performSceneFade(() -> {
-                    currentIndex = targetIndex;
-                    syncOnline(); 
-                    updateScene();
-                });
-            } else {
-                // ถ้าภาพเดิม ไม่ต้อง Fade
-                currentIndex = targetIndex;
-                syncOnline();
-                updateScene();
-            }
-        } else {
-            finishGame();
-        }
-    }
-
-    private void playSE(String path, boolean loop, float volume) {
+    public void playEffect(String path, float vol) {
         try {
-            File soundFile = new File(path);
-            if (!soundFile.exists()) return;
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioStream);
-            FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-            gainControl.setValue(volume);
-            if (loop) clip.loop(Clip.LOOP_CONTINUOUSLY);
-            clip.start();
-            if (path.contains("soundtrack")) this.bgmClip = clip;
-            else this.effectClip = clip;
-        } catch (Exception e) { e.printStackTrace(); }
+            AudioInputStream ai = AudioSystem.getAudioInputStream(new File(path));
+            Clip c = AudioSystem.getClip(); c.open(ai);
+            FloatControl fc = (FloatControl) c.getControl(FloatControl.Type.MASTER_GAIN);
+            fc.setValue(vol); c.start();
+        } catch (Exception e) {}
     }
 
-    private void stopBGM() {
-        try {
-            if (bgmClip != null) {
-                if (bgmClip.isRunning()) bgmClip.stop();
-                bgmClip.flush();
-                bgmClip.close();
-                bgmClip = null;
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private void stopEffect() {
-        if (effectClip != null) { effectClip.stop(); effectClip.close(); effectClip = null; }
-    }
-
-    private void stopAllSounds() {
-        stopBGM();
-        if (effectClip != null) { effectClip.stop(); effectClip.close(); effectClip = null; }
-    }
+    private void stopAllSounds() { if (bgmClip != null) bgmClip.stop(); }
 
     private void startFadeIn() {
-        Timer fadeTimer = new Timer(35, e -> {
+        Timer ft = new Timer(35, e -> {
             alpha -= 0.05f;
-            if (alpha <= 0) {
-                alpha = 0; 
-                ((Timer)e.getSource()).stop();
-                fadeOverlay.setVisible(false); // [แก้ไขตรงนี้] เปลี่ยนจาก remove เป็น setVisible(false)
-                updateScene(); 
-            }
+            if (alpha <= 0) { alpha = 0; ((Timer)e.getSource()).stop(); fadeOverlay.setVisible(false); }
             fadeOverlay.repaint();
         });
-        fadeTimer.start();
+        ft.start();
     }
 
     private void startTypewriter(String text) {
-        stopTypewriter();
-        isTyping = true;
-        charIndex = 0;
-        dialogueArea.setText("");
+        stopTypewriter(); isTyping = true; charIndex = 0;
         typewriterTimer = new Timer(30, e -> {
             if (charIndex < text.length()) {
                 charIndex++;
                 dialogueArea.setText("<html><body style='width: 750px;'>" + text.substring(0, charIndex) + "</body></html>");
-            } else {
-                stopTypewriter();
-            }
+            } else stopTypewriter();
         });
         typewriterTimer.start();
     }
 
-    private void stopTypewriter() {
-        if (typewriterTimer != null) typewriterTimer.stop();
-        isTyping = false;
-    }
+    private void stopTypewriter() { if (typewriterTimer != null) typewriterTimer.stop(); isTyping = false; }
 
-    private void finishGame() {
-        // --- เพิ่มบรรทัดเช็คและล็อคตรงนี้ ---
-        if (isFading) return; 
-        isFading = true; 
-        // ------------------------------
-
-        // 1. เริ่มการ Fade Out (จอมืดลงช้าๆ)
-        startFadeOut(() -> {
-            stopAllSounds(); 
-
-            // 2. สร้างข้อความบอกเวลา "ผ่านมาหลายสัปดาห์"
-            JLabel timeSkipLabel = new JLabel("ผ่านไปแล้วหลายสัปดาห์...", SwingConstants.CENTER);
-            timeSkipLabel.setFont(new Font("Tahoma", Font.BOLD, 40));
-            timeSkipLabel.setForeground(Color.WHITE);
-            timeSkipLabel.setBounds(0, 0, 1280, 800);
-            
-            layeredPane.add(timeSkipLabel, JLayeredPane.DRAG_LAYER);
-            layeredPane.setLayer(timeSkipLabel, JLayeredPane.DRAG_LAYER + 1);
-            
-            // 3. หน่วงเวลา 3 วินาที ก่อนไป Part 7
-            Timer delayTimer = new Timer(3000, ev -> {
-                ((Timer)ev.getSource()).stop();
-                
-                SwingUtilities.invokeLater(() -> {
-                    new part7().setVisible(true); // จะเปิดแค่หน้าต่างเดียวเพราะโดนล็อคไว้แล้ว
-                    dispose(); 
-                });
-            });
-            delayTimer.setRepeats(false);
-            delayTimer.start();
+    private void performSceneFade(Runnable onBlack) {
+        isFading = true; alpha = 0.0f; fadeOverlay.setVisible(true);
+        Timer fo = new Timer(20, e -> {
+            alpha += 0.05f;
+            if (alpha >= 1.0f) {
+                alpha = 1.0f; ((Timer)e.getSource()).stop(); onBlack.run();
+                Timer fi = new Timer(20, ev -> {
+                    alpha -= 0.05f; if (alpha <= 0) { alpha = 0; ((Timer)ev.getSource()).stop(); isFading = false; fadeOverlay.setVisible(false); }
+                    fadeOverlay.repaint();
+                }); fi.start();
+            }
+            fadeOverlay.repaint();
         });
+        fo.start();
     }
 
     private void startCharacterFadeIn() {
-        charAlpha1 = 0.0f;
-        if (charFadeTimer1 != null && charFadeTimer1.isRunning()) charFadeTimer1.stop();
-        charFadeTimer1 = new Timer(30, e -> {
-            charAlpha1 += 0.05f; // ปรับให้ช้าลง (เดิม 0.1f)
-            if (charAlpha1 >= 1.0f) { 
-                charAlpha1 = 1.0f; 
-                ((Timer)e.getSource()).stop(); 
-            }
-            characterLabel.repaint();
+        charAlpha = 0.0f;
+        if (charFadeTimer != null) charFadeTimer.stop();
+        charFadeTimer = new Timer(30, e -> {
+            charAlpha += 0.05f; if (charAlpha >= 1.0f) { charAlpha = 1.0f; ((Timer)e.getSource()).stop(); }
+            characterLabel.repaint(); characterLabel2.repaint();
         });
-        charFadeTimer1.start();
+        charFadeTimer.start();
     }
 
-    // ระบบ Fade จอเมื่อเปลี่ยนฉากพื้นหลัง
-    private void performSceneFade(Runnable onBlack) {
-        if (isFading) return; 
-        isFading = true; 
-        alpha = 0.0f;
-        
-        // ตรวจสอบว่ามีอยู่ไหม ถ้าไม่มีให้แอดครั้งเดียวและตั้งไว้บนสุด
-        if (fadeOverlay.getParent() == null) {
-            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
-        }
-        fadeOverlay.setVisible(true);
-        layeredPane.setLayer(fadeOverlay, JLayeredPane.DRAG_LAYER); // บังคับให้อยู่หน้าสุดเสมอ
-        
-        // 1. Fade Out (ทำให้จอมืดลง)
-        // เปลี่ยนจาก 0.08f เป็น 0.04f เพื่อให้ใช้เวลาประมาณ 0.5 วินาที
-        Timer fadeOut = new Timer(20, null);
-        fadeOut.addActionListener(e -> {
-            alpha += 0.04f; 
-            if (alpha >= 1.0f) {
-                alpha = 1.0f;
-                fadeOut.stop();
-                
-                // เปลี่ยนภาพพื้นหลังตอนจอมืดสนิท
-                onBlack.run(); 
-                
-                // 2. Fade In (ทำให้จอสว่างขึ้น)
-                Timer fadeIn = new Timer(20, eve -> {
-                    alpha -= 0.04f;
-                    if (alpha <= 0) {
-                        alpha = 0;
-                        ((Timer)eve.getSource()).stop();
-                        isFading = false;
-                        fadeOverlay.setVisible(false); // ซ่อนไว้เพื่อไม่ให้ขวางการคลิก
-                    }
-                    fadeOverlay.repaint();
-                });
-                fadeIn.start();
-            }
-            fadeOverlay.repaint();
-        });
-        fadeOut.start();
+    private void finishGame() {
+        if (isFading) return; isFading = true;
+        performSceneFade(() -> { new part7().setVisible(true); dispose(); });
     }
 
-    private void startFadeOut(Runnable onComplete) {
-        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
-        
-        fadeOverlay.setVisible(true); // [เพิ่มบรรทัดนี้] เพื่อให้แผ่นสีดำกลับมาแสดงผลตอนจบเกม
-        alpha = 0.0f;
-        
-        Timer fadeTimer = new Timer(30, e -> {
-            alpha += 0.03f;
-            if (alpha >= 1.0f) {
-                alpha = 1.0f;
-                ((Timer)e.getSource()).stop();
-                if (onComplete != null) onComplete.run();
-            }
-            fadeOverlay.repaint();
-        });
-        fadeTimer.start();
-    }
-
-    public ImageIcon scaleImage(String path, int width, int height) {
-        try {
-            ImageIcon icon = new ImageIcon(path);
-            // เปลี่ยนจาก SCALE_SMOOTH เป็น SCALE_FAST เพื่อความลื่นไหล
-            return new ImageIcon(icon.getImage().getScaledInstance(width, height, Image.SCALE_FAST));
-        } catch (Exception e) { 
-            return null; 
-        }
+    public ImageIcon scaleImage(String p, int w, int h) {
+        try { return new ImageIcon(new ImageIcon(p).getImage().getScaledInstance(w, h, Image.SCALE_FAST)); } catch (Exception e) { return null; }
     }
 
     public static void main(String[] args) {
