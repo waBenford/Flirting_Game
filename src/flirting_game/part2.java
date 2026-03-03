@@ -590,10 +590,8 @@ public class part2 extends JFrame {
             isChoosing = false;
 
             // ตรวจสอบเงื่อนไขคะแนนความสนิท (อ้างอิงจาก target ที่ส่งมา)
-            if (target == 9) {
-                relationdata.aliceRel.addAffinity(10);
-            } else if (target == 8) {
-                relationdata.aliceRel.decreaseAffinity(5);
+            if (target == 8 || target == 9 || target == 10) {
+                System.out.println("Neutral Choice: No affinity change.");
             }
 
             // ส่งข้อมูลไปยัง Server (ถ้าเปิด Online Mode)

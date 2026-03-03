@@ -736,12 +736,20 @@ public class part3 extends JFrame {
             currentIndex = target; 
             updateScene();
 
-            // ตรวจสอบเงื่อนไขคะแนนความสนิท (อ้างอิงจาก target ของ Part 3)
-            if (target == 33) {
+            // 1. เพิ่ม Logic การให้คะแนน/ลดคะแนน
+            if (target == 34 || target == 36) {
+                // ทางเลือกที่ดีที่สุด (เช่น ฉากปลอบอริส)
                 relationdata.aliceRel.addAffinity(10);
-            } else if (target == 34) {
-                relationdata.aliceRel.decreaseAffinity(5);
+            } 
+            else if (target == 15 || target == 16 || target == 17 || target == 35) {
+                // --- ส่วนที่แก้ไข: Choice 15, 16, 17 ให้คะแนนคงเดิม ---
+                // ไม่ต้องใส่คำสั่ง add หรือ decrease คะแนนจะไม่ขยับ
+                System.out.println("Neutral Choice: No affinity change.");
             }
+            else if (target == 37) {
+                // ทางเลือกที่ทำให้อริสเสียความรู้สึก
+                relationdata.aliceRel.decreaseAffinity(5);
+        }
 
             // ส่งข้อมูลไป Server เพื่อบันทึกลง SQL (Online Mode)
             if (relationdata.isOnlineMode && networkOut != null) {
