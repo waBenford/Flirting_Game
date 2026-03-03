@@ -293,100 +293,102 @@ public class part4 extends JFrame {
             }
     }
     // --- ระบบ Animation เข้าฉาก (เลื่อนและ Fade) ---
-    private void animateCharacterEntry(JLabel label, String path, int w, int h, int startX, int endX, int targetY, boolean isChar1) {
-        isAnimatingEntry = true;
-        label.setIcon(getOptimizedImage(path, w, h));
-        label.setBounds(startX, targetY, w, h);
-        if (isChar1) charAlpha1 = 0.0f; else charAlpha2 = 0.0f;
+        private void animateCharacterEntry(JLabel label, String path, int w, int h, int startX, int endX, int targetY, boolean isChar1) {
+            isAnimatingEntry = true;
+            label.setIcon(getOptimizedImage(path, w, h));
+            label.setBounds(startX, targetY, w, h); // ใช้ w, h ที่ส่งมาเพื่อให้ขนาดเท่าตอนปกติ
+            if (isChar1) charAlpha1 = 0.0f; else charAlpha2 = 0.0f;
 
-        Timer fadeIn = new Timer(30, null);
-        fadeIn.addActionListener(e -> {
-            if (isChar1) charAlpha1 += 0.1f; else charAlpha2 += 0.1f;
-            if ((isChar1 ? charAlpha1 : charAlpha2) >= 1.0f) {
-                if (isChar1) charAlpha1 = 1.0f; else charAlpha2 = 1.0f;
-                fadeIn.stop();
+            Timer fadeIn = new Timer(30, null);
+            fadeIn.addActionListener(e -> {
+                if (isChar1) charAlpha1 += 0.1f; else charAlpha2 += 0.1f;
+                if ((isChar1 ? charAlpha1 : charAlpha2) >= 1.0f) {
+                    if (isChar1) charAlpha1 = 1.0f; else charAlpha2 = 1.0f;
+                    fadeIn.stop();
+                    
+                    Timer slide = new Timer(15, null);
+                    final long start = System.currentTimeMillis();
+                    slide.addActionListener(ev -> {
+                        float p = Math.min(1.0f, (System.currentTimeMillis() - start) / 500.0f);
+                        int curX = (int) (startX + (endX - startX) * p);
+                        label.setBounds(curX, targetY, w, h); // รักษาขนาด w, h ไว้ตลอดการเลื่อน
+                        if (p >= 1.0f) { slide.stop(); isAnimatingEntry = false; }
+                    });
+                    slide.start();
+                }
+                label.repaint();
+            });
+            fadeIn.start();
+        }
+
+        private void updateScene() {
+            if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+            if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
+            handleSoundEffects(currentIndex);
+
+            String currentBG = imagePaths[currentIndex];
+            String prevBG = (currentIndex > 0) ? imagePaths[currentIndex - 1] : "";
+            backgroundLabel.setIcon(getOptimizedImage(currentBG, 1280, 800));
+
+            String currentP1 = (currentIndex < charPaths.length) ? charPaths[currentIndex] : "res/empty.png";
+            String prevP1 = (currentIndex > 0) ? charPaths[currentIndex - 1] : "res/empty.png";
+            String currentP2 = (currentIndex < charPaths2.length) ? charPaths2[currentIndex] : "res/empty.png";
+            String prevP2 = (currentIndex > 0) ? charPaths2[currentIndex - 1] : "res/empty.png";
+
+            // --- 1. ตรรกะพิเศษสำหรับฉากเลื่อนแยก (s3, s4) ---
+            if ((currentBG.contains("s3.png") && !prevBG.contains("s3.png")) || 
+                (currentBG.contains("s4.png") && !prevBG.contains("s4.png"))) {
                 
-                // เริ่มการเลื่อน (Slide)
-                Timer slide = new Timer(15, null);
-                final long start = System.currentTimeMillis();
-                slide.addActionListener(ev -> {
-                    float p = Math.min(1.0f, (System.currentTimeMillis() - start) / 500.0f);
-                    int curX = (int) (startX + (endX - startX) * p);
-                    label.setBounds(curX, targetY, w, h);
-                    if (p >= 1.0f) { slide.stop(); isAnimatingEntry = false; }
-                });
-                slide.start();
+                if (!currentP1.contains("empty")) {
+                    // Mc ปกติ: w=500, h=900, y=100, endX=50
+                    animateCharacterEntry(characterLabel, currentP1, 500, 900, 390, 50, 100, true);
+                }
+                if (!currentP2.contains("empty")) {
+                    // Alice ปกติ: w=1050, h=700, y=70, endX=420
+                    animateCharacterEntry(characterLabel2, currentP2, 1050, 700, 115, 420, 100, false);
+                }
+            } 
+            // --- 2. ตัวละครโผล่ครั้งแรก (Slide เข้า) ---
+         // --- 2. ตัวละครโผล่ครั้งแรก (Slide เข้า) ---
+            else if (prevP1.contains("empty") && !currentP1.contains("empty")) {
+                if (currentP1.contains("Uncle.png") || currentP1.contains("factor/Uncle")) {
+                    // ล็อกค่าให้เท่ากับ updateCharacterLayer: W=900, H=900, EndX=-100, Y=200
+                    animateCharacterEntry(characterLabel, currentP1, 900, 900, 100, -100, 200, true);
+                } 
+                else if (currentP1.contains("demon")) {
+                    // ปีศาจ: W=800, H=900, EndX=50, Y=100
+                    animateCharacterEntry(characterLabel, currentP1, 800, 900, 390, 50, 100, true);
+                }
+                else {
+                    int w = currentP1.contains("Mc") ? 500 : 800;
+                    animateCharacterEntry(characterLabel, currentP1, w, 900, 390, 50, 100, true);
+                }
             }
-            label.repaint();
-        });
-        fadeIn.start();
-    }
-
-    private void updateScene() {
-        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
-        if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
-        handleSoundEffects(currentIndex);
-
-        String currentBG = imagePaths[currentIndex];
-        String prevBG = (currentIndex > 0) ? imagePaths[currentIndex - 1] : "";
-        backgroundLabel.setIcon(getOptimizedImage(currentBG, 1280, 800));
-
-        String currentP1 = (currentIndex < charPaths.length) ? charPaths[currentIndex] : "res/empty.png";
-        String prevP1 = (currentIndex > 0) ? charPaths[currentIndex - 1] : "res/empty.png";
-        String currentP2 = (currentIndex < charPaths2.length) ? charPaths2[currentIndex] : "res/empty.png";
-        String prevP2 = (currentIndex > 0) ? charPaths2[currentIndex - 1] : "res/empty.png";
-
-        // --- 1. ตรรกะพิเศษสำหรับฉาก s3.png หรือ s4.png (Fade กลางแล้วเลื่อนแยก) ---
-        if ((currentBG.contains("s3.png") && !prevBG.contains("s3.png")) || 
-            (currentBG.contains("s4.png") && !prevBG.contains("s4.png"))) {
             
-            if (!currentP1.contains("empty")) {
-                animateCharacterEntry(characterLabel, currentP1, 500, 900, 390, 50, 100, true);
+            else if (prevP2.contains("empty") && !currentP2.contains("empty")) {
+                // Alice หรือตัวละครหญิงอื่นๆ
+                animateCharacterEntry(characterLabel2, currentP2, 1050, 700, 115, 420, 100, false);
             }
-            if (!currentP2.contains("empty")) {
-                animateCharacterEntry(characterLabel2, currentP2, 1050, 900, 115, 420, 70, false);
+            // --- 3. เปลี่ยนท่าทาง/สีหน้า (Fade In อยู่กับที่) ---
+            else {
+                if (!currentP1.equals(prevP1) && !currentP1.contains("empty")) {
+                    updateCharacterLayer(characterLabel, charPaths); // ใช้ Layer ปกติเพื่อล็อกตำแหน่ง
+                    startCharacterFadeIn1();
+                }
+                if (!currentP2.equals(prevP2) && !currentP2.contains("empty")) {
+                    updateCharacterLayer(characterLabel2, charPaths2); // ใช้ Layer ปกติเพื่อล็อกตำแหน่ง
+                    startCharacterFadeIn2();
+                }
             }
-        } 
-        // --- 2. ตรรกะปกติ: ตัวละครโผล่ครั้งแรก (จากไม่มีรูป เป็นมีรูป) ---
-        else if (prevP1.contains("empty") && !currentP1.contains("empty")) {
-            int w = currentP1.contains("Mc") ? 500 : 800;
-            int targetY = currentP1.contains("Uncle") ? 225 : 100;
-            animateCharacterEntry(characterLabel, currentP1, w, 900, 390, 50, targetY, true);
-        } 
-        else if (prevP2.contains("empty") && !currentP2.contains("empty")) {
-            int w = currentP2.contains("Alice") ? 1050 : 800;
-            int targetY = currentP2.contains("Alice") ? 130 : 100;
-            animateCharacterEntry(characterLabel2, currentP2, w, 900, 115, 420, targetY, false);
-        }
-        // --- 3. ตรรกะ Fade ตอนเปลี่ยนสีหน้า (Path เปลี่ยนแต่ตัวละครอยู่บนจอแล้ว) ---
-        else {
-            if (!currentP1.equals(prevP1) && !currentP1.contains("empty")) {
+
+            if (!isAnimatingEntry) {
                 updateCharacterLayer(characterLabel, charPaths);
-                startCharacterFadeIn1();
-            }
-            if (!currentP2.equals(prevP2) && !currentP2.contains("empty")) {
                 updateCharacterLayer(characterLabel2, charPaths2);
-                startCharacterFadeIn2();
+                charAlpha1 = currentP1.contains("empty") ? 0.0f : 1.0f;
+                charAlpha2 = currentP2.contains("empty") ? 0.0f : 1.0f;
             }
+            layeredPane.repaint();
         }
-
-        // จัดการ Layer กรณีไม่มี Animation และซ่อนรูปถ้าเป็น empty
-        if (!isAnimatingEntry) {
-            updateCharacterLayer(characterLabel, charPaths);
-            updateCharacterLayer(characterLabel2, charPaths2);
-            
-            // ถ้า Path เป็น empty ให้หายไปเลย (alpha = 0) 
-            // แต่ถ้าไม่ใช่ ให้คงค่า Alpha เดิมไว้ (เพื่อให้ Timer ทำงานต่อได้)
-            if (currentP1.contains("empty")) charAlpha1 = 0.0f;
-            else if (!currentP1.equals(prevP1)) { /* ปล่อยให้ Timer จัดการ */ }
-            else charAlpha1 = 1.0f;
-
-            if (currentP2.contains("empty")) charAlpha2 = 0.0f;
-            else if (!currentP2.equals(prevP2)) { /* ปล่อยให้ Timer จัดการ */ }
-            else charAlpha2 = 1.0f;
-        }
-        layeredPane.repaint();
-    }
 
     public void screenShake(int intensity, int duration) {
         Point originalLoc = getLocation();
@@ -409,15 +411,33 @@ public class part4 extends JFrame {
     }
 
     private void updateCharacterLayer(JLabel label, String[] paths) {
-        if (currentIndex >= paths.length || paths[currentIndex].contains("empty")) { label.setIcon(null); return; }
+        if (currentIndex >= paths.length || paths[currentIndex].contains("empty")) { 
+            label.setIcon(null); 
+            return; 
+        }
         String path = paths[currentIndex];
-        if (path.contains("Mc/body")) { label.setIcon(getOptimizedImage(path, 500, 900)); label.setBounds(50, 100, 600, 900); } 
-        else if (path.contains("Alice") || path.contains("Girl")) { label.setIcon(getOptimizedImage(path, 1050, 700)); label.setBounds(420, 70, 1300, 900); } 
-        else if (path.contains("Uncle.png")) { label.setIcon(getOptimizedImage(path, 900, 900)); label.setBounds(-100, 225, 900, 900); } 
-        else if (path.contains("demon")) { label.setIcon(getOptimizedImage(path, 800, 900)); label.setBounds(50, 100, 800, 900); }
-        else { label.setIcon(getOptimizedImage(path, 800, 900)); label.setBounds(420, 100, 800, 900); }
+        
+        // ล็อกตำแหน่งชาวบ้าน/ลุง ให้คงที่ (อ้างอิงจากภาพที่ต้องการให้หัวอยู่ระดับพอดี)
+        if (path.contains("Uncle.png") || path.contains("ชาวบ้าน")) { 
+            // ปรับขนาดเป็น 900x900 และตำแหน่ง x=-100, y=200 (หรือตามความเหมาะสมของไฟล์ภาพ)
+            label.setIcon(getOptimizedImage(path, 900, 900)); 
+            label.setBounds(-100, 200, 900, 900); 
+        } 
+        else if (path.contains("Mc/body")) { 
+            label.setIcon(getOptimizedImage(path, 500, 900)); 
+            label.setBounds(50, 100, 500, 900); 
+        } 
+        else if (path.contains("Alice") || path.contains("Girl")) { 
+            // ล็อก Alice ไว้ที่เดิมเสมอ
+            label.setIcon(getOptimizedImage(path, 1050, 700)); 
+            label.setBounds(420, 100, 1050, 700); 
+        } 
+        else { 
+            label.setIcon(getOptimizedImage(path, 800, 900)); 
+            label.setBounds(50, 100, 800, 900); 
+        }
     }
-
+    
     private void startCharacterFadeIn1() {
         charAlpha1 = 0.0f;
         if (charFadeTimer1 != null && charFadeTimer1.isRunning()) charFadeTimer1.stop();
