@@ -2,9 +2,14 @@ package flirting_game;
 
 public class relationdata {
     public static relationship aliceRel = new relationship("อริส");
-    public static relationship nebulaRel = new relationship("เนบิวล่า"); // เพิ่มบรรทัดนี้
+    public static relationship nebulaRel = new relationship("Nebula"); // เพิ่มตัวแปรความสัมพันธ์ Nebula
     public static boolean isOnlineMode = false;
-    public static String serverIP = "154.84.153.179"; 
-    public static String playerName = "Guest";      
+    public static String serverIP = "154.84.153.179"; // ใส่ IP ของ Server คุณที่นี่
+    public static String playerName = "Guest";      // << เพิ่มบรรทัดนี้เพื่อเก็บชื่อ
     public static int onlinePlayerCount = 1;
+
+    // --- สถานะการปลดล็อคฉากจบ (ทดสอบ: ปลดล็อคฉากแรกไว้เป็นตัวอย่าง) ---
+    public static boolean isEnding1Unlocked = true;
+    public static boolean isEnding2Unlocked = false;
+    public static boolean isEnding3Unlocked = false;
 }
