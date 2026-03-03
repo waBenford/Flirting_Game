@@ -25,13 +25,30 @@ public class part9 extends JFrame {
     private Clip effectClip;
     private JButton choiceButton1, choiceButton2;
     private boolean isChoosing = false;
+    private boolean isFinishing = false; 
     private Timer typewriterTimer;
     private int charIndex = 0;
     private boolean isTyping = false;
     private Map<String, ImageIcon> imageCache = new HashMap<>();
     
+    // --- ระบบความสัมพันธ์และ Network ---
+    private JLabel nebulaAffinityLabel, nebulaStatusLabel;
+    private JLabel affinityLabel, statusLabel;
+    private JPanel statusOverlay;
+    private JLabel onlineCountLabel, affinityStatusLabel;
     private PrintWriter networkOut;
     private String allPlayersData = ""; 
+
+    // --- ระบบ Fade ---
+    private float alpha = 1.0f; 
+    private JPanel fadeOverlay; 
+    private float charAlpha = 0.0f; 
+    private Timer charFadeTimer;
+    private String lastCharPath = "";
+    private float bgAlpha = 0.0f; 
+    private Timer bgFadeTimer;
+    private String lastBgPath = "";
+    private JPanel bgFadeOverlay; 
     
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 28);
 
@@ -179,7 +196,7 @@ public class part9 extends JFrame {
     };
 
     public part9() {
-        setTitle("ISEKAI  - Part 9: Path to Darkness");
+        setTitle("ISEKAI - Part 9: Path to Darkness");
         setSize(1280, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -190,55 +207,213 @@ public class part9 extends JFrame {
 
         playBGM("res/sound/soundtrack6.wav", -10.0f);
 
+        // --- ฉากหลังและแผ่น Fade Transition ---
         backgroundLabel = new JLabel();
         backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        characterLabel = new JLabel();
+        bgFadeOverlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setColor(new Color(0, 0, 0, (int)(bgAlpha * 255)));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
+            }
+        };
+        bgFadeOverlay.setBounds(0, 0, 1280, 800);
+        bgFadeOverlay.setOpaque(false);
+        layeredPane.add(bgFadeOverlay, Integer.valueOf(JLayeredPane.DEFAULT_LAYER + 1));
+
+        // --- ตัวละครพร้อมระบบ Fade ---
+        characterLabel = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, charAlpha));
+                super.paintComponent(g2d);
+                g2d.dispose();
+            }
+        };
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
 
+        // --- แผ่น Fade In ตอนเริ่มเกม ---
+        fadeOverlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(new Color(0, 0, 0, (int)(alpha * 255)));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        fadeOverlay.setBounds(0, 0, 1280, 800);
+        fadeOverlay.setOpaque(false);
+        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+
+        startFadeIn();
         setupDialogueUI();
-        updateScene();
+        setupRelationshipUI(); // แสดงผลคะแนนทันทีที่นี่
+        setupStatusOverlay();
+        setupTabKeyBinding();
         initNetwork(); 
+        updateScene();
 
         layeredPane.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                handleNext();
-            }
+            @Override public void mouseClicked(MouseEvent e) { handleNext(); }
         });
     }
 
     private void updateScene() {
         if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
         if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
-        if (currentIndex < imagePaths.length) backgroundLabel.setIcon(getOptimizedImage(imagePaths[currentIndex], 1280, 800));
         
+        // Background Transition
+        if (currentIndex < imagePaths.length) {
+            String newBg = imagePaths[currentIndex];
+            if (!newBg.equals(lastBgPath)) {
+                startBackgroundTransition(newBg);
+                lastBgPath = newBg;
+            }
+        }
+        
+        // Character Fade
         if (currentIndex < charPaths.length) {
             String path = charPaths[currentIndex];
             if (path.contains("empty.png")) {
                 characterLabel.setIcon(null);
-            } else {
+                lastCharPath = path;
+            } else if (!path.equals(lastCharPath)) {
                 int charW, charH, charX, charY;
                 if (path.contains("Nebula")) {
-                    charW = 900; charH = 900;
-                    charX = (1280 - charW) / 2;
-                    charY = 50; 
+                    charW = 900; charH = 900; charX = (1280 - charW) / 2; charY = 50; 
                 } else if (path.contains("dan")) {
-                    charW = 1400; charH = 1000;
-                    charX = (1280 - charW) / 2;
-                    charY = 60; 
+                    charW = 1400; charH = 1000; charX = (1280 - charW) / 2; charY = 60; 
                 } else {
-                    charW = 1200; charH = 950;
-                    charX = (1280 - charW) / 2;
-                    charY = 50;
+                    charW = 1200; charH = 950; charX = (1280 - charW) / 2; charY = 50;
                 }
                 characterLabel.setBounds(charX, charY, charW, charH);
                 characterLabel.setIcon(getOptimizedImage(path, charW, charH));
+                startCharacterFadeIn();
+                lastCharPath = path;
             }
         }
         handleSoundEffects(currentIndex);
         layeredPane.repaint();
+    }
+
+    private void startCharacterFadeIn() {
+        if (charFadeTimer != null) charFadeTimer.stop();
+        charAlpha = 0.0f;
+        charFadeTimer = new Timer(20, e -> {
+            charAlpha += 0.05f;
+            if (charAlpha >= 1.0f) { charAlpha = 1.0f; ((Timer)e.getSource()).stop(); }
+            characterLabel.repaint();
+        });
+        charFadeTimer.start();
+    }
+
+    private void startBackgroundTransition(String newPath) {
+        if (bgFadeTimer != null) bgFadeTimer.stop();
+        bgFadeTimer = new Timer(20, null);
+        bgFadeTimer.addActionListener(e -> {
+            bgAlpha += 0.08f;
+            if (bgAlpha >= 1.0f) {
+                bgAlpha = 1.0f; bgFadeTimer.stop();
+                backgroundLabel.setIcon(getOptimizedImage(newPath, 1280, 800));
+                Timer fadeIn = new Timer(25, ev -> {
+                    bgAlpha -= 0.08f;
+                    if (bgAlpha <= 0.0f) { bgAlpha = 0.0f; ((Timer)ev.getSource()).stop(); }
+                    bgFadeOverlay.repaint();
+                });
+                fadeIn.start();
+            }
+            bgFadeOverlay.repaint();
+        });
+        bgFadeTimer.start();
+    }
+
+    private void startFadeIn() {
+        alpha = 1.0f;
+        new Timer(50, e -> {
+            alpha -= 0.02f;
+            if (alpha <= 0) { alpha = 0; ((Timer)e.getSource()).stop(); layeredPane.remove(fadeOverlay); }
+            fadeOverlay.repaint();
+        }).start();
+    }
+
+    private void setupRelationshipUI() {
+        JPanel relPanel = new JPanel(new GridLayout(4, 1, 0, 0)); 
+        relPanel.setBounds(0, 0, 280, 120); 
+        relPanel.setBackground(new Color(0, 0, 0, 190)); 
+        relPanel.setOpaque(true);
+        relPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 105, 180), 2),
+            BorderFactory.createEmptyBorder(5, 15, 5, 10)
+        ));
+
+        // แก้ไขให้ดึงค่าเริ่มต้นมาแสดงทันที
+        affinityLabel = createRelLabel("อริส: " + relationdata.aliceRel.getAffinity(), new Color(255, 192, 203), 18);
+        statusLabel = createRelLabel("สถานะ: " + relationdata.aliceRel.getStatus(), Color.WHITE, 14);
+        nebulaAffinityLabel = createRelLabel("เนบิวล่า: " + relationdata.nebulaRel.getAffinity(), new Color(210, 160, 255), 18);
+        nebulaStatusLabel = createRelLabel("สถานะ: " + relationdata.nebulaRel.getStatus(), Color.WHITE, 14);
+
+        relPanel.add(affinityLabel); relPanel.add(statusLabel);
+        relPanel.add(nebulaAffinityLabel); relPanel.add(nebulaStatusLabel);
+        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
+    }
+
+    private JLabel createRelLabel(String t, Color c, int s) {
+        JLabel l = new JLabel(t); l.setFont(new Font("Tahoma", Font.BOLD, s)); l.setForeground(c); return l;
+    }
+
+    private void setupStatusOverlay() {
+        statusOverlay = new JPanel(new BorderLayout(10, 10));
+        statusOverlay.setBackground(new Color(0, 0, 0, 210)); 
+        statusOverlay.setBounds(440, 150, 400, 400); 
+        statusOverlay.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        statusOverlay.setVisible(false);
+
+        JLabel titleLabel = new JLabel("--- Scoreboard ---", SwingConstants.CENTER);
+        titleLabel.setForeground(Color.YELLOW); titleLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
+        affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล...", SwingConstants.CENTER);
+        affinityStatusLabel.setForeground(Color.WHITE); affinityStatusLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        affinityStatusLabel.setVerticalAlignment(SwingConstants.TOP);
+        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
+        onlineCountLabel.setForeground(Color.CYAN); onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
+
+        statusOverlay.add(titleLabel, BorderLayout.NORTH);
+        statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER);
+        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH); 
+        layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
+    }
+
+    private void setupTabKeyBinding() {
+        layeredPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("TAB"), "toggleTab");
+        layeredPane.getActionMap().put("toggleTab", new AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) { statusOverlay.setVisible(!statusOverlay.isVisible()); }
+        });
+    }
+
+    private void updateLeaderboardUI(String data) {
+        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'><table width='360' style='color:white; font-family:Tahoma;'>");
+        sb.append("<tr style='color:#FFD700;'><th align='left' width='160'>ผู้เล่น</th><th align='right' width='90'>อริส</th><th align='right' width='90'>เนบิวล่า</th></tr>");
+        for (String p : data.split(",")) {
+            if (p.contains("=")) {
+                String[] pts = p.split("="); String name = pts[0], aV = "0", nV = "0";
+                if (pts[1].contains("/")) { String[] sc = pts[1].split("/"); aV = sc[0]; nV = sc[1]; }
+                else { aV = pts[1]; }
+                String col = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
+                sb.append("<tr><td style='color:").append(col).append(";'>").append(name).append("</td>")
+                  .append("<td align='right' style='color:#FFC0CB;'>").append(aV).append("</td>")
+                  .append("<td align='right' style='color:#DA70D6;'>").append(nV).append("</td></tr>");
+            }
+        }
+        sb.append("</table></body></html>");
+        SwingUtilities.invokeLater(() -> {
+            affinityStatusLabel.setText(sb.toString());
+            onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length);
+        });
     }
 
     private void handleNext() {
@@ -315,69 +490,44 @@ public class part9 extends JFrame {
         JButton btn = new JButton(text) {
             private double scale = 1.0;
             private int alphaMod = 150;
-            private Timer animTimer;
-
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                int centerX = getWidth() / 2;
-                int centerY = getHeight() / 2;
-                g2.translate(centerX, centerY);
-                g2.scale(scale, scale);
-                g2.translate(-centerX, -centerY);
-                g2.setColor(new Color(255, 255, 255, alphaMod));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
-                g2.setColor(new Color(225, 105, 180)); 
-                g2.setStroke(new BasicStroke(2));   
-                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-
-            {
-                addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) { startAnimation(1.05, 200); }
-                    @Override
-                    public void mouseExited(MouseEvent e) { startAnimation(1.0, 150); }
-                    @Override
-                    public void mousePressed(MouseEvent e) { scale = 0.95; repaint(); }
-                });
-            }
-
-            private void startAnimation(double targetScale, int targetAlpha) {
-                if (animTimer != null && animTimer.isRunning()) animTimer.stop();
-                animTimer = new Timer(15, ev -> {
-                    if (scale < targetScale) scale += 0.01;
-                    else if (scale > targetScale) scale -= 0.01;
-                    if (alphaMod < targetAlpha) alphaMod += 5;
-                    else if (alphaMod > targetAlpha) alphaMod -= 5;
-                    if (Math.abs(scale - targetScale) < 0.01 && alphaMod == targetAlpha) {
-                        scale = targetScale;
-                        ((Timer)ev.getSource()).stop();
-                    }
-                    repaint();
-                });
-                animTimer.start();
+                g2.translate(getWidth()/2, getHeight()/2); g2.scale(scale, scale); g2.translate(-getWidth()/2, -getHeight()/2);
+                g2.setColor(new Color(255, 255, 255, alphaMod)); g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+                g2.setColor(new Color(225, 105, 180)); g2.setStroke(new BasicStroke(2)); g2.drawRoundRect(1, 1, getWidth()-3, getHeight()-3, 22, 22);
+                g2.dispose(); super.paintComponent(g);
             }
         };
-
-        btn.setBounds(800, y, 350, 60); 
-        btn.setFont(new Font("Tahoma", Font.BOLD, 16));
-        btn.setForeground(new Color(45, 65, 115)); 
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setContentAreaFilled(false);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false); 
+        btn.setBounds(800, y, 350, 60); btn.setFont(new Font("Tahoma", Font.BOLD, 16));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR)); btn.setContentAreaFilled(false); btn.setBorderPainted(false);
         
         btn.addActionListener(e -> {
             playEffect("res/sound/click.wav", 0.0f);
-            layeredPane.remove(choiceButton1);
-            layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2);
             isChoosing = false; 
+            
+            // อัปเดตคะแนนและส่งไป Server
+            if (target == 8 || target == 52) {
+                relationdata.aliceRel.addAffinity(50);
+                if (relationdata.isOnlineMode && networkOut != null) {
+                networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
+            }
+            } else if (target == 42 || target == 63 || target == 81) {
+                relationdata.nebulaRel.addAffinity(10);
+                if (relationdata.isOnlineMode && networkOut != null) {
+                    networkOut.println("UPDATE_NEBULA_AFFINITY:" + relationdata.nebulaRel.getAffinity());
+                }
+            }
+
             currentIndex = target; 
-            updateScene(); 
+            updateScene();
+            
+            affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
+            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+            nebulaAffinityLabel.setText("เนบิวล่า: " + relationdata.nebulaRel.getAffinity());
+            nebulaStatusLabel.setText("สถานะ: " + relationdata.nebulaRel.getStatus());
         });
         return btn;
     }
@@ -452,78 +602,119 @@ public class part9 extends JFrame {
     }
 
     private void finishGame() {
-        UIManager.put("OptionPane.messageFont", THAI_FONT);
-        if (relationdata.isOnlineMode) {
-            calculateOnlineEnding();
-        } else {
-            JOptionPane.showMessageDialog(this, "จบเกม (Offline Mode)");
-            if (relationdata.aliceRel.getAffinity() > 50) relationdata.isEnding2Unlocked = true;
-            if (relationdata.nebulaRel.getAffinity() > 50) relationdata.isEnding3Unlocked = true;
-            if (relationdata.isEnding2Unlocked && relationdata.isEnding3Unlocked) relationdata.isEnding1Unlocked = true;
-            new GalleryPage().setVisible(true);
-            dispose();
-        }
-    }
+        if (isFinishing) return; // ป้องกันการคลิกซ้ำ
+        isFinishing = true;
 
-    private void calculateOnlineEnding() {
-        if (allPlayersData == null || allPlayersData.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "ไม่สามารถดึงข้อมูลผู้เล่นอื่นได้");
-            return;
-        }
-        int myAlice = relationdata.aliceRel.getAffinity();
-        int myNebula = relationdata.nebulaRel.getAffinity();
-        String myName = relationdata.playerName;
-        int maxAlice = -9999, maxNebula = -9999;
+        // เรียกใช้งานแผ่น Fade Out
+        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
         
-        for (String p : allPlayersData.split(",")) {
-            if (p.contains("=")) {
-                int score = Integer.parseInt(p.split("=")[1]);
-                int aScore = score / 1000;
-                int nScore = score % 1000;
-                if (aScore > maxAlice) maxAlice = aScore;
-                if (nScore > maxNebula) maxNebula = nScore;
-            }
-        }
+        alpha = 0.0f; 
+        Timer fadeOutTimer = new Timer(30, e -> {
+            alpha += 0.02f;
+            if (alpha >= 1.0f) {
+                alpha = 1.0f;
+                ((Timer)e.getSource()).stop();
+                stopBGM();
 
-        boolean grandWinnerExists = false, amIGrandWinner = false;
-        for (String p : allPlayersData.split(",")) {
-            if (p.contains("=")) {
-                String[] parts = p.split("=");
-                int score = Integer.parseInt(parts[1]);
-                if (score / 1000 == maxAlice && score % 1000 == maxNebula) {
-                    grandWinnerExists = true;
-                    if (parts[0].equals(myName)) amIGrandWinner = true;
+                // ตรวจสอบเงื่อนไขการปลดล็อคฉากจบ
+                if (relationdata.isOnlineMode) {
+                    calculateOnlineEnding();
+                } else {
+                    processOfflineEnding();
                 }
             }
-        }
+            fadeOverlay.repaint();
+        });
+        fadeOutTimer.start();
+    }
 
-        String message = "";
-        if (grandWinnerExists) {
-            if (amIGrandWinner) {
-                relationdata.isEnding1Unlocked = true; // ต้องเช็กว่าใน relationdata มีตัวแปรนี้ไหม
-                message = "ยินดีด้วย! คุณชนะการแข่งขันและปลดล็อคฉากจบ Harem!";
-            } else {
-                message = "เสียใจด้วย... ผู้เล่นอื่นทำคะแนนสูงสุดทั้งคู่";
-            }
-        } else {
-            boolean gotEnding = false;
-            if (myAlice == maxAlice) { 
-                relationdata.isEnding2Unlocked = true; 
-                message += "ปลดล็อค Alice Ending\n"; 
-                gotEnding = true; 
-            }
-            if (myNebula == maxNebula) { 
-                relationdata.isEnding3Unlocked = true; 
-                message += "ปลดล็อค Nebula Ending\n"; 
-                gotEnding = true; 
-            }
-            if (!gotEnding) message = "คุณทำคะแนนไม่ถึงเกณฑ์สูงสุด";
+    private void processOfflineEnding() {
+        int aliceScore = relationdata.aliceRel.getAffinity();
+        int nebulaScore = relationdata.nebulaRel.getAffinity();
+        String message = "จบการผจญภัย (โหมดออฟไลน์)\n";
+
+        // เงื่อนไขการปลดล็อคฉากจบใน Gallery
+        if (aliceScore >= 50) {
+            relationdata.isEnding2Unlocked = true;
+            message += "- ปลดล็อคฉากจบ Alice\n";
+        }
+        if (nebulaScore >= 50) {
+            relationdata.isEnding3Unlocked = true;
+            message += "- ปลดล็อคฉากจบ Nebula\n";
+        }
+        if (relationdata.isEnding2Unlocked && relationdata.isEnding3Unlocked) {
+            relationdata.isEnding1Unlocked = true;
+            message += "- ปลดล็อคฉากจบพิเศษ Harem!\n";
         }
 
         JOptionPane.showMessageDialog(this, message);
-        // ลบ b: ออกเพื่อให้รันผ่าน
-        new GalleryPage().setVisible(true); 
-        dispose();
+        openGallery();
+    }
+
+    private void calculateOnlineEnding() {
+        // 1. ตรวจสอบว่ามีข้อมูลผู้เล่นอื่นหรือไม่
+        if (allPlayersData == null || allPlayersData.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "ไม่สามารถดึงข้อมูลสรุปจากเซิร์ฟเวอร์ได้ ระบบจะใช้เกณฑ์คะแนนส่วนตัวแทน");
+            processOfflineEnding(); // ถ้าโหลดข้อมูลไม่สำเร็จ ให้ใช้ระบบออฟไลน์แทนเพื่อไม่ให้เกมค้าง
+            return;
+        }
+
+        // 2. ดึงค่าปัจจุบันของคุณและตั้งค่าตัวแปรสำหรับหาผู้ชนะ
+        int myAlice = relationdata.aliceRel.getAffinity();
+        int myNebula = relationdata.nebulaRel.getAffinity();
+        String myName = relationdata.playerName;
+        
+        int maxAlice = -1;
+        int maxNebula = -1;
+        boolean amIGrandWinner = false;
+        boolean amIAliceWinner = false;
+        boolean amINebulaWinner = false;
+
+        // 3. วนลูปหาค่าคะแนนสูงสุดของเซิร์ฟเวอร์
+        // ข้อมูลมาในรูปแบบ "Name1=Score1,Name2=Score2" โดย Score = (Alice*1000) + Nebula
+        String[] players = allPlayersData.split(",");
+        for (String p : players) {
+            if (p.contains("=")) {
+                try {
+                    String[] parts = p.split("=");
+                    int totalScore = Integer.parseInt(parts[1]);
+                    int aScore = totalScore / 1000;
+                    int nScore = totalScore % 1000;
+
+                    if (aScore > maxAlice) maxAlice = aScore;
+                    if (nScore > maxNebula) maxNebula = nScore;
+                } catch (Exception e) { e.printStackTrace(); }
+            }
+        }
+
+        // 4. ตรวจสอบสถานะของคุณเทียบกับจุดสูงสุด
+        if (myAlice >= maxAlice && myNebula >= maxNebula) amIGrandWinner = true;
+        else if (myAlice >= maxAlice) amIAliceWinner = true;
+        else if (myNebula >= maxNebula) amINebulaWinner = true;
+
+        // 5. ปรับปรุงสถานะการปลดล็อคใน relationdata และเตรียมข้อความ
+        String message = "--- สรุปผลการผจญภัยออนไลน์ ---\n";
+        
+        if (amIGrandWinner) {
+            relationdata.isEnding1Unlocked = true; // ปลดล็อคฉากจบ Harem
+            relationdata.isEnding2Unlocked = true;
+            relationdata.isEnding3Unlocked = true;
+            message += "👑 ยินดีด้วย! คุณคือผู้เล่นระดับตำนานที่ครองใจทั้งคู่!\n- ปลดล็อคฉากจบ: True Harem";
+        } else if (amIAliceWinner) {
+            relationdata.isEnding2Unlocked = true; // ปลดล็อคฉากจบ Alice
+            message += "💖 คุณคือที่หนึ่งในใจของอริส!\n- ปลดล็อคฉากจบ: Alice Ending";
+        } else if (amINebulaWinner) {
+            relationdata.isEnding3Unlocked = true; // ปลดล็อคฉากจบ Nebula
+            message += "💜 จอมมารเนบิวล่าเลือกคุณเป็นคู่หู!\n- ปลดล็อคฉากจบ: Nebula Ending";
+        } else {
+            message += "⚔️ คุณทำคะแนนได้ดี แต่ยังมีผู้เล่นอื่นที่คะแนนสูงกว่าในครั้งนี้\n- พยายามใหม่ในรอบหน้านะ!";
+        }
+
+        // 6. แสดงผลและเปลี่ยนหน้าไปยัง Gallery
+        UIManager.put("OptionPane.messageFont", THAI_FONT);
+        JOptionPane.showMessageDialog(this, message, "Game Clear!", JOptionPane.INFORMATION_MESSAGE);
+        
+        openGallery(); // ฟังก์ชันที่เรียก new GalleryPage().setVisible(true) และ dispose()
     }
 
     private void startTypewriter(String text) {
@@ -557,6 +748,26 @@ public class part9 extends JFrame {
         return imageCache.get(key);
     }
 
+    private void saveEndingsToServer() {
+        if (relationdata.isOnlineMode && networkOut != null) {
+            new Thread(() -> {
+                // ส่งค่า 1 (ปลดล็อค) หรือ 0 (ยังไม่ปลด) ไปที่ Server
+                String e1 = relationdata.isEnding1Unlocked ? "1" : "0";
+                String e2 = relationdata.isEnding2Unlocked ? "1" : "0";
+                String e3 = relationdata.isEnding3Unlocked ? "1" : "0";
+                networkOut.println("SAVE_ENDINGS:" + e1 + "," + e2 + "," + e3);
+            }).start();
+        }
+    }
+
+    private void openGallery() {
+        saveEndingsToServer(); // บันทึกลง SQL ก่อนเปิดหน้า Gallery
+        SwingUtilities.invokeLater(() -> {
+            new GalleryPage().setVisible(true);
+            dispose();
+        });
+    }
+
     private void initNetwork() {
         if (!relationdata.isOnlineMode) return;
         new Thread(() -> {
@@ -565,13 +776,26 @@ public class part9 extends JFrame {
                 networkOut = new PrintWriter(socket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 networkOut.println("SET_NAME:" + relationdata.playerName);
-                int combinedScore = (relationdata.aliceRel.getAffinity() * 1000) + relationdata.nebulaRel.getAffinity();
-                networkOut.println("UPDATE_AFFINITY:" + combinedScore);
+                networkOut.println("SET_PART:9");
                 String line;
                 while ((line = in.readLine()) != null) {
-                    if (line.startsWith("ALL_STATS:")) allPlayersData = line.substring(10);
+                if (line.startsWith("ALL_STATS:")) {
+                    allPlayersData = line.substring(10); // เก็บข้อมูลสรุปเพื่อใช้ตอนจบ
+                } else if (line.startsWith("LOAD_AFFINITY:")) {
+                    int score = Integer.parseInt(line.substring(14));
+                    relationdata.aliceRel.setAffinity(score); // รับค่าอริสตรงๆ
+                } else if (line.startsWith("LOAD_NEBULA:")) {
+                    int nScore = Integer.parseInt(line.substring(12));
+                    relationdata.nebulaRel.setAffinity(nScore); // รับค่าเนบิวล่าตรงๆ
+                } else if (line.startsWith("LOAD_ENDINGS:")) {
+                    // รับสถานะ Gallery จาก SQL
+                    String[] eds = line.substring(13).split(",");
+                    relationdata.isEnding1Unlocked = eds[0].equals("1");
+                    relationdata.isEnding2Unlocked = eds[1].equals("1");
+                    relationdata.isEnding3Unlocked = eds[2].equals("1");
                 }
-            } catch (Exception e) { e.printStackTrace(); }
+            }
+            } catch (Exception e) {}
         }).start();
     }
 
