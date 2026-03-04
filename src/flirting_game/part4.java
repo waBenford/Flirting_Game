@@ -673,6 +673,9 @@ public class part4 extends JFrame {
         msg.setBounds(0, 350, 1280, 100); waitOverlay.add(msg);
         layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
         if (networkOut != null) networkOut.println("READY_FOR_NEXT");
+        
+        layeredPane.moveToFront(waitOverlay);
+        
         revalidate(); repaint();
     }
 
@@ -685,7 +688,7 @@ public class part4 extends JFrame {
     public static void main(String[] args) { SwingUtilities.invokeLater(() -> new part4().setVisible(true)); }
 }
 
-class VisualNovelBox extends JPanel {
+/* class VisualNovelBox extends JPanel {
     @Override protected void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -695,4 +698,4 @@ class VisualNovelBox extends JPanel {
         g2d.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
         g2d.dispose();
     }
-}
+} */
