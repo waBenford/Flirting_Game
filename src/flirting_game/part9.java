@@ -16,7 +16,6 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.swing.*;
 
-
 public class part9 extends JFrame {
 
     private JLayeredPane layeredPane;
@@ -52,6 +51,9 @@ public class part9 extends JFrame {
     private String lastBgPath = "";
     private JPanel bgFadeOverlay;
 
+    private JPanel waitOverlay;
+    private boolean isWaiting = false;
+
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 28);
 
     private String[] imagePaths = createBackgrounds();
@@ -60,194 +62,178 @@ public class part9 extends JFrame {
         String[] paths = new String[188];
         for (int i = 0; i < 188; i++) {
             if (i < 10) {
-                paths[i] = "res/scene9/s1.png"; 
-            }else if (i < 65) {
-                paths[i] = "res/scene9/s2.png"; 
-            }else if (i < 90) {
-                paths[i] = "res/scene9/s3.png"; 
-            }else if (i < 96) {
-                paths[i] = "res/scene9/s4.png"; 
-            }else {
+                paths[i] = "res/scene9/s1.png";
+            } else if (i < 65) {
+                paths[i] = "res/scene9/s2.png";
+            } else if (i < 90) {
+                paths[i] = "res/scene9/s3.png";
+            } else if (i < 96) {
+                paths[i] = "res/scene9/s4.png";
+            } else {
                 paths[i] = "res/scene9/s5.png";
             }
         }
         return paths;
     }
 
-    private String[] charPaths = { 
-            // 0-7: เริ่มเดินทาง (บรรยาย + Dan + อริส)
-            "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
-            "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
-            
-            // 8-15: ทางเลือก + เริ่มเจอปีศาจ
-            "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-shy2.png", // 8, 9 (Choices)
-            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal2.png", 
-            "res/Charactor/Alice/Girl/Alice-normal2.png", "res/empty.png", "res/empty.png", "res/empty.png", // ปีศาจ
-            
-            // 16-23: ฉากต่อสู้ช่วงแรก
-            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight1.png",
-            "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png",
-            
-            // 24-35: ปีศาจมาเพิ่ม + Nebula ปรากฏตัว
-            "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-            "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
-            "res/empty.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Dan/dan-normal1.png", // Nebula (ถ้ามีรูป Nebula ให้เปลี่ยน res/empty.png เป็น path รูป Nebula)
-            
-            // 36-40: คุยกับ Nebula
-            "res/Charactor/Alice/Girl/Alice-normal1.png","res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
-            
-            // 41-51: Choices Nebula + ตกลงเดินทางด้วยกัน
-            "res/Charactor/Nebula/Nebula-shy2.png","res/Charactor/Nebula/Nebula-normal2.png", // 41, 42 (Choices Nebula)
-            "res/Charactor/Dan/dan-normal2.png","res/Charactor/Nebula/Nebula-shy1.png","res/Charactor/Alice/Girl/Alice-normal1.png","res/Charactor/Nebula/Nebula-normal1.png",
-            "res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Dan/dan-normal1.png","res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Nebula/Nebula-normal1.png",
-            
-            // 52-62: ระหว่างเดินทาง
-            "res/Charactor/Nebula/Nebula-shy1.png","res/Charactor/Nebula/Nebula-shy2.png", // 52, 53 (Choices)
-            "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png",
-            "res/Charactor/Dan/dan-normal1.png","res/Charactor/Alice/Girl/Alice-normal1.png","res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal1.png",
-            
-            // 63-77: เข้าใกล้หุบเขาเงามืด
-            "res/Charactor/Nebula/Nebula-shy2.png","res/Charactor/Nebula/Nebula-normal1.png", // 63, 64 (Choices)
-            "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png","res/Charactor/Alice/Girl/Alice-normal2.png","res/empty.png","res/empty.png",
-            "res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Dan/dan-normal2.png","res/Charactor/Alice/Girl/Alice-normal1.png",
-            "res/empty.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal2.png",
-            
-            // 78-89: พักผ่อน + เดินทางต่อ
-             "res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Dan/dan-normal2.png", // 78, 79 (พักผ่อน)
-            "res/Charactor/Alice/Girl/Alice-normal2.png","res/Charactor/Nebula/Nebula-normal2.png", // 80, 81 (Choices)
-            "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal2.png",
-            "res/Charactor/Nebula/Nebula-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png",
+    private String[] charPaths = {
+        // 0-7: เริ่มเดินทาง (บรรยาย + Dan + อริส)
+        "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+        "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
+        // 8-15: ทางเลือก + เริ่มเจอปีศาจ
+        "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-shy2.png", // 8, 9 (Choices)
+        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal2.png",
+        "res/Charactor/Alice/Girl/Alice-normal2.png", "res/empty.png", "res/empty.png", "res/empty.png", // ปีศาจ
 
-            // 90-101: ถึงป้อม Grey + เผชิญหน้า
-            "res/empty.png","res/Charactor/Dan/dan-normal2.png","res/Charactor/Alice/Girl/Alice-normal1.png","res/Charactor/Nebula/Nebula-normal2.png",
-            "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png",
-            "res/Charactor/Gray/Gray-normal2.png","res/Charactor/Gray/Gray-normal1.png","res/Charactor/Gray/Gray-normal2.png","res/Charactor/Gray/Gray-normal1.png",
+        // 16-23: ฉากต่อสู้ช่วงแรก
+        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight1.png",
+        "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png",
+        // 24-35: ปีศาจมาเพิ่ม + Nebula ปรากฏตัว
+        "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/empty.png", "res/empty.png",
+        "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+        "res/empty.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Dan/dan-normal1.png", // Nebula (ถ้ามีรูป Nebula ให้เปลี่ยน res/empty.png เป็น path รูป Nebula)
 
-            // 102-114: Grey ปล่อยพลัง + การต่อสู้ดุเดือด
-            "res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Gray/Gray-normal1.png","res/Charactor/Gray/Gray-normal2.png","res/Charactor/Gray/Gray-normal1.png",
-            "res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Gray/Gray-normal2.png","res/Charactor/Gray/Gray-shout.png","res/Charactor/Gray/Gray-shout.png",
-            "res/empty.png","res/Charactor/Alice/Girl/Alice-fight1.png","res/Charactor/Dan/dan-fight1.png","res/Charactor/Gray/Gray-shout.png","res/Charactor/Gray/Gray-fight1.png",
+        // 36-40: คุยกับ Nebula
+        "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
+        // 41-51: Choices Nebula + ตกลงเดินทางด้วยกัน
+        "res/Charactor/Nebula/Nebula-shy2.png", "res/Charactor/Nebula/Nebula-normal2.png", // 41, 42 (Choices Nebula)
+        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Nebula/Nebula-shy1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png",
+        "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
+        // 52-62: ระหว่างเดินทาง
+        "res/Charactor/Nebula/Nebula-shy1.png", "res/Charactor/Nebula/Nebula-shy2.png", // 52, 53 (Choices)
+        "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png",
+        "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png",
+        // 63-77: เข้าใกล้หุบเขาเงามืด
+        "res/Charactor/Nebula/Nebula-shy2.png", "res/Charactor/Nebula/Nebula-normal1.png", // 63, 64 (Choices)
+        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/empty.png", "res/empty.png",
+        "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+        "res/empty.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+        // 78-89: พักผ่อน + เดินทางต่อ
+        "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Dan/dan-normal2.png", // 78, 79 (พักผ่อน)
+        "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", // 80, 81 (Choices)
+        "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+        "res/Charactor/Nebula/Nebula-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png",
+        // 90-101: ถึงป้อม Grey + เผชิญหน้า
+        "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+        "res/Charactor/Gray/Gray-normal2.png", "res/Charactor/Gray/Gray-normal1.png", "res/Charactor/Gray/Gray-normal2.png", "res/Charactor/Gray/Gray-normal1.png",
+        // 102-114: Grey ปล่อยพลัง + การต่อสู้ดุเดือด
+        "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Gray/Gray-normal1.png", "res/Charactor/Gray/Gray-normal2.png", "res/Charactor/Gray/Gray-normal1.png",
+        "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Gray/Gray-normal2.png", "res/Charactor/Gray/Gray-shout.png", "res/Charactor/Gray/Gray-shout.png",
+        "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight1.png", "res/Charactor/Dan/dan-fight1.png", "res/Charactor/Gray/Gray-shout.png", "res/Charactor/Gray/Gray-fight1.png",
+        // 115-125: เวทย์ทำลายล้าง
+        "res/Charactor/Gray/Gray-fight1.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight1.png",
+        "res/Charactor/Nebula/Nebula-fight2.png", "res/Charactor/Gray/Gray-fight1.png", "res/Charactor/Gray/Gray-fight1.png", "res/empty.png",
+        "res/Charactor/Dan/dan-fight1.png", "res/Charactor/Dan/dan-fight2.png", "res/Charactor/Nebula/Nebula-fight1.png",
+        // 126-131: Dan ตัดสินใจสละชีพ
+        "res/Charactor/Nebula/Nebula-fight2.png", "res/Charactor/Dan/dan-fight2.png", "res/Charactor/Dan/dan-fight1.png", "res/Charactor/Dan/dan-fight2.png",
+        "res/Charactor/Dan/dan-fight1.png", "res/Charactor/Dan/dan-fight2.png",
+        // 132-143: Dan พุ่งเข้าหา Grey
+        "res/Charactor/Dan/dan-fight1.png", "res/Charactor/Dan/dan-fight2.png", "res/Charactor/Dan/dan-fight2.png", "res/Charactor/Alice/Girl/Alice-fight2.png",
+        "res/Charactor/Dan/dan-fight1.png", "res/Charactor/Gray/Gray-fight1.png", "res/Charactor/Gray/Gray-fight1.png", "res/Charactor/Dan/dan-fight1.png",
+        "res/Charactor/Dan/dan-fight2.png", "res/Charactor/Gray/Gray-fight1.png", "res/Charactor/Gray/Gray-shout.png", "res/Charactor/Gray/Gray-shout.png",
+        // 144-151: Dan สั่งเสีย
+        "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-cry2.png",
+        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", //ถึงแถวนี้
 
-            // 115-125: เวทย์ทำลายล้าง
-            "res/Charactor/Gray/Gray-fight1.png","res/Charactor/Alice/Girl/Alice-fight2.png","res/empty.png","res/Charactor/Alice/Girl/Alice-fight1.png",
-            "res/Charactor/Nebula/Nebula-fight2.png","res/Charactor/Gray/Gray-fight1.png","res/Charactor/Gray/Gray-fight1.png","res/empty.png",
-            "res/Charactor/Dan/dan-fight1.png","res/Charactor/Dan/dan-fight2.png","res/Charactor/Nebula/Nebula-fight1.png",
-            
-            // 126-131: Dan ตัดสินใจสละชีพ
-            "res/Charactor/Nebula/Nebula-fight2.png","res/Charactor/Dan/dan-fight2.png","res/Charactor/Dan/dan-fight1.png","res/Charactor/Dan/dan-fight2.png",
-            "res/Charactor/Dan/dan-fight1.png","res/Charactor/Dan/dan-fight2.png",
-
-            // 132-143: Dan พุ่งเข้าหา Grey
-            "res/Charactor/Dan/dan-fight1.png","res/Charactor/Dan/dan-fight2.png","res/Charactor/Dan/dan-fight2.png","res/Charactor/Alice/Girl/Alice-fight2.png",
-            "res/Charactor/Dan/dan-fight1.png","res/Charactor/Gray/Gray-fight1.png","res/Charactor/Gray/Gray-fight1.png","res/Charactor/Dan/dan-fight1.png",
-            "res/Charactor/Dan/dan-fight2.png","res/Charactor/Gray/Gray-fight1.png","res/Charactor/Gray/Gray-shout.png","res/Charactor/Gray/Gray-shout.png", 
-            
-            // 144-151: Dan สั่งเสีย
-            "res/empty.png","res/empty.png","res/empty.png","res/Charactor/Alice/Girl/Alice-cry2.png",
-            "res/Charactor/Dan/dan-normal2.png","res/Charactor/Dan/dan-normal1.png","res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", //ถึงแถวนี้
-            
-            // 152-159: Dan เสียชีวิต
-            "res/Charactor/Dan/dan-normal2.png","res/Charactor/Dan/dan-normal2.png","res/Charactor/Dan/dan-normal1.png", "res/empty.png",
-            "res/empty.png", "res/empty.png","res/Charactor/Alice/Girl/Alice-cry2.png","res/Charactor/Nebula/Nebula-fight1.png",
-            
-            // 160-170: การโจมตีสุดท้ายของ Nebula และอริส
-            "res/Charactor/Nebula/Nebula-fight2.png","res/Charactor/Nebula/Nebula-fight1.png","res/Charactor/Nebula/Nebula-fight2.png",
-            "res/Charactor/Nebula/Nebula-fight1.png","res/Charactor/Nebula/Nebula-fight1.png","res/Charactor/Alice/Girl/Alice-fight2.png","res/Charactor/Alice/Girl/Alice-fight2.png",
-            "res/Charactor/Alice/Girl/Alice-fight2.png","res/Charactor/Gray/Gray-injured.png","res/Charactor/Gray/Gray-injured.png","res/Charactor/Gray/Gray-injured.png",
-            
-            // 171-178: บทส่งท้าย (ฝังดาบ)
-            "res/empty.png", "res/empty.png","res/Charactor/Alice/Girl/Alice-fight2.png","res/Charactor/Alice/Girl/Alice-cry1.png",
-            "res/Charactor/Nebula/Nebula-normal2.png","res/Charactor/Nebula/Nebula-normal1.png","res/Charactor/Nebula/Nebula-normal2.png","res/empty.png",
-            "res/Charactor/Alice/Girl/Alice-cry2.png","res/empty.png","res/empty.png",
-        };
-
+        // 152-159: Dan เสียชีวิต
+        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png",
+        "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-cry2.png", "res/Charactor/Nebula/Nebula-fight1.png",
+        // 160-170: การโจมตีสุดท้ายของ Nebula และอริส
+        "res/Charactor/Nebula/Nebula-fight2.png", "res/Charactor/Nebula/Nebula-fight1.png", "res/Charactor/Nebula/Nebula-fight2.png",
+        "res/Charactor/Nebula/Nebula-fight1.png", "res/Charactor/Nebula/Nebula-fight1.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/Charactor/Alice/Girl/Alice-fight2.png",
+        "res/Charactor/Alice/Girl/Alice-fight2.png", "res/Charactor/Gray/Gray-injured.png", "res/Charactor/Gray/Gray-injured.png", "res/Charactor/Gray/Gray-injured.png",
+        // 171-178: บทส่งท้าย (ฝังดาบ)
+        "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-fight2.png", "res/Charactor/Alice/Girl/Alice-cry1.png",
+        "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/empty.png",
+        "res/Charactor/Alice/Girl/Alice-cry2.png", "res/empty.png", "res/empty.png",};
 
     private String[] names = {
         " ", " ", "Dan", "อริส", "ฉัน", "Dan", "Dan", "อริส",
-        "อริส","อริส","Dan","Dan","อริส","ฉัน"," ","ปีศาจ", //0-15
+        "อริส", "อริส", "Dan", "Dan", "อริส", "ฉัน", " ", "ปีศาจ", //0-15
         "Dan", "อริส", "ฉัน", "อริส", "Dan", "ฉัน", "ปีศาจ", "Dan",
-        "อริส","ฉัน"," "," ","ปีศาจ"," ","Dan","อริส", //16-31
+        "อริส", "ฉัน", " ", " ", "ปีศาจ", " ", "Dan", "อริส", //16-31
         "ฉัน", "Nebula", "ฉัน", "Dan", "อริส", "Nebula", "Dan", "ฉัน",
-        "ฉัน","Nebula","Nebula","Dan","Nebula","อริส","Nebula","Nebula", //32-47
+        "ฉัน", "Nebula", "Nebula", "Dan", "Nebula", "อริส", "Nebula", "Nebula", //32-47
         "Nebula", "Dan", "Nebula", "ฉัน", "Nebula", "Nebula", " ", "Dan",
-         "Dan","Nebula","Dan","อริส","Nebula","ฉัน","Nebula","Nebula","Nebula", //48-64
-        "Dan","Dan","อริส","ฉัน"," ","Nebula","Nebula","Dan",//65-72
-        "อริส","ฉัน","Nebula","Nebula","Nebula","Dan","อริส","Nebula", //73-80
-        "Nebula","Nebula","Nebula","ฉัน","Nebula"," "," "," ", //81-88
-        " ","Dan","อริส","Nebula","ฉัน"," "," "," ", //89-96
-        "Grey","Grey","Grey","Grey","Nebula","Grey","Grey",
-        "Grey","Nebula","Grey","Grey"," "," ","อริส","Dan",//97-111
-        "Grey"," ","ฉัน","อริส"," ","อริส","Nebula","Grey",
-        " "," ","Dan","Dan","Nebula","Nebula","Dan","ฉัน",//112-127
-        "Dan","Dan","Dan","ฉัน","Dan","Dan","อริส","Dan",
-        " ","Grey"," "," ","Grey"," "," "," ",//128-143
-        " ","ฉัน","อริส","Dan","ฉัน","Dan","Dan","Dan",//144-151
-        "Dan","Dan"," "," ","อริส","ฉัน","Nebula","Nebula",
-        "Nebula","ฉัน"," ","Nebula","อริส","อริส"," ","Grey",//152-167
-        "Grey"," "," "," ","อริส"," ","Nebula","Nebula", //168-175
-        " ","ฉัน","อริส"," "," ", //176-180
-        };
+        "Dan", "Nebula", "Dan", "อริส", "Nebula", "ฉัน", "Nebula", "Nebula", "Nebula", //48-64
+        "Dan", "Dan", "อริส", "ฉัน", " ", "Nebula", "Nebula", "Dan",//65-72
+        "อริส", "ฉัน", "Nebula", "Nebula", "Nebula", "Dan", "อริส", "Nebula", //73-80
+        "Nebula", "Nebula", "Nebula", "ฉัน", "Nebula", " ", " ", " ", //81-88
+        " ", "Dan", "อริส", "Nebula", "ฉัน", " ", " ", " ", //89-96
+        "Grey", "Grey", "Grey", "Grey", "Nebula", "Grey", "Grey",
+        "Grey", "Nebula", "Grey", "Grey", " ", " ", "อริส", "Dan",//97-111
+        "Grey", " ", "ฉัน", "อริส", " ", "อริส", "Nebula", "Grey",
+        " ", " ", "Dan", "Dan", "Nebula", "Nebula", "Dan", "ฉัน",//112-127
+        "Dan", "Dan", "Dan", "ฉัน", "Dan", "Dan", "อริส", "Dan",
+        " ", "Grey", " ", " ", "Grey", " ", " ", " ",//128-143
+        " ", "ฉัน", "อริส", "Dan", "ฉัน", "Dan", "Dan", "Dan",//144-151
+        "Dan", "Dan", " ", " ", "อริส", "ฉัน", "Nebula", "Nebula",
+        "Nebula", "ฉัน", " ", "Nebula", "อริส", "อริส", " ", "Grey",//152-167
+        "Grey", " ", " ", " ", "อริส", " ", "Nebula", "Nebula", //168-175
+        " ", "ฉัน", "อริส", " ", " ", //176-180
+    };
 
     // บทพูด 1-60 (สามารถเพิ่มให้ครบ 105 ได้ในลักษณะเดียวกัน)
     private String[] dialogues = {
-        "หลังจากออกจากปราสาทของ Nebula...", "พวกเราเริ่มเดินทางไปยังหุบเขาเงามืด", 
-        "ถ้าเดินตามเส้นทางนี้ อีกไม่นานก็จะถึงเขตของ Grey แล้ว", "บรรยากาศเริ่มแปลกๆนะ...", 
+        "หลังจากออกจากปราสาทของ Nebula...", "พวกเราเริ่มเดินทางไปยังหุบเขาเงามืด",
+        "ถ้าเดินตามเส้นทางนี้ อีกไม่นานก็จะถึงเขตของ Grey แล้ว", "บรรยากาศเริ่มแปลกๆนะ...",
         "อาจจะเป็นเพราะเราเข้าใกล้เขตของมันแล้ว", "ใช่...", "ปีศาจแถวนี้น่าจะเป็นลูกน้องของ Grey", "งั้นต้องระวังให้มากขึ้นแล้ว", //0-7 
         "อือ ฝากด้วยนะ", //choice 1 8
         "นะ...นายพูดแบบนั้นอีกแล้ว",//choice 2 9
-        "เดี๋ยวก่อน...", "ฉันรู้สึกถึงบางอย่าง", 
-        "ฉันก็เหมือนกัน...", "ระวัง!", "ปีศาจหลายตัวพุ่งออกมาจากเงามืด", "กร๊าาา!!", 
+        "เดี๋ยวก่อน...", "ฉันรู้สึกถึงบางอย่าง",
+        "ฉันก็เหมือนกัน...", "ระวัง!", "ปีศาจหลายตัวพุ่งออกมาจากเงามืด", "กร๊าาา!!",
         "มาแล้ว!", "เตรียมตัว!", "เข้ามาเลย!", "Ice Lance!",
         "ระวังด้านหลัง!", "รับนี่ไป!", "กร๊าาา!", "จํานวนมันเยอะเกินไป!", //10-23 
-        "พวกมันยังมาอีก!", "บ้าจริง...", "ทันใดนั้น...", "พลังเวทย์สีม่วงพุ่งลงมาจากด้านบน", 
-        "กรี๊ดด!!", "ปีศาจหลายตัวถูกทําลายทันที","นั่นมัน...", "พลังเวทย์แบบนั้น...", 
+        "พวกมันยังมาอีก!", "บ้าจริง...", "ทันใดนั้น...", "พลังเวทย์สีม่วงพุ่งลงมาจากด้านบน",
+        "กรี๊ดด!!", "ปีศาจหลายตัวถูกทําลายทันที", "นั่นมัน...", "พลังเวทย์แบบนั้น...",
         "หรือว่า...", "ดูเหมือนพวกเจ้าจะลําบากกันอยู่นะ", "Nebula!?", "จอมมารตามมาที่นี่ได้ยังไงเนี่ย!?", //24-35
         "นี่เธอตามพวกเรามาเหรอ?", "ข้าแค่ผ่านมาเท่านั้นเอง", "ไม่มีทางบังเอิญขนาดนั้นหรอก...", "หรือว่า...", //39
         "เธอเป็นห่วงพวกเรา?", //40
         "จะ...จะบ้าเหรอ!", //choice1 41
         "ข้าแค่ไม่อยากให้พวกเจ้าตายง่ายๆก็เท่านั้น",//choice2 42 
-        "หน้าจอมมารแดงแล้วนะ...", "หุบปากไป!", "นี่มันสถานการณ์อะไรเนี่ย...", "ปีศาจพวกนี้เป็นลูกน้องของ Grey", 
+        "หน้าจอมมารแดงแล้วนะ...", "หุบปากไป!", "นี่มันสถานการณ์อะไรเนี่ย...", "ปีศาจพวกนี้เป็นลูกน้องของ Grey",
         "ถ้าเข้าใกล้หุบเขาเงามืดมากขึ้น", "พวกมันจะยิ่งแข็งแกร่งขึ้น", "งั้นเราต้องรีบไป",
         "ข้าจะไปกับพวกเจ้าสักพัก", "จริงเหรอ?", //42-51 
         "เจ้าพูดเกินไปแล้ว", //choice1 52
         "เจ้าคนนี้พูดเก่งจริงๆ", //choice2 53
-        "หลังจากนั้น พวกเราก็เดินทางต่อ", "มีจอมมารเดินข้างๆแบบนี้...", "มันแปลกจริงๆ", "เจ้าจะบ่นอีกนานไหม", 
-        "ขอโทษครับ...", "ฉันยังไม่ชินเลยจริงๆ","มนุษย์นี่วุ่นวายจริงๆ", "แต่เธอก็ยังตามพวกเรามาอยู่ดี", 
+        "หลังจากนั้น พวกเราก็เดินทางต่อ", "มีจอมมารเดินข้างๆแบบนี้...", "มันแปลกจริงๆ", "เจ้าจะบ่นอีกนานไหม",
+        "ขอโทษครับ...", "ฉันยังไม่ชินเลยจริงๆ", "มนุษย์นี่วุ่นวายจริงๆ", "แต่เธอก็ยังตามพวกเรามาอยู่ดี",
         "...", //62
         "เจ้านี่พูดอะไรของเจ้า!", //choice1 63
         "อย่าพูดเรื่องไร้สาระแบบนั้น!", //choice2 64
         "เดี๋ยวก่อน...", //65
         "ดูข้างหน้า", "นั่นมัน...", "หุบเขาเงามืด...", "หมอกสีดําปกคลุมหุบเขาขนาดมหึมา",
-        "ที่นั่นแหละ", "อาณาเขตของ Grey", "พลังเวทย์มันหนักมาก...", "ฉันรู้สึกขนลุกเลย", 
+        "ที่นั่นแหละ", "อาณาเขตของ Grey", "พลังเวทย์มันหนักมาก...", "ฉันรู้สึกขนลุกเลย",
         "งั้นจอมมาร Grey ก็อยู่ที่นี่สินะ", "ใช่", "และจากนี้ไป...", "มันจะอันตรายกว่าที่ผ่านมา",//66-77 
         "งั้นเราพักก่อนดีไหม", "ฉันก็คิดแบบนั้น",//79
         "ข้าแค่ผ่านมาเท่านั้นเอง",//choice1 80
         "เจ้าพูดไม่หยุดเลยนะ...", //choice2 81
-        "แต่ว่า...", " เจ้าก็อย่าตายซะก่อนล่ะ", "ถ้ามีเธออยู่ ฉันคงไม่ตายง่ายๆหรอก", "หึ…", 
+        "แต่ว่า...", " เจ้าก็อย่าตายซะก่อนล่ะ", "ถ้ามีเธออยู่ ฉันคงไม่ตายง่ายๆหรอก", "หึ…",
         "หลังจากพักกันเสร็จ", "พวกเราก็มุ่งหน้าเข้าไปในหุบเขา", "หมอกสีดําหนาขึ้นเรื่อยๆ", "จนกระทั่ง…",//82-89
-        "ป้อมปราการขนาดใหญ่ก็ปรากฏขึ้น", "นั่นไง…ป้อมของ Grey", "พลังเวทย์มันแรงมาก…", "Grey อยู่ข้างในแน่นอน", 
-        "งั้นก็ไปกัน", "พวกเราเปิดประตูป้อมเข้าไป", "เสียงหนึ่งดังขึ้นจากห้องโถง", "ในที่สุดก็มาถึงจนได้สินะ", 
-        "หึๆ…", "Nebula…","เจ้าถึงกับมาที่นี่ด้วยตัวเองเลยงั้นหรอ", "Grey…", //90-101
-        "แล้วมนุษย์พวกนี้คืออะไร", "มนุษย์กับจอมมารร่วมมือกันงั้นหรอ...", "น่าขําสิ้นดี", "Grey หยุดเรื่องทั้งหมดซะ", 
+        "ป้อมปราการขนาดใหญ่ก็ปรากฏขึ้น", "นั่นไง…ป้อมของ Grey", "พลังเวทย์มันแรงมาก…", "Grey อยู่ข้างในแน่นอน",
+        "งั้นก็ไปกัน", "พวกเราเปิดประตูป้อมเข้าไป", "เสียงหนึ่งดังขึ้นจากห้องโถง", "ในที่สุดก็มาถึงจนได้สินะ",
+        "หึๆ…", "Nebula…", "เจ้าถึงกับมาที่นี่ด้วยตัวเองเลยงั้นหรอ", "Grey…", //90-101
+        "แล้วมนุษย์พวกนี้คืออะไร", "มนุษย์กับจอมมารร่วมมือกันงั้นหรอ...", "น่าขําสิ้นดี", "Grey หยุดเรื่องทั้งหมดซะ",
         "ข้าไม่มีวันหยุด", "โลกนี้ควรเป็นของปีศาจ!", "พลังเวทย์สีดํามหาศาลระเบิดออกจากร่างของ Grey", "พื้นห้องเริ่มแตก",
-        "พลังเวทย์มันเพิ่มขึ้น!","ระวัง!","พวกเจ้าจะตายที่นี่!","Grey ยิงเวทย์ขนาดมหึมาใส่ทุกคน","หลบเร็ว!",//102-114
-        "Ice Shield!","โล่นํ้าแข็งแตกทันที","ไม่ไหว!","พลังของมันเพิ่มขึ้นมาก...",
-        "หมดแค่นี้งั้นหรอ?","Grey เริ่มร่ายเวทย์ขนาดใหญ่","พื้นทั้งห้องเริ่มสั่น","เดี๋ยวก่อน...",
-        "เวทย์นั่น..."," มันคือเวทย์ทําลายล้าง","ถ้ามันปล่อยออกมา ทุกคนจะตาย",//115-125
-        "...งั้นเหรอ","Dan?","ฟังนะ...","มีแค่ตอนที่มันกําลังร่ายเวทย์นี่แหละ",
-        "ที่มันเปิดช่องว่าง","เดี๋ยวก่อน นายจะทําอะไร!","นายยังต้องไปต่อ","นายคือคนที่หยุดมันได้",//126-131
-        "Dan อย่า!","ฝากที่เหลือด้วยนะ","Dan วิ่งพุ่งเข้าไปหา Grey","มนุษย์คิดจะทําอะไร?",
-        "Dan ใช้พลังทั้งหมดโจมตี","ดาบแทงเข้าที่ตัว Grey","แก!","Grey ปล่อยพลังระเบิดออกมา",
-        "แรงระเบิดมหาศาลเกิดขึ้น","ฝุ่นควันค่อยๆจางลง","Dan ล้มอยู่กับพื้น","Dan!!",//132-143
-        "ไม่จริง...","...ดูเหมือนข้าจะไม่รอดแล้วแฮะ","อย่าพูดแบบนั้น!","ไม่เป็นไรหรอก",  
-        "อย่างน้อยก็ได้ผจญภัยสนุกดี","ไปหยุด Grey ซะ","...อย่าให้การตายของฉันเสียเปล่า","Dan หลับตาลง", //144-151
-        "มือค่อยๆตกลงกับพื้น","Dan เสียชีวิต","...Dan","...Grey",
-        "มนุษย์","เขาเปิดช่องให้แล้ว","นี่คือโอกาสเดียว"," ...ไปกัน", //152-159
-        "Nebula ใช้เวทย์ขนาดใหญ่","ตอนนี้!","Ice Lance!",
-        "จบแค่นี้แหละ!","พลังทั้งหมดพุ่งใส่ Grey","เป็นไปไม่ได้…","ข้า…จะไม่แพ้มนุษย์!",
-        "การระเบิดครั้งสุดท้ายเกิดขึ้น","Grey พ่ายแพ้","หมอกสีดําเริ่มสลาย","...จบแล้ว", //160-170
-        " ...เราชนะแล้ว","เขาเป็นนักผจญภัยที่ดี","เขาตายเพื่อช่วยพวกเจ้า","พวกเราฝังดาบของ Dan ไว้ที่หุบเขา",
-        "ขอบคุณนะ","Dan...","ลมพัดผ่านหุบเขาเงามืด","เหมือนกับการอําลา",//171-178
+        "พลังเวทย์มันเพิ่มขึ้น!", "ระวัง!", "พวกเจ้าจะตายที่นี่!", "Grey ยิงเวทย์ขนาดมหึมาใส่ทุกคน", "หลบเร็ว!",//102-114
+        "Ice Shield!", "โล่นํ้าแข็งแตกทันที", "ไม่ไหว!", "พลังของมันเพิ่มขึ้นมาก...",
+        "หมดแค่นี้งั้นหรอ?", "Grey เริ่มร่ายเวทย์ขนาดใหญ่", "พื้นทั้งห้องเริ่มสั่น", "เดี๋ยวก่อน...",
+        "เวทย์นั่น...", " มันคือเวทย์ทําลายล้าง", "ถ้ามันปล่อยออกมา ทุกคนจะตาย",//115-125
+        "...งั้นเหรอ", "Dan?", "ฟังนะ...", "มีแค่ตอนที่มันกําลังร่ายเวทย์นี่แหละ",
+        "ที่มันเปิดช่องว่าง", "เดี๋ยวก่อน นายจะทําอะไร!", "นายยังต้องไปต่อ", "นายคือคนที่หยุดมันได้",//126-131
+        "Dan อย่า!", "ฝากที่เหลือด้วยนะ", "Dan วิ่งพุ่งเข้าไปหา Grey", "มนุษย์คิดจะทําอะไร?",
+        "Dan ใช้พลังทั้งหมดโจมตี", "ดาบแทงเข้าที่ตัว Grey", "แก!", "Grey ปล่อยพลังระเบิดออกมา",
+        "แรงระเบิดมหาศาลเกิดขึ้น", "ฝุ่นควันค่อยๆจางลง", "Dan ล้มอยู่กับพื้น", "Dan!!",//132-143
+        "ไม่จริง...", "...ดูเหมือนข้าจะไม่รอดแล้วแฮะ", "อย่าพูดแบบนั้น!", "ไม่เป็นไรหรอก",
+        "อย่างน้อยก็ได้ผจญภัยสนุกดี", "ไปหยุด Grey ซะ", "...อย่าให้การตายของฉันเสียเปล่า", "Dan หลับตาลง", //144-151
+        "มือค่อยๆตกลงกับพื้น", "Dan เสียชีวิต", "...Dan", "...Grey",
+        "มนุษย์", "เขาเปิดช่องให้แล้ว", "นี่คือโอกาสเดียว", " ...ไปกัน", //152-159
+        "Nebula ใช้เวทย์ขนาดใหญ่", "ตอนนี้!", "Ice Lance!",
+        "จบแค่นี้แหละ!", "พลังทั้งหมดพุ่งใส่ Grey", "เป็นไปไม่ได้…", "ข้า…จะไม่แพ้มนุษย์!",
+        "การระเบิดครั้งสุดท้ายเกิดขึ้น", "Grey พ่ายแพ้", "หมอกสีดําเริ่มสลาย", "...จบแล้ว", //160-170
+        " ...เราชนะแล้ว", "เขาเป็นนักผจญภัยที่ดี", "เขาตายเพื่อช่วยพวกเจ้า", "พวกเราฝังดาบของ Dan ไว้ที่หุบเขา",
+        "ขอบคุณนะ", "Dan...", "ลมพัดผ่านหุบเขาเงามืด", "เหมือนกับการอําลา",//171-178
     };
 
     public part9() {
@@ -520,57 +506,78 @@ public class part9 extends JFrame {
     }
 
     private void handleNext() {
-            if (isChoosing) return;
-            if (isTyping) {
-                stopTypewriter();
-                dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
-                return;
-            }
+        if (isChoosing || isWaiting) {
+            return;
+        }
+        if (isTyping) {
+            stopTypewriter();
+            dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
+            return;
+        }
 
-            // --- Choice Logic ---
-            // Choice 1: 
-            if (currentIndex == 7) {
-                showChoices("ไม่ต้องห่วง ฉันจะคอยดูรอบๆเอง", "ถ้าเกิดอะไรขึ้น ฉันจะปกป้องเธอ", 8, 9);
-                return;
-            }
-            if (currentIndex == 8) { currentIndex = 10; updateScene(); return; }
+        // --- Choice Logic ---
+        // Choice 1: 
+        if (currentIndex == 7) {
+            showChoices("ไม่ต้องห่วง ฉันจะคอยดูรอบๆเอง", "ถ้าเกิดอะไรขึ้น ฉันจะปกป้องเธอ", 8, 9);
+            return;
+        }
+        if (currentIndex == 8) {
+            currentIndex = 10;
+            updateScene();
+            return;
+        }
 
-            // Choice 2: 
-            if (currentIndex == 40) {
-                showChoices("โดยเฉพาะฉัน?", "เธอตามมาช่วยพวกเราสินะ", 41, 42);
-                return;
-            }
-            if (currentIndex == 41) { currentIndex = 43; updateScene(); return; }
+        // Choice 2: 
+        if (currentIndex == 40) {
+            showChoices("โดยเฉพาะฉัน?", "เธอตามมาช่วยพวกเราสินะ", 41, 42);
+            return;
+        }
+        if (currentIndex == 41) {
+            currentIndex = 43;
+            updateScene();
+            return;
+        }
 
-            // Choice 3: 
-            if (currentIndex == 51) {
-                showChoices("ดีเลย ฉันอุ่นใจขึ้นเยอะ", "ถ้ามีเธออยู่ ฉันก็ไม่กลัวอะไรแล้ว", 52, 53);
-                return;
-            }
-            if (currentIndex == 52) { currentIndex = 54; updateScene(); return; }
+        // Choice 3: 
+        if (currentIndex == 51) {
+            showChoices("ดีเลย ฉันอุ่นใจขึ้นเยอะ", "ถ้ามีเธออยู่ ฉันก็ไม่กลัวอะไรแล้ว", 52, 53);
+            return;
+        }
+        if (currentIndex == 52) {
+            currentIndex = 54;
+            updateScene();
+            return;
+        }
 
-            // Choice 4:
-            if (currentIndex == 62) {
-                showChoices("หรือว่าเธออยากอยู่ใกล้ฉัน?", "หรือว่าเธอเริ่มชอบพวกเราแล้ว?", 63, 64);
-                return;
-            }
-            if (currentIndex == 63) { currentIndex = 65; updateScene(); return; }
-            
-            // Choice 5:
-            if (currentIndex == 79) {
-                showChoices("Nebula ขอบคุณนะที่มาช่วย", "ดีใจนะที่เธอมาที่นี่", 80, 81);
-                return;
-            }
-            if (currentIndex == 80) { currentIndex = 82; updateScene(); return; }
+        // Choice 4:
+        if (currentIndex == 62) {
+            showChoices("หรือว่าเธออยากอยู่ใกล้ฉัน?", "หรือว่าเธอเริ่มชอบพวกเราแล้ว?", 63, 64);
+            return;
+        }
+        if (currentIndex == 63) {
+            currentIndex = 65;
+            updateScene();
+            return;
+        }
 
-            if (currentIndex < dialogues.length - 1) {
-                currentIndex++;
-                updateScene();
-            } else {
-                finishGame();
-            }
+        // Choice 5:
+        if (currentIndex == 79) {
+            showChoices("Nebula ขอบคุณนะที่มาช่วย", "ดีใจนะที่เธอมาที่นี่", 80, 81);
+            return;
+        }
+        if (currentIndex == 80) {
+            currentIndex = 82;
+            updateScene();
+            return;
+        }
+
+        if (currentIndex < dialogues.length - 1) {
+            currentIndex++;
+            updateScene();
+        } else {
+            finishGame();
+        }
     }
-
 
     private void handleSoundEffects(int index) {
         if (index == 3) {
@@ -746,11 +753,10 @@ public class part9 extends JFrame {
 
     private void finishGame() {
         if (isFinishing) {
-            return; // ป้องกันการคลิกซ้ำ
+            return;
+        }
+        isFinishing = true;
 
-                }isFinishing = true;
-
-        // เรียกใช้งานแผ่น Fade Out
         if (fadeOverlay.getParent() == null) {
             layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
         }
@@ -763,11 +769,10 @@ public class part9 extends JFrame {
                 ((Timer) e.getSource()).stop();
                 stopBGM();
 
-                // ตรวจสอบเงื่อนไขการปลดล็อคฉากจบ
                 if (relationdata.isOnlineMode) {
-                    calculateOnlineEnding();
+                    showWaitPoint(); // แสดงหน้าจอดำรอเพื่อน
                 } else {
-                    processOfflineEnding();
+                    goToNextPart(); // ถ้าเล่นคนเดียวให้ข้ามไปคำนวณฉากจบเลย
                 }
             }
             fadeOverlay.repaint();
@@ -799,79 +804,66 @@ public class part9 extends JFrame {
     }
 
     private void calculateOnlineEnding() {
-        // 1. ตรวจสอบว่ามีข้อมูลผู้เล่นอื่นหรือไม่
-        if (allPlayersData == null || allPlayersData.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "ไม่สามารถดึงข้อมูลสรุปจากเซิร์ฟเวอร์ได้ ระบบจะใช้เกณฑ์คะแนนส่วนตัวแทน");
-            processOfflineEnding(); // ถ้าโหลดข้อมูลไม่สำเร็จ ให้ใช้ระบบออฟไลน์แทนเพื่อไม่ให้เกมค้าง
-            return;
-        }
+        // 1. เตรียมชื่อและคะแนนเริ่มต้น (P1 คือตัวเราเสมอ)
+        String n1 = relationdata.playerName;
+        String n2 = "Player 2";
+        String n3 = "Player 3";
 
-        // 2. ดึงค่าปัจจุบันของคุณและตั้งค่าตัวแปรสำหรับหาผู้ชนะ
-        int myAlice = relationdata.aliceRel.getAffinity();
-        int myNebula = relationdata.nebulaRel.getAffinity();
-        String myName = relationdata.playerName;
+        int p1A = relationdata.aliceRel.getAffinity();
+        int p1N = relationdata.nebulaRel.getAffinity();
+        int p2A = 0, p2N = 0, p3A = 0, p3N = 0;
 
-        int maxAlice = -1;
-        int maxNebula = -1;
-        boolean amIGrandWinner = false;
-        boolean amIAliceWinner = false;
-        boolean amINebulaWinner = false;
+        // 2. ถ้ามีข้อมูลออนไลน์ ให้แยกข้อมูลมาทับค่าเริ่มต้น
+        if (allPlayersData != null && !allPlayersData.isEmpty()) {
+            String[] players = allPlayersData.split(",");
+            int otherIndex = 2;
 
-        // 3. วนลูปหาค่าคะแนนสูงสุดของเซิร์ฟเวอร์
-        // ข้อมูลมาในรูปแบบ "Name1=Score1,Name2=Score2" โดย Score = (Alice*1000) + Nebula
-        String[] players = allPlayersData.split(",");
-        for (String p : players) {
-            if (p.contains("=")) {
-                try {
+            for (String p : players) {
+                if (p.contains("=")) {
                     String[] parts = p.split("=");
-                    int totalScore = Integer.parseInt(parts[1]);
-                    int aScore = totalScore / 1000;
-                    int nScore = totalScore % 1000;
+                    String name = parts[0];
+                    if (name.equals(relationdata.playerName)) {
+                        continue;
+                    }
 
-                    if (aScore > maxAlice) {
-                        maxAlice = aScore;
+                    int aScore = 0, nScore = 0;
+                    if (parts[1].contains("/")) {
+                        String[] sc = parts[1].split("/");
+                        aScore = Integer.parseInt(sc[0]);
+                        nScore = Integer.parseInt(sc[1]);
                     }
-                    if (nScore > maxNebula) {
-                        maxNebula = nScore;
+
+                    if (otherIndex == 2) {
+                        n2 = name;
+                        p2A = aScore;
+                        p2N = nScore;
+                        otherIndex++;
+                    } else if (otherIndex == 3) {
+                        n3 = name;
+                        p3A = aScore;
+                        p3N = nScore;
+                        break;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             }
         }
 
-        // 4. ตรวจสอบสถานะของคุณเทียบกับจุดสูงสุด
-        if (myAlice >= maxAlice && myNebula >= maxNebula) {
-            amIGrandWinner = true; 
-        }else if (myAlice >= maxAlice) {
-            amIAliceWinner = true; 
-        }else if (myNebula >= maxNebula) {
-            amINebulaWinner = true;
-        }
+        // 3. สร้างตัวแปร final เพื่อแก้ Error (effectively final) ในรูป image_f2e80c.png
+        final String resN1 = n1;
+        final String resN2 = n2;
+        final String resN3 = n3;
+        final int resP1A = p1A;
+        final int resP1N = p1N;
+        final int resP2A = p2A;
+        final int resP2N = p2N;
+        final int resP3A = p3A;
+        final int resP3N = p3N;
 
-        // 5. ปรับปรุงสถานะการปลดล็อคใน relationdata และเตรียมข้อความ
-        String message = "--- สรุปผลการผจญภัยออนไลน์ ---\n";
-
-        if (amIGrandWinner) {
-            relationdata.isEnding1Unlocked = true; // ปลดล็อคฉากจบ Harem
-            relationdata.isEnding2Unlocked = true;
-            relationdata.isEnding3Unlocked = true;
-            message += "👑 ยินดีด้วย! คุณคือผู้เล่นระดับตำนานที่ครองใจทั้งคู่!\n- ปลดล็อคฉากจบ: True Harem";
-        } else if (amIAliceWinner) {
-            relationdata.isEnding2Unlocked = true; // ปลดล็อคฉากจบ Alice
-            message += "💖 คุณคือที่หนึ่งในใจของอริส!\n- ปลดล็อคฉากจบ: Alice Ending";
-        } else if (amINebulaWinner) {
-            relationdata.isEnding3Unlocked = true; // ปลดล็อคฉากจบ Nebula
-            message += "💜 จอมมารเนบิวล่าเลือกคุณเป็นคู่หู!\n- ปลดล็อคฉากจบ: Nebula Ending";
-        } else {
-            message += "⚔️ คุณทำคะแนนได้ดี แต่ยังมีผู้เล่นอื่นที่คะแนนสูงกว่าในครั้งนี้\n- พยายามใหม่ในรอบหน้านะ!";
-        }
-
-        // 6. แสดงผลและเปลี่ยนหน้าไปยัง Gallery
-        UIManager.put("OptionPane.messageFont", THAI_FONT);
-        JOptionPane.showMessageDialog(this, message, "Game Clear!", JOptionPane.INFORMATION_MESSAGE);
-
-        openGallery(); // ฟังก์ชันที่เรียก new GalleryPage().setVisible(true) และ dispose()
+        // 4. ส่งไปที่ EndingController ทันที ไม่ว่าจะออนไลน์หรือออฟไลน์
+        SwingUtilities.invokeLater(() -> {
+            new EndingController(resN1, resP1A, resP1N, resN2, resP2A, resP2N, resN3, resP3A, resP3N, "P1").setVisible(true);
+            dispose();
+        });
     }
 
     private void startTypewriter(String text) {
@@ -918,7 +910,8 @@ public class part9 extends JFrame {
                 String e1 = relationdata.isEnding1Unlocked ? "1" : "0";
                 String e2 = relationdata.isEnding2Unlocked ? "1" : "0";
                 String e3 = relationdata.isEnding3Unlocked ? "1" : "0";
-                networkOut.println("SAVE_ENDINGS:" + e1 + "," + e2 + "," + e3);
+                String e4 = relationdata.isEnding4Unlocked ? "1" : "0";
+                networkOut.println("SAVE_ENDINGS:" + e1 + "," + e2 + "," + e3 + "," + e4);
             }).start();
         }
     }
@@ -946,6 +939,7 @@ public class part9 extends JFrame {
                 while ((line = in.readLine()) != null) {
                     if (line.startsWith("ALL_STATS:")) {
                         allPlayersData = line.substring(10); // เก็บข้อมูลสรุปเพื่อใช้ตอนจบ
+                        updateLeaderboardUI(allPlayersData);
                     } else if (line.startsWith("LOAD_AFFINITY:")) {
                         int score = Integer.parseInt(line.substring(14));
                         relationdata.aliceRel.setAffinity(score); // รับค่าอริสตรงๆ
@@ -955,9 +949,21 @@ public class part9 extends JFrame {
                     } else if (line.startsWith("LOAD_ENDINGS:")) {
                         // รับสถานะ Gallery จาก SQL
                         String[] eds = line.substring(13).split(",");
-                        relationdata.isEnding1Unlocked = eds[0].equals("1");
-                        relationdata.isEnding2Unlocked = eds[1].equals("1");
-                        relationdata.isEnding3Unlocked = eds[2].equals("1");
+                        if (eds.length > 0) {
+                            relationdata.isEnding1Unlocked = eds[0].equals("1");
+                        }
+                        if (eds.length > 1) {
+                            relationdata.isEnding2Unlocked = eds[1].equals("1");
+                        }
+                        if (eds.length > 2) {
+                            relationdata.isEnding3Unlocked = eds[2].equals("1");
+                        }
+                        if (eds.length > 3) {
+                            relationdata.isEnding4Unlocked = eds[3].equals("1");
+                        }
+                    }
+                    if (line.equals("PROCEED_TO_NEXT")) {
+                        goToNextPart();
                     }
                 }
             } catch (Exception e) {
@@ -968,9 +974,42 @@ public class part9 extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part9().setVisible(true));
     }
+
+    private void showWaitPoint() {
+        isWaiting = true;
+        waitOverlay = new JPanel(null) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 220));
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        waitOverlay.setBounds(0, 0, 1280, 800);
+        waitOverlay.setOpaque(false);
+        JLabel msg = new JLabel("WAITING FOR PLAYERS...", SwingConstants.CENTER);
+        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
+        msg.setForeground(Color.WHITE);
+        msg.setBounds(0, 350, 1280, 100);
+        waitOverlay.add(msg);
+        layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
+        layeredPane.moveToFront(waitOverlay);
+        if (networkOut != null) {
+            networkOut.println("READY_FOR_NEXT");
+        }
+        revalidate();
+        repaint();
+    }
+
+    private void goToNextPart() {
+        SwingUtilities.invokeLater(() -> {
+            // *** ตรงนี้ต้องเปลี่ยนชื่อ Class ตาม Part เป้าหมาย ***
+            calculateOnlineEnding();
+            dispose();
+        });
+    }
 }
 
-class VisualNovelBox extends JPanel {
+/* class VisualNovelBox extends JPanel {
 
     private int cornerRadius = 30;
 
@@ -989,4 +1028,4 @@ class VisualNovelBox extends JPanel {
         g2d.setStroke(new BasicStroke(4f));
         g2d.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, cornerRadius, cornerRadius);
     }
-}
+} */

@@ -1,6 +1,7 @@
 package flirting_game;
 
 public class relationdata {
+
     public static relationship aliceRel = new relationship("อริส");
     public static relationship nebulaRel = new relationship("Nebula"); // เพิ่มตัวแปรความสัมพันธ์ Nebula
     public static boolean isOnlineMode = false;
@@ -12,4 +13,5 @@ public class relationdata {
     public static boolean isEnding1Unlocked = false;
     public static boolean isEnding2Unlocked = false;
     public static boolean isEnding3Unlocked = false;
+    public static boolean isEnding4Unlocked = false; // ฉากจบโสด (Alone)
 }

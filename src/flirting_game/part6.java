@@ -44,6 +44,9 @@ public class part6 extends JFrame {
     private float charAlpha1 = 0.0f; 
     private float charAlpha2 = 0.0f; 
     private Timer charFadeTimer1, charFadeTimer2;
+    
+    private JPanel waitOverlay;
+    private boolean isWaiting = false;
 
     private final Font thaiFont = new Font("Tahoma", Font.BOLD, 18);
 
@@ -342,7 +345,7 @@ public class part6 extends JFrame {
     }
 
     private void handleNext() {
-        if (isChoosing || isFading) return; 
+    	if (isFading || isWaiting || isChoosing) return; 
         if (isTyping) {
             stopTypewriter();
             dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
@@ -529,6 +532,9 @@ public class part6 extends JFrame {
                     } else if (line.startsWith("ALL_STATS:")) {
                         updateLeaderboardUI(line.substring(10));
                     }
+                    if (line.equals("PROCEED_TO_NEXT")) {
+                        goToNextPart();
+                    }
                 }
             } catch (Exception e) { e.printStackTrace(); }
         }).start();
@@ -616,7 +622,13 @@ public class part6 extends JFrame {
             alpha += 0.05f;
             if (alpha >= 1.0f) {
                 ((Timer)e.getSource()).stop();
-                new part7().setVisible(true); dispose();
+                SwingUtilities.invokeLater(() -> {
+                    if (relationdata.isOnlineMode) {
+                        showWaitPoint(); // แสดงหน้าจอดำรอเพื่อน
+                    } else {
+                        goToNextPart(); // ถ้าเล่นคนเดียวให้ข้ามไปเลย
+                    }
+                });
             }
             fadeOverlay.repaint();
         });
@@ -629,5 +641,33 @@ public class part6 extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part6().setVisible(true));
+    }
+    private void showWaitPoint() {
+        isWaiting = true;
+        waitOverlay = new JPanel(null) {
+            @Override protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 220)); 
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        waitOverlay.setBounds(0, 0, 1280, 800);
+        waitOverlay.setOpaque(false);
+        JLabel msg = new JLabel("WAITING FOR PLAYERS...", SwingConstants.CENTER);
+        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
+        msg.setForeground(Color.WHITE);
+        msg.setBounds(0, 350, 1280, 100);
+        waitOverlay.add(msg);
+        layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
+        layeredPane.moveToFront(waitOverlay);
+        if (networkOut != null) networkOut.println("READY_FOR_NEXT");
+        revalidate(); repaint();
+    }
+
+    private void goToNextPart() {
+        SwingUtilities.invokeLater(() -> {
+            // *** ตรงนี้ต้องเปลี่ยนชื่อ Class ตาม Part เป้าหมาย ***
+            new part7().setVisible(true); 
+            dispose(); 
+        });
     }
 }

@@ -3,8 +3,10 @@ package flirting_game;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
+import javax.swing.border.Border;
 
 public class GalleryPage extends JFrame {
+
     private JLayeredPane layeredPane;
 
     public GalleryPage() {
@@ -19,7 +21,7 @@ public class GalleryPage extends JFrame {
 
         // 1. ตรวจสอบสถานะออนไลน์และดึงข้อมูลจาก SQL ก่อนแสดงผล
         if (relationdata.isOnlineMode) {
-            syncGalleryFromSQL(); 
+            syncGalleryFromSQL();
         } else {
             refreshGalleryUI(); // ถ้าออฟไลน์ให้แสดงตามค่าที่มีในเครื่อง
         }
@@ -28,13 +30,11 @@ public class GalleryPage extends JFrame {
     // --- ระบบดึงข้อมูลฉากจบจาก SQL (Sync) ---
     private void syncGalleryFromSQL() {
         new Thread(() -> {
-            try (java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
-                 java.io.PrintWriter out = new java.io.PrintWriter(socket.getOutputStream(), true);
-                 java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()))) {
-                
+            try (java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000); java.io.PrintWriter out = new java.io.PrintWriter(socket.getOutputStream(), true); java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()))) {
+
                 // ส่งชื่อและระบุพาร์ทเพื่อขอโหลดข้อมูลสถานะฉากจบ
                 out.println("SET_NAME:" + relationdata.playerName);
-                out.println("SET_PART:9"); 
+                out.println("SET_PART:9");
 
                 String line;
                 while ((line = in.readLine()) != null) {
@@ -44,10 +44,11 @@ public class GalleryPage extends JFrame {
                         relationdata.isEnding1Unlocked = eds[0].equals("1");
                         relationdata.isEnding2Unlocked = eds[1].equals("1");
                         relationdata.isEnding3Unlocked = eds[2].equals("1");
-                        
+                        if (eds.length > 3) relationdata.isEnding4Unlocked = eds[3].equals("1");
+
                         // เมื่อโหลดข้อมูลเสร็จ ให้วาด UI ใหม่ทันที
                         SwingUtilities.invokeLater(() -> refreshGalleryUI());
-                        break; 
+                        break;
                     }
                 }
             } catch (Exception e) {
@@ -75,26 +76,28 @@ public class GalleryPage extends JFrame {
         titleLabel.setBounds(0, 30, 1024, 50);
         layeredPane.add(titleLabel, JLayeredPane.MODAL_LAYER);
 
-        // 3. ฉากจบทั้ง 3 ช่อง (ดึงค่าจาก relationdata ที่อัปเดตแล้ว)
-        layeredPane.add(createEndingSlot(1, 100, 150, relationdata.isEnding1Unlocked, "res/gallery/ending1_thumb.png", "res/gallery/ending1.png"), JLayeredPane.PALETTE_LAYER);
-        layeredPane.add(createEndingSlot(2, 400, 150, relationdata.isEnding2Unlocked, "res/gallery/ending2_thumb.png", "res/gallery/ending2.png"), JLayeredPane.PALETTE_LAYER);
-        layeredPane.add(createEndingSlot(3, 700, 150, relationdata.isEnding3Unlocked, "res/gallery/ending3_thumb.png", "res/gallery/ending3.png"), JLayeredPane.PALETTE_LAYER);
+        // 3. ฉากจบทั้ง 4 ช่อง (จัดเรียงใหม่ให้พอดีหน้าจอ)
+        // ใช้ชื่อไฟล์ ending4_thumb.png และ ending4.png สำหรับฉากจบใหม่
+        layeredPane.add(createEndingSlot("Harem Ending", 42, 150, relationdata.isEnding1Unlocked, "res/gallery/ending1_thumb.png", "res/gallery/ending1.png"), JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(createEndingSlot("Alice Ending", 282, 150, relationdata.isEnding2Unlocked, "res/gallery/ending2_thumb.png", "res/gallery/ending2.png"), JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(createEndingSlot("Nebula Ending", 522, 150, relationdata.isEnding3Unlocked, "res/gallery/ending3_thumb.png", "res/gallery/ending3.png"), JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(createEndingSlot("Alone Ending", 762, 150, relationdata.isEnding4Unlocked, "res/gallery/ending4_thumb.png", "res/gallery/ending4.png"), JLayeredPane.PALETTE_LAYER);
 
         // 4. ปุ่มกลับเมนูหลัก
-        JButton backBtn = new JButton("กลับเมนูหลัก");
-        backBtn.setFont(new Font("Tahoma", Font.BOLD, 16));
-        backBtn.setBounds(412, 500, 200, 40);
-        backBtn.addActionListener(e -> { 
-            new menu().main(null); 
-            dispose(); 
+        StyledButton backBtn = new StyledButton("กลับเมนูหลัก", new Color(110, 80, 150), new Color(140, 100, 180));
+        backBtn.setBounds(412, 500, 200, 45);
+        backBtn.addActionListener(e -> {
+            new menu().main(null);
+            dispose();
         });
+
         layeredPane.add(backBtn, JLayeredPane.MODAL_LAYER);
 
         layeredPane.revalidate();
         layeredPane.repaint();
     }
 
-    private JPanel createEndingSlot(int id, int x, int y, boolean isUnlocked, String thumbPath, String fullPath) {
+    private JPanel createEndingSlot(String title, int x, int y, boolean isUnlocked, String thumbPath, String fullPath) {
         JPanel slot = new JPanel(new BorderLayout());
         slot.setBounds(x, y, 220, 300);
         slot.setOpaque(false);
@@ -102,24 +105,55 @@ public class GalleryPage extends JFrame {
         // ถ้าปลดล็อคแล้วให้โชว์รูป Thumb ถ้าไม่ให้โชว์ locked.png
         String displayPath = isUnlocked ? thumbPath : "res/gallery/locked.png";
         ImageIcon icon = getScaledIcon(displayPath, 220, 250);
-        
+
         JButton imgBtn = new JButton(icon);
         imgBtn.setContentAreaFilled(false);
-        imgBtn.setBorderPainted(true);
+        imgBtn.setBorderPainted(false);
         imgBtn.setFocusPainted(false);
         imgBtn.setEnabled(isUnlocked); // กดดูได้เฉพาะอันที่ปลดแล้ว
+
+        // --- เอฟเฟกต์กรอบเรืองแสงเมื่อชี้เมาส์ ---
+        Border normalBorder = BorderFactory.createLineBorder(new Color(255, 255, 255, 70), 3);
+        Border hoverBorder = BorderFactory.createLineBorder(new Color(255, 215, 0, 255), 3); // สีทอง
+        Border lockedBorder = BorderFactory.createLineBorder(new Color(80, 80, 80, 200), 3);
 
         if (isUnlocked) {
             imgBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
             imgBtn.addActionListener(e -> viewEnding(fullPath));
+            imgBtn.setBorder(normalBorder);
+            imgBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    imgBtn.setBorder(hoverBorder);
+                }
+
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    imgBtn.setBorder(normalBorder);
+                }
+            });
+        } else {
+            imgBtn.setBorder(lockedBorder);
         }
 
-        JLabel label = new JLabel("Ending " + id, SwingConstants.CENTER);
+        JLabel label = new JLabel(title, SwingConstants.CENTER);
         label.setFont(new Font("Tahoma", Font.BOLD, 18));
         label.setForeground(Color.WHITE);
 
+        // สร้าง Panel รองหลังข้อความเพื่อให้เห็นชัดขึ้น
+        JPanel labelPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setColor(new Color(0, 0, 0, 180)); // สีดำจางๆ (Alpha 180)
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
+            }
+        };
+        labelPanel.setOpaque(false);
+        labelPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0)); // เพิ่มระยะห่างบนล่าง
+        labelPanel.add(label, BorderLayout.CENTER);
+
         slot.add(imgBtn, BorderLayout.CENTER);
-        slot.add(label, BorderLayout.SOUTH);
+        slot.add(labelPanel, BorderLayout.SOUTH);
 
         return slot;
     }
@@ -128,10 +162,10 @@ public class GalleryPage extends JFrame {
         JDialog endingViewer = new JDialog(this, "Ending CG", true);
         endingViewer.setSize(1024, 600);
         endingViewer.setLocationRelativeTo(this);
-        
+
         ImageIcon fullEndingIcon = getScaledIcon(fullImagePath, 1024, 600);
         JLabel endingLabel = new JLabel(fullEndingIcon);
-        
+
         endingViewer.add(endingLabel);
         endingViewer.setVisible(true);
     }
@@ -156,5 +190,40 @@ public class GalleryPage extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GalleryPage().setVisible(true));
+    }
+
+    // --- คลาสสำหรับสร้างปุ่มดีไซน์สวยงาม ---
+    class StyledButton extends JButton {
+
+        private Color baseColor;
+        private Color hoverColor;
+
+        public StyledButton(String text, Color base, Color hover) {
+            super(text);
+            this.baseColor = base;
+            this.hoverColor = hover;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setForeground(Color.WHITE);
+            setFont(new Font("Tahoma", Font.BOLD, 16));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (getModel().isPressed()) {
+                g2.setColor(hoverColor.darker());
+            } else if (getModel().isRollover()) {
+                g2.setColor(hoverColor);
+            } else {
+                g2.setColor(baseColor);
+            }
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
+            g2.dispose();
+            super.paintComponent(g);
+        }
     }
 }

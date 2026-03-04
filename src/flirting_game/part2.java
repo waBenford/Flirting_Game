@@ -37,6 +37,9 @@ public class part2 extends JFrame {
     private Timer charFadeTimer;
 
     private PrintWriter networkOut;
+    
+    private JPanel waitOverlay;
+    private boolean isWaiting = false;
 
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
@@ -212,7 +215,7 @@ public class part2 extends JFrame {
     }
 
     private void handleInteraction() {
-        if (isChoosing || isFading) return;
+    	if (isFading || isWaiting || isChoosing) return;
         if (isAnimating) { stopAnimation(); updateDialogueDisplay(dialogues[currentIndex]); return; }
 
         if (currentIndex == 7) {
@@ -276,8 +279,11 @@ public class part2 extends JFrame {
                 alpha = 1.0f; ((Timer)e.getSource()).stop();
                 Timer transitionTimer = new Timer(200, ev -> {
                     SwingUtilities.invokeLater(() -> {
-                        new part3().setVisible(true);
-                        dispose();
+                    	if (relationdata.isOnlineMode) {
+                    		showWaitPoint(); // แสดงหน้าจอดำรอเพื่อน
+                    		} else {
+                    		goToNextPart(); // ถ้าออฟไลน์ให้ข้ามไปเลย
+                    		}
                     });
                 });
                 transitionTimer.setRepeats(false);
@@ -313,12 +319,7 @@ public class part2 extends JFrame {
 
                 String line;
                 while ((line = in.readLine()) != null) {
-                    if (line.startsWith("SYNC_INDEX:")) {
-                        int remoteIndex = Integer.parseInt(line.substring(11));
-                        SwingUtilities.invokeLater(() -> {
-                            if (remoteIndex != currentIndex) { currentIndex = remoteIndex; updateScene(); }
-                        });
-                    } else if (line.startsWith("ALL_STATS:")) {
+                    if (line.startsWith("ALL_STATS:")) {
                         // ส่งข้อมูลไปประมวลผลตาราง HTML
                         updateLeaderboardUI(line.substring(10));
                     }
@@ -330,6 +331,9 @@ public class part2 extends JFrame {
                             affinityLabel.setText("อริส: " + score); 
                             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
                         });
+                    }
+                    if (line.equals("PROCEED_TO_NEXT")) {
+                        goToNextPart();
                     }
                 }
             } catch (Exception e) { e.printStackTrace(); }
@@ -583,24 +587,30 @@ public class part2 extends JFrame {
         // --- Logic การกดปุ่มและระบบ Affinity ---
         btn.addActionListener(e -> {
             playEffect("res/sound/click.wav", 0.0f);
-            // ลบปุ่มออกเมื่อเลือกแล้ว
             layeredPane.remove(choiceButton1); 
             layeredPane.remove(choiceButton2);
             layeredPane.remove(choiceButton3);
             isChoosing = false;
 
-            // ตรวจสอบเงื่อนไขคะแนนความสนิท (อ้างอิงจาก target ที่ส่งมา)
-            if (target == 8 || target == 9 || target == 10) {
-                System.out.println("Neutral Choice: No affinity change.");
+            
+            if (target == 8) {
+                // ตัวเลือก "ฉันไม่รู้" -> ไม่เพิ่มแต้ม
+                relationdata.aliceRel.addAffinity(5);
+            } else if (target == 9) {
+                // ตัวเลือก "ฉันจำชื่อไม่ได้" -> อริสสงสาร +5
+                relationdata.aliceRel.addAffinity(5);
+            } else if (target == 10) {
+                // ตัวเลือก "ฉันไม่ค่อยเเน่ใจเลย" -> อริสเอ็นดู +10
+                relationdata.aliceRel.addAffinity(10);
             }
 
-            // ส่งข้อมูลไปยัง Server (ถ้าเปิด Online Mode)
+            // ส่งข้อมูลไปยัง Server (ถ้าเปิด Online Mode) หลังจากอัปเดตค่าแล้ว
             if (relationdata.isOnlineMode && networkOut != null) {
                 networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
-                networkOut.println("SYNC_INDEX:" + target);    
+                networkOut.println("SYNC_INDEX:" + target);
             }
 
-            // อัปเดตการแสดงผลคะแนนบนหน้าจอ
+            // อัปเดตการแสดงผลบนหน้าจอให้เป็นค่าใหม่ทันที
             if (affinityLabel != null) {
                 affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
             }
@@ -665,9 +675,38 @@ public class part2 extends JFrame {
     }
 
     public static void main(String[] args) { SwingUtilities.invokeLater(() -> new part2().setVisible(true)); }
-}
+    
+    private void showWaitPoint() {
+        isWaiting = true;
+        waitOverlay = new JPanel(null) {
+            @Override protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 220)); 
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        waitOverlay.setBounds(0, 0, 1280, 800);
+        waitOverlay.setOpaque(false);
+        JLabel msg = new JLabel("WAITING FOR PLAYERS...", SwingConstants.CENTER);
+        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
+        msg.setForeground(Color.WHITE);
+        msg.setBounds(0, 350, 1280, 100);
+        waitOverlay.add(msg);
+        layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
+        layeredPane.moveToFront(waitOverlay);
+        if (networkOut != null) networkOut.println("READY_FOR_NEXT");
+        revalidate(); repaint();
+    }
 
-/*class VisualNovelBox extends JPanel {
+    private void goToNextPart() {
+        SwingUtilities.invokeLater(() -> {
+            // *** ตรงนี้ต้องเปลี่ยนชื่อ Class ตาม Part เป้าหมาย ***
+            new part3().setVisible(true); 
+            dispose(); 
+        });
+    }
+    
+}
+class VisualNovelBox extends JPanel {
     private int cornerRadius = 30;
     public VisualNovelBox() { setOpaque(false); }
     @Override
@@ -685,4 +724,4 @@ public class part2 extends JFrame {
         g2d.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, cornerRadius, cornerRadius);
         g2d.dispose();
     }
-}*/
+}
