@@ -273,7 +273,7 @@ public class part4 extends JFrame {
             finishPart(); 
         }
     }
-
+//
     private Rectangle getCharacterSettings(String path) {
         String p = path.toLowerCase();
         if (p.contains("uncle") || p.contains("ชาวบ้าน")) {
