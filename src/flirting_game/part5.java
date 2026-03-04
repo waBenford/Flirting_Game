@@ -646,12 +646,16 @@ public class part5 extends JFrame {
             isChoosing = false; 
 
             // ตรวจสอบคำตอบ: กินอะไรก็ได้ (10), ไม่ยกให้ใคร (32), สัญญาว่าจะรอ (54)
-            if (target == 10 || target == 33 || target == 34 || target == 55) {
-                relationdata.aliceRel.addAffinity(10); 
-            } else if (target == 11 || target == 56){
-                System.out.println("คะแนนเท่าเดิม");
-            } else {
+            if (target == 10 || target == 33 || target == 55) {
+                relationdata.aliceRel.addAffinity(10);
+            } else if (target == 11 ){
+                // System.out.println("คะแนนเท่าเดิม");
+            } else if (target == 12 || target == 35 || target == 55){
                 relationdata.aliceRel.decreaseAffinity(5); 
+            } else if (target == 34 || target == 56){
+                relationdata.aliceRel.addAffinity(5);
+            } else if (target == 57){
+                relationdata.aliceRel.decreaseAffinity(10); 
             }
 
             // ส่งข้อมูลไป Server (Online Mode)

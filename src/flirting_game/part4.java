@@ -760,13 +760,14 @@ public class part4 extends JFrame {
             updateScene();
 
             // ตรวจสอบเงื่อนไขคะแนนความสนิทตามที่คุณส่งมา
-            if (target == 11 || target == 14 || target == 20 || target == 22 || target == 43 || target == 64) {
+            if (target == 11 || target == 20 || target == 43 || target == 64) {
                 relationdata.aliceRel.addAffinity(10);
-            } else if (target == 12 || target == 21){
-                System.out.println("คะแนนเท่าเดิม");
-            }
-            else {
-                relationdata.aliceRel.decreaseAffinity(5);
+            } else if (target == 14 || target == 22 || target == 65) {
+                relationdata.aliceRel.addAffinity(5);
+            } else if (target == 12 || target == 21){ // เท่าเดิม
+                // relationdata.aliceRel.decreaseAffinity(5); 
+            } else if (target == 13 || target == 23 || target == 44 || target == 45 || target == 63) { 
+                relationdata.aliceRel.decreaseAffinity(5); 
             }
 
             // ส่งข้อมูลไปยัง Server เพื่อบันทึก SQL (Online Mode)
