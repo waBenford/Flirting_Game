@@ -525,14 +525,19 @@ public class part8 extends JFrame {
                 networkOut = relationdata.globalOut;
                 java.io.BufferedReader in = relationdata.globalIn;
                 
+                // *** เพิ่ม 3 บรรทัดนี้ เพื่ออัปเดตสถานะและขอข้อมูล Scoreboard จาก Server ***
+                networkOut.println("SET_NAME:" + relationdata.playerName);
+                networkOut.println("SET_PART:8");
+                networkOut.println("GET_AFFINITY"); 
+                
                 String line;
                 while ((line = in.readLine()) != null) {
                     if (line.startsWith("LOAD_AFFINITY:")) {
-                        int score = Integer.parseInt(line.substring(14));
+                        int score = Integer.parseInt(line.substring(14).trim());
                         relationdata.aliceRel.setAffinity(score);
                         SwingUtilities.invokeLater(() -> { affinityLabel.setText("อริส: " + score); statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus()); });
                     } else if (line.startsWith("LOAD_NEBULA:")) {
-                        int nScore = Integer.parseInt(line.substring(12));
+                        int nScore = Integer.parseInt(line.substring(12).trim());
                         relationdata.nebulaRel.setAffinity(nScore);
                         SwingUtilities.invokeLater(() -> { nebulaAffinityLabel.setText("เนบิวล่า: " + nScore); nebulaStatusLabel.setText("สถานะ: " + relationdata.nebulaRel.getStatus()); });
                     } else if (line.startsWith("ALL_STATS:")) { 
@@ -540,13 +545,13 @@ public class part8 extends JFrame {
                     }
                     else if (line.equals("PROCEED_TO_NEXT")) {
                         goToNextPart();
-                        break; // *** สำคัญ! ต้องมี break ***
+                        break; 
                     }
                 }
             } catch (Exception e) {}
         }).start();
     }
-
+    
     private void handleNext() {
         if (isChoosing || isFinishing || isWaiting) return;
         if (isTyping) { stopTypewriter(); dialogueArea.setText("<html><body style='width: 700px;'>" + dialogues[currentIndex] + "</body></html>"); return; }

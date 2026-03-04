@@ -429,6 +429,10 @@ public class part7 extends JFrame {
                 // *** ดึงข้อมูลจากส่วนกลาง ไม่ต้อง new Socket ใหม่ ***
                 networkOut = relationdata.globalOut;
                 java.io.BufferedReader in = relationdata.globalIn;
+
+                networkOut.println("SET_NAME:" + relationdata.playerName);
+                networkOut.println("SET_PART:7");
+                networkOut.println("GET_AFFINITY");
                 
                 String line;
                 while ((line = in.readLine()) != null) {
