@@ -85,8 +85,12 @@ public class EndingController extends JFrame {
         duelBtn.setBounds(660, 650, 280, 80);
 
         viewEndBtn.addActionListener(e -> {
-            String charName = result.contains("ALICE") ? "ALICE" : "NEBULA";
-            goToEnding(charName, true); // ถือว่าชนะขาดลอย
+            if (result.equals("ALONE")) {
+                goToEnding("ALONE", true);
+            } else {
+                String charName = result.contains("ALICE") ? "ALICE" : "NEBULA";
+                goToEnding(charName, true); // ถือว่าชนะขาดลอย
+            }
         });
 
         if (result.contains("BATTLE")) {
@@ -256,9 +260,10 @@ public class EndingController extends JFrame {
                     String e1 = relationdata.isEnding1Unlocked ? "1" : "0";
                     String e2 = relationdata.isEnding2Unlocked ? "1" : "0";
                     String e3 = relationdata.isEnding3Unlocked ? "1" : "0";
+                    String e4 = relationdata.isEnding4Unlocked ? "1" : "0";
                     
                     out.println("SET_NAME:" + relationdata.playerName);
-                    out.println("SAVE_ENDINGS:" + e1 + "," + e2 + "," + e3);
+                    out.println("SAVE_ENDINGS:" + e1 + "," + e2 + "," + e3 + "," + e4);
                 } catch (Exception e) {
                     System.err.println("ไม่สามารถบันทึกฉากจบไปยังเซิร์ฟเวอร์ได้: " + e.getMessage());
                 }
@@ -274,9 +279,10 @@ public class EndingController extends JFrame {
             } else if (character.equals("NEBULA")) {
                 relationdata.isEnding3Unlocked = true;
                 JOptionPane.showMessageDialog(this, "จอมมารเนบิวล่าเลือกคุณเป็นคู่หู!\n- ปลดล็อคฉากจบ: Nebula Ending");
+            } else if (character.equals("ALONE")) {
+                relationdata.isEnding4Unlocked = true;
+                JOptionPane.showMessageDialog(this, "คุณเลือกที่จะเดินตามเส้นทางของตัวเอง\n- ปลดล็อคฉากจบ: Alone Ending");
             }
-        } else {
-            JOptionPane.showMessageDialog(this, "น่าเสียดายที่คะแนนคุณยังไม่ถึงเป้า หรือพ่ายแพ้ในการดวล\n- ลองพยายามใหม่ในรอบหน้านะ!");
         }
 
         // เซฟข้อมูลไปที่ Server แล้วเปิด Gallery

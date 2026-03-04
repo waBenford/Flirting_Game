@@ -44,6 +44,7 @@ public class GalleryPage extends JFrame {
                         relationdata.isEnding1Unlocked = eds[0].equals("1");
                         relationdata.isEnding2Unlocked = eds[1].equals("1");
                         relationdata.isEnding3Unlocked = eds[2].equals("1");
+                        if (eds.length > 3) relationdata.isEnding4Unlocked = eds[3].equals("1");
 
                         // เมื่อโหลดข้อมูลเสร็จ ให้วาด UI ใหม่ทันที
                         SwingUtilities.invokeLater(() -> refreshGalleryUI());
@@ -75,10 +76,12 @@ public class GalleryPage extends JFrame {
         titleLabel.setBounds(0, 30, 1024, 50);
         layeredPane.add(titleLabel, JLayeredPane.MODAL_LAYER);
 
-        // 3. ฉากจบทั้ง 3 ช่อง (ดึงค่าจาก relationdata ที่อัปเดตแล้ว)
-        layeredPane.add(createEndingSlot(1, 100, 150, relationdata.isEnding1Unlocked, "res/gallery/ending1_thumb.png", "res/gallery/ending1.png"), JLayeredPane.PALETTE_LAYER);
-        layeredPane.add(createEndingSlot(2, 400, 150, relationdata.isEnding2Unlocked, "res/gallery/ending2_thumb.png", "res/gallery/ending2.png"), JLayeredPane.PALETTE_LAYER);
-        layeredPane.add(createEndingSlot(3, 700, 150, relationdata.isEnding3Unlocked, "res/gallery/ending3_thumb.png", "res/gallery/ending3.png"), JLayeredPane.PALETTE_LAYER);
+        // 3. ฉากจบทั้ง 4 ช่อง (จัดเรียงใหม่ให้พอดีหน้าจอ)
+        // ใช้ชื่อไฟล์ ending4_thumb.png และ ending4.png สำหรับฉากจบใหม่
+        layeredPane.add(createEndingSlot("Harem Ending", 42, 150, relationdata.isEnding1Unlocked, "res/gallery/ending1_thumb.png", "res/gallery/ending1.png"), JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(createEndingSlot("Alice Ending", 282, 150, relationdata.isEnding2Unlocked, "res/gallery/ending2_thumb.png", "res/gallery/ending2.png"), JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(createEndingSlot("Nebula Ending", 522, 150, relationdata.isEnding3Unlocked, "res/gallery/ending3_thumb.png", "res/gallery/ending3.png"), JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(createEndingSlot("Alone Ending", 762, 150, relationdata.isEnding4Unlocked, "res/gallery/ending4_thumb.png", "res/gallery/ending4.png"), JLayeredPane.PALETTE_LAYER);
 
         // 4. ปุ่มกลับเมนูหลัก
         StyledButton backBtn = new StyledButton("กลับเมนูหลัก", new Color(110, 80, 150), new Color(140, 100, 180));
@@ -94,7 +97,7 @@ public class GalleryPage extends JFrame {
         layeredPane.repaint();
     }
 
-    private JPanel createEndingSlot(int id, int x, int y, boolean isUnlocked, String thumbPath, String fullPath) {
+    private JPanel createEndingSlot(String title, int x, int y, boolean isUnlocked, String thumbPath, String fullPath) {
         JPanel slot = new JPanel(new BorderLayout());
         slot.setBounds(x, y, 220, 300);
         slot.setOpaque(false);
@@ -131,7 +134,7 @@ public class GalleryPage extends JFrame {
             imgBtn.setBorder(lockedBorder);
         }
 
-        JLabel label = new JLabel("Ending " + id, SwingConstants.CENTER);
+        JLabel label = new JLabel(title, SwingConstants.CENTER);
         label.setFont(new Font("Tahoma", Font.BOLD, 18));
         label.setForeground(Color.WHITE);
 

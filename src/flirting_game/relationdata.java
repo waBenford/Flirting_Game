@@ -10,7 +10,8 @@ public class relationdata {
     public static int onlinePlayerCount = 1;
 
     // --- สถานะการปลดล็อคฉากจบ (ทดสอบ: ปลดล็อคฉากแรกไว้เป็นตัวอย่าง) ---
-    public static boolean isEnding1Unlocked = true;
-    public static boolean isEnding2Unlocked = true;
-    public static boolean isEnding3Unlocked = true;
+    public static boolean isEnding1Unlocked = false;
+    public static boolean isEnding2Unlocked = false;
+    public static boolean isEnding3Unlocked = false;
+    public static boolean isEnding4Unlocked = false; // ฉากจบโสด (Alone)
 }
