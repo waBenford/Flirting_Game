@@ -45,6 +45,9 @@ public class part7 extends JFrame {
     private float rightAlpha = 0.0f;
     private Timer leftFadeTimer, rightFadeTimer;
     private String lastLeftPath = "", lastRightPath = "";
+    
+    private JPanel waitOverlay;
+    private boolean isWaiting = false;
 
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 28);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
@@ -276,7 +279,7 @@ public class part7 extends JFrame {
     // --- ส่วนที่เหลือ (Textbox, Choice, Sound, Network) คงเดิมตามโค้ดของคุณ ---
 
     private void handleNext() {
-        if (isChoosing || isFinishing) return;
+        if (isChoosing || isFinishing || isWaiting) return;
         if (isTyping) {
             stopTypewriter();
             dialogueArea.setText("<html><body style='width: 750px;'>" + dialogues[currentIndex] + "</body></html>");
@@ -353,6 +356,9 @@ public class part7 extends JFrame {
                         relationdata.nebulaRel.setAffinity(nScore);
                         SwingUtilities.invokeLater(() -> { nebulaAffinityLabel.setText("เนบิวล่า: " + nScore); nebulaStatusLabel.setText("สถานะ: " + relationdata.nebulaRel.getStatus()); });
                     } else if (line.startsWith("ALL_STATS:")) { updateLeaderboardUI(line.substring(10)); }
+                    if (line.equals("PROCEED_TO_NEXT")) {
+                        goToNextPart();
+                    }
                 }
             } catch (Exception e) {}
         }).start();
@@ -551,7 +557,13 @@ public class part7 extends JFrame {
             if (alpha >= 1.0f) {
                 alpha = 1.0f; ((Timer)e.getSource()).stop();
                 if (bgmClip != null) { bgmClip.stop(); bgmClip.close(); }
-                SwingUtilities.invokeLater(() -> { new part8().setVisible(true); dispose(); });
+                SwingUtilities.invokeLater(() -> { 
+                	if (relationdata.isOnlineMode) {
+                        showWaitPoint(); // แสดงหน้าจอดำรอเพื่อน
+                    } else {
+                        goToNextPart(); // ถ้าเล่นคนเดียวให้ข้ามไปเลย
+                    } 
+                });
             }
             fadeOverlay.repaint();
         }).start();
@@ -566,9 +578,38 @@ public class part7 extends JFrame {
     }
 
     public static void main(String[] args) { SwingUtilities.invokeLater(() -> new part7().setVisible(true)); }
+    
+    private void showWaitPoint() {
+        isWaiting = true;
+        waitOverlay = new JPanel(null) {
+            @Override protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 220)); 
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        waitOverlay.setBounds(0, 0, 1280, 800);
+        waitOverlay.setOpaque(false);
+        JLabel msg = new JLabel("WAITING FOR FRIENDS...", SwingConstants.CENTER);
+        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
+        msg.setForeground(Color.WHITE);
+        msg.setBounds(0, 350, 1280, 100);
+        waitOverlay.add(msg);
+        layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
+        layeredPane.moveToFront(waitOverlay);
+        if (networkOut != null) networkOut.println("READY_FOR_NEXT");
+        revalidate(); repaint();
+    }
+
+    private void goToNextPart() {
+        SwingUtilities.invokeLater(() -> {
+            // *** ตรงนี้ต้องเปลี่ยนชื่อ Class ตาม Part เป้าหมาย ***
+            new part8().setVisible(true); 
+            dispose(); 
+        });
+    }
 }
 
-class VisualNovelBox extends JPanel {
+/* class VisualNovelBox extends JPanel {
     public VisualNovelBox() { setOpaque(false); }
     @Override protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g; g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -576,4 +617,4 @@ class VisualNovelBox extends JPanel {
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30); g2.setColor(new Color(255, 150, 200, 200));
         g2.setStroke(new BasicStroke(4f)); g2.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 30, 30);
     }
-}
+} */
