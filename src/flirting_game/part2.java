@@ -587,24 +587,32 @@ public class part2 extends JFrame {
         // --- Logic การกดปุ่มและระบบ Affinity ---
         btn.addActionListener(e -> {
             playEffect("res/sound/click.wav", 0.0f);
-            // ลบปุ่มออกเมื่อเลือกแล้ว
             layeredPane.remove(choiceButton1); 
             layeredPane.remove(choiceButton2);
             layeredPane.remove(choiceButton3);
             isChoosing = false;
 
-            // ตรวจสอบเงื่อนไขคะแนนความสนิท (อ้างอิงจาก target ที่ส่งมา)
-            if (target == 8 || target == 9 || target == 10) {
-                System.out.println("Neutral Choice: No affinity change.");
+            // --- ส่วนที่แก้ไข: เพิ่มการอัปเดตแต้มจริง ---
+            int currentAffinity = relationdata.aliceRel.getAffinity();
+            
+            if (target == 8) {
+                // ตัวเลือก "ฉันไม่รู้" -> ไม่เพิ่มแต้ม
+                relationdata.aliceRel.addAffinity(10);
+            } else if (target == 9) {
+                // ตัวเลือก "ฉันจำชื่อไม่ได้" -> อริสสงสาร +5
+                relationdata.aliceRel.addAffinity(10);
+            } else if (target == 10) {
+                // ตัวเลือก "ฉันไม่ค่อยเเน่ใจเลย" -> อริสเอ็นดู +10
+                relationdata.aliceRel.addAffinity(10);
             }
 
-            // ส่งข้อมูลไปยัง Server (ถ้าเปิด Online Mode)
+            // ส่งข้อมูลไปยัง Server (ถ้าเปิด Online Mode) หลังจากอัปเดตค่าแล้ว
             if (relationdata.isOnlineMode && networkOut != null) {
                 networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
                 networkOut.println("SYNC_INDEX:" + target);
             }
 
-            // อัปเดตการแสดงผลคะแนนบนหน้าจอ
+            // อัปเดตการแสดงผลบนหน้าจอให้เป็นค่าใหม่ทันที
             if (affinityLabel != null) {
                 affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
             }
