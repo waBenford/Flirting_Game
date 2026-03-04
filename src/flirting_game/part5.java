@@ -407,7 +407,7 @@ public class part5 extends JFrame {
     private void startCharacterFadeIn1() {
         charAlpha1 = 0.0f;
         if (charFadeTimer1 != null && charFadeTimer1.isRunning()) charFadeTimer1.stop();
-        charFadeTimer1 = new Timer(30, e -> {
+        charFadeTimer1 = new Timer(50, e -> {
             charAlpha1 += 0.1f;
             if (charAlpha1 >= 1.0f) { charAlpha1 = 1.0f; ((Timer)e.getSource()).stop(); }
             characterLabel.repaint();
@@ -418,7 +418,7 @@ public class part5 extends JFrame {
     private void startCharacterFadeIn2() {
         charAlpha2 = 0.0f;
         if (charFadeTimer2 != null && charFadeTimer2.isRunning()) charFadeTimer2.stop();
-        charFadeTimer2 = new Timer(30, e -> {
+        charFadeTimer2 = new Timer(50, e -> {
             charAlpha2 += 0.1f;
             if (charAlpha2 >= 1.0f) { charAlpha2 = 1.0f; ((Timer)e.getSource()).stop(); }
             characterLabel2.repaint();
