@@ -363,16 +363,16 @@ public class part5 extends JFrame {
             // --- แก้ไขตรงนี้: ลดค่า X ลงเพื่อให้ขยับไปทางซ้าย ---
             // ของเดิม: (index >= 41) ? 220 : (index >= 25 ? -100 : 100);
             // ของใหม่: ปรับให้ขยับซ้ายไปอีกประมาณ 150-200 พิกเซล
-            int x = (index >= 41) ? 50 : (index >= 25 ? -250 : -50);
+            int x = (index >= 41) ? 400 : (index >= 25 ? 400 : 400);
             
-            int y = (index >= 41) ? 70 : 50;
-            return new Rectangle(x, y, 900, 800);
+            int y = (index >= 41) ? -40 : -40;
+            return new Rectangle(x, y, 1100, 1000);
             
         } else if (path.contains("Alice")) {
-            int w = (index >= 46 || index >= 25) ? 950 : 1200;
-            int x = (index >= 46) ? 50 : (index >= 25 ? 410 : 80);
-            int y = (index >= 46) ? 100 : (index >= 25 ? 80 : 100);
-            return new Rectangle(x, y, w, 800);
+            int w = (index >= 46 || index >= 25) ? 1000 : 1000;
+            int x = (index >= 46) ? 50 : (index >= 25 ? -120 : 50);
+            int y = (index >= 46) ? 150 : (index >= 25 ? 150 : 150);
+            return new Rectangle(x, y, w, 650);
         }
         return new Rectangle(80, 100, 1200, 800); // Default
     }
