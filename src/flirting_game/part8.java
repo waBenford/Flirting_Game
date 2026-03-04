@@ -15,13 +15,13 @@ import javax.swing.*;
 public class part8 extends JFrame {
     private JLayeredPane layeredPane;
     private JLabel backgroundLabel, leftCharLabel, rightCharLabel, dialogueArea, nameLabel;
-    private VisualNovelBox dialoguePanel; 
+    private VisualNovelBox dialoguePanel;
     private int currentIndex = 0;
-    private Clip bgmClip;      
+    private Clip bgmClip;
     private Clip effectClip;
     private JButton choiceButton1, choiceButton2, choiceButton3;
     private boolean isChoosing = false;
-    private boolean isFinishing = false; 
+    private boolean isFinishing = false;
     private Timer typewriterTimer;
     private int charIndex = 0;
     private boolean isTyping = false;
@@ -33,9 +33,9 @@ public class part8 extends JFrame {
     private JLabel onlineCountLabel, affinityStatusLabel;
     private java.io.PrintWriter networkOut;
 
-    private float alpha = 1.0f; 
-    private JPanel fadeOverlay; 
-    private float leftAlpha = 0.0f; 
+    private float alpha = 1.0f;
+    private JPanel fadeOverlay;
+    private float leftAlpha = 0.0f;
     private float rightAlpha = 0.0f;
     private Timer leftFadeTimer, rightFadeTimer;
 

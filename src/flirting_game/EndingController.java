@@ -283,13 +283,13 @@ public class EndingController extends JFrame {
                 JOptionPane.showMessageDialog(this, "Special Ending: You won both Alice and Nebula!\n- ปลดล็อคฉากจบ: Harem Ending");
             } else if (character.equals("ALICE")) {
                 relationdata.isEnding2Unlocked = true;
-                JOptionPane.showMessageDialog(this, "คุณคือที่หนึ่งในใจของอริส!...");
+                JOptionPane.showMessageDialog(this, "You are number one in Aris's heart!...");
             } else if (character.equals("NEBULA")) {
                 relationdata.isEnding3Unlocked = true;
-                JOptionPane.showMessageDialog(this, "จอมมารเนบิวล่าเลือกคุณเป็นคู่หู!...");
+                JOptionPane.showMessageDialog(this, "Demon Lord Nebula chose you as a lover!...");
             } else if (character.equals("ALONE")) {
                 relationdata.isEnding4Unlocked = true;
-                JOptionPane.showMessageDialog(this, "คุณเลือกที่จะเดินตามเส้นทางของตัวเอง...");
+                JOptionPane.showMessageDialog(this, "You chose to walk your own path!...");
             }
         }
 
