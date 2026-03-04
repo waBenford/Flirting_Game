@@ -103,7 +103,7 @@ public class part3 extends JFrame {
         "มีปีศาจที่เเข็งเเกร่งตัวนึง ได้มาทําลายหมู่บ้านของพวกเรา",
         "มันพรากชีวิตของผู้คนไปมากมาย หนึ่งในนั้นก็มีพ่อเเม่ของฉันด้วย",
         "พ่อเเม่ของฉันปกป้องฉันจนวินาทีสุดท้าย..", "จากเหตุการณ์ครั้งนั้น ฉันเลยรอดมาได้..",
-        "อริสกําลังเศร้า..", "ขอโทษนะที่ถามอะไรเเบบนั้น", "ไม่เป็นไรหหรอก", //33
+        "อริสกําลังเศร้า..", "ขอโทษนะที่ถามอะไรเเบบนั้น", "ไม่เป็นไรหรอก", //33
         "ขอบคุณนะ..", //choice1 //34
         "...", //choice2 //35
         "อื้อ",//choice3 //36
@@ -724,18 +724,18 @@ public class part3 extends JFrame {
             updateScene();
 
             // 1. เพิ่ม Logic การให้คะแนน/ลดคะแนน
-            if (target == 34 || target == 36) {
+            if (target == 34 || target == 35) {
                 // ทางเลือกที่ดีที่สุด (เช่น ฉากปลอบอริส)
                 relationdata.aliceRel.addAffinity(10);
             } 
-            else if (target == 15 || target == 16 || target == 17 || target == 35) {
+            else if (target == 15 || target == 16 || target == 17 || target == 36) {
                 // --- ส่วนที่แก้ไข: Choice 15, 16, 17 ให้คะแนนคงเดิม ---
                 // ไม่ต้องใส่คำสั่ง add หรือ decrease คะแนนจะไม่ขยับ
-                System.out.println("Neutral Choice: No affinity change.");
+                relationdata.aliceRel.addAffinity(5);
             }
             else if (target == 37) {
                 // ทางเลือกที่ทำให้อริสเสียความรู้สึก
-                relationdata.aliceRel.decreaseAffinity(5);
+                relationdata.aliceRel.decreaseAffinity(10);
         }
 
             // ส่งข้อมูลไป Server เพื่อบันทึกลง SQL (Online Mode)
