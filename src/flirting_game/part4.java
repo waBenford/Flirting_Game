@@ -828,7 +828,7 @@ public class part4 extends JFrame {
         };
         waitOverlay.setBounds(0, 0, 1280, 800);
         waitOverlay.setOpaque(false);
-        JLabel msg = new JLabel("WAITING FOR FRIENDS...", SwingConstants.CENTER);
+        JLabel msg = new JLabel("WAITING FOR PLAYERS...", SwingConstants.CENTER);
         msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
         msg.setForeground(Color.WHITE);
         msg.setBounds(0, 350, 1280, 100);

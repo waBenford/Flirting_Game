@@ -592,8 +592,6 @@ public class part2 extends JFrame {
             layeredPane.remove(choiceButton3);
             isChoosing = false;
 
-            // --- ส่วนที่แก้ไข: เพิ่มการอัปเดตแต้มจริง ---
-            int currentAffinity = relationdata.aliceRel.getAffinity();
             
             if (target == 8) {
                 // ตัวเลือก "ฉันไม่รู้" -> ไม่เพิ่มแต้ม
@@ -688,7 +686,7 @@ public class part2 extends JFrame {
         };
         waitOverlay.setBounds(0, 0, 1280, 800);
         waitOverlay.setOpaque(false);
-        JLabel msg = new JLabel("WAITING FOR FRIENDS...", SwingConstants.CENTER);
+        JLabel msg = new JLabel("WAITING FOR PLAYERS...", SwingConstants.CENTER);
         msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
         msg.setForeground(Color.WHITE);
         msg.setBounds(0, 350, 1280, 100);
