@@ -829,65 +829,41 @@ public class part9 extends JFrame {
         openGallery();
     }
 
+        // ในไฟล์ part9.java เมธอด calculateOnlineEnding()
     private void calculateOnlineEnding() {
-        // 1. เตรียมชื่อและคะแนนเริ่มต้น (P1 คือตัวเราเสมอ)
-        String n1 = relationdata.playerName;
-        String n2 = "Player 2";
-        String n3 = "Player 3";
+        // 1. ประกาศตัวแปรรับค่าเบื้องต้น
+        String resN1 = relationdata.playerName, resN2 = "Player 2", resN3 = "Player 3";
+        int resP1A = relationdata.aliceRel.getAffinity(), resP1N = relationdata.nebulaRel.getAffinity();
+        int resP2A = 0, resP2N = 0, resP3A = 0, resP3N = 0;
+        String myRole = "P1";
 
-        int p1A = relationdata.aliceRel.getAffinity();
-        int p1N = relationdata.nebulaRel.getAffinity();
-        int p2A = 0, p2N = 0, p3A = 0, p3N = 0;
-
-        // 2. ถ้ามีข้อมูลออนไลน์ ให้แยกข้อมูลมาทับค่าเริ่มต้น
         if (allPlayersData != null && !allPlayersData.isEmpty()) {
-            String[] players = allPlayersData.split(",");
-            int otherIndex = 2;
-
-            for (String p : players) {
-                if (p.contains("=")) {
-                    String[] parts = p.split("=");
-                    String name = parts[0];
-                    if (name.equals(relationdata.playerName)) {
-                        continue;
-                    }
-
-                    int aScore = 0, nScore = 0;
-                    if (parts[1].contains("/")) {
-                        String[] sc = parts[1].split("/");
-                        aScore = Integer.parseInt(sc[0]);
-                        nScore = Integer.parseInt(sc[1]);
-                    }
-
-                    if (otherIndex == 2) {
-                        n2 = name;
-                        p2A = aScore;
-                        p2N = nScore;
-                        otherIndex++;
-                    } else if (otherIndex == 3) {
-                        n3 = name;
-                        p3A = aScore;
-                        p3N = nScore;
-                        break;
-                    }
+            // ประกาศ Array ตรงนี้เพื่อหายแดงที่ players.length
+            String[] players = allPlayersData.split(","); 
+            for (int i = 0; i < players.length; i++) {
+                String[] pts = players[i].split("=");
+                String name = pts[0];
+                int aScore = 0, nScore = 0;
+                if (pts.length > 1 && pts[1].contains("/")) {
+                    aScore = Integer.parseInt(pts[1].split("/")[0]);
+                    nScore = Integer.parseInt(pts[1].split("/")[1]);
                 }
+
+                if (name.equals(relationdata.playerName)) myRole = "P" + (i + 1);
+                
+                if (i == 0) { resN1 = name; resP1A = aScore; resP1N = nScore; }
+                else if (i == 1) { resN2 = name; resP2A = aScore; resP2N = nScore; }
+                else if (i == 2) { resN3 = name; resP3A = aScore; resP3N = nScore; }
             }
         }
 
-        // 3. สร้างตัวแปร final เพื่อแก้ Error (effectively final) ในรูป image_f2e80c.png
-        final String resN1 = n1;
-        final String resN2 = n2;
-        final String resN3 = n3;
-        final int resP1A = p1A;
-        final int resP1N = p1N;
-        final int resP2A = p2A;
-        final int resP2N = p2N;
-        final int resP3A = p3A;
-        final int resP3N = p3N;
+        // 2. สร้างตัวแปร f (final) เพื่อหายแดงใน Lambda
+        final String fN1 = resN1, fN2 = resN2, fN3 = resN3, fRole = myRole;
+        final int fP1A = resP1A, fP1N = resP1N, fP2A = resP2A, fP2N = resP2N, fP3A = resP3A, fP3N = resP3N;
 
-        // 4. ส่งไปที่ EndingController ทันที ไม่ว่าจะออนไลน์หรือออฟไลน์
         SwingUtilities.invokeLater(() -> {
-            new EndingController(resN1, resP1A, resP1N, resN2, resP2A, resP2N, resN3, resP3A, resP3N, "P1").setVisible(true);
+            // ใช้ตัวแปร f ทั้งหมดในนี้จะหายแดงทันที
+            new EndingController(fN1, fP1A, fP1N, fN2, fP2A, fP2N, fN3, fP3A, fP3N, fRole).setVisible(true);
             dispose();
         });
     }
