@@ -40,7 +40,7 @@ public class part7 extends JFrame {
     private Timer bgFadeTimer;
     private String lastBgPath = "";
 
-    // --- ระบบ Dual Character ใหม่ ---
+    // --- ระบบ Dual Character (Slide + Fade) ---
     private float leftAlpha = 0.0f; 
     private float rightAlpha = 0.0f;
     private Timer leftFadeTimer, rightFadeTimer;
@@ -52,7 +52,7 @@ public class part7 extends JFrame {
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 28);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
 
-    // ข้อมูล Array ฉากหลัง (คงเดิม)
+    // ข้อมูล Array ฉากหลัง
     private String[] imagePaths = {
        "res/scene7/s1.png", "res/scene7/s1.png", "res/scene7/s1.png", "res/scene7/s1.png", 
        "res/scene7/s1.png", "res/scene7/s1.png", "res/scene7/s1.png", "res/scene7/s1.png", 
@@ -142,7 +142,7 @@ public class part7 extends JFrame {
         layeredPane.add(bgFadeOverlay, Integer.valueOf(JLayeredPane.DEFAULT_LAYER + 1));
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        // --- สร้าง Dual Labels พร้อมระบบ Fade เหมือน Part 8 ---
+        // สร้าง Label ตัวละคร
         leftCharLabel = createFadeLabel("left");
         layeredPane.add(leftCharLabel, JLayeredPane.PALETTE_LAYER);
         
@@ -186,97 +186,183 @@ public class part7 extends JFrame {
     }
 
     private void updateScene() {
-        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
-        if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
+        if (currentIndex >= dialogues.length) return;
+
+        nameLabel.setText(currentIndex < names.length ? names[currentIndex] : " ");
+        startTypewriter(dialogues[currentIndex]);
         
         if (currentIndex < imagePaths.length) {
             String newBg = imagePaths[currentIndex];
-            if (!newBg.equals(lastBgPath)) { startBackgroundTransition(newBg); lastBgPath = newBg; }
+            if (!newBg.equals(lastBgPath)) { 
+                startBackgroundTransition(newBg); 
+                lastBgPath = newBg; 
+            }
         }
 
-        String lp = (currentIndex < leftCharPaths.length) ? leftCharPaths[currentIndex] : "res/empty.png";
-        String rp = (currentIndex < rightCharPaths.length) ? rightCharPaths[currentIndex] : "res/empty.png";
+        String currentP1 = (currentIndex < leftCharPaths.length) ? leftCharPaths[currentIndex] : "res/empty.png";
+        String currentP2 = (currentIndex < rightCharPaths.length) ? rightCharPaths[currentIndex] : "res/empty.png";
         
-        boolean hasLeft = !lp.contains("empty.png");
-        boolean hasRight = !rp.contains("empty.png");
+        String prevP1 = lastLeftPath.isEmpty() ? "res/empty.png" : lastLeftPath;
+        String prevP2 = lastRightPath.isEmpty() ? "res/empty.png" : lastRightPath;
 
-        // --- [จัดการฝั่งซ้าย] ---
-        if (!hasLeft) {
-            if (!lastLeftPath.equals(lp)) startFadeEffect("left", false);
-        } else {
-            int sw, sh, posY;
-            // กำหนดขนาดตามตัวละคร
-            if (lp.contains("Dan")) {
-                sw = 1200; sh = 800; posY = 120;
-            } else if (lp.contains("Alice")) {
-                sw = 900; sh = 600; posY = 150; // ขนาด Alice
-            } else {
-                sw = 1200; sh = 1000; posY = 50;
-            }
-            
-            // ถ้ามีตัวละครฝั่งขวา ให้เขยิบไปทางซ้ายสุด (-280) ถ้าไม่มีให้ดีดเข้ากลาง
-            int posX = hasRight ? -200 : (1280 - sw) / 2;
-            leftCharLabel.setBounds(posX, posY, sw, sh);
-            
-            if (!lp.equals(lastLeftPath)) {
-                leftCharLabel.setIcon(getOptimizedImage(lp, sw, sh));
-                startFadeEffect("left", true);
-            }
+        boolean hasLeft = !currentP1.contains("empty");
+        boolean hasRight = !currentP2.contains("empty");
+
+        boolean boundsChanged1 = false;
+        boolean boundsChanged2 = false;
+
+        // เช็คว่าตำแหน่งควรจะเปลี่ยนไหม (เช่น ตัวละครอีกฝั่งโผล่มาหรือหายไป)
+        if (hasLeft) {
+            Rectangle newBounds1 = getCharacterBounds(currentP1, hasLeft, hasRight, true);
+            if (leftCharLabel.getBounds().x != newBounds1.x) boundsChanged1 = true;
         }
-        lastLeftPath = lp;
-
-        // --- [จัดการฝั่งขวา] ---
-        if (!hasRight) {
-            if (!lastRightPath.equals(rp)) startFadeEffect("right", false);
-        } else {
-            int sw, sh, posY;
-            // รองรับทั้ง Nebula และ Alice (ที่ย้ายมาฝั่งขวา)
-            if (rp.contains("Nebula")) {
-                sw = 700; sh = 700; posY = 100; // Nebula ตัวสูงสง่า
-            } else if (rp.contains("Alice")) {
-                sw = 900; sh = 600; posY = 150; // Alice ขนาดเท่าเดิม
-            } else {
-                sw = 1200; sh = 1000; posY = 50;
-            }
-
-            // ถ้ามีตัวละครฝั่งซ้าย ให้เขยิบไปทางขวา (500) ถ้าไม่มีให้ดีดเข้ากลาง
-            int posX = hasLeft ? 600 : (1280 - sw) / 2;
-            rightCharLabel.setBounds(posX, posY, sw, sh);
-
-            if (!rp.equals(lastRightPath)) {
-                rightCharLabel.setIcon(getOptimizedImage(rp, sw, sh));
-                startFadeEffect("right", true);
-            }
+        if (hasRight) {
+            Rectangle newBounds2 = getCharacterBounds(currentP2, hasRight, hasLeft, false);
+            if (rightCharLabel.getBounds().x != newBounds2.x) boundsChanged2 = true;
         }
-        lastRightPath = rp;
+
+        // จัดการ Animation Transition ทั้งหมด
+        handleTransition(leftCharLabel, prevP1, currentP1, true, hasRight, boundsChanged1);
+        handleTransition(rightCharLabel, prevP2, currentP2, false, hasLeft, boundsChanged2);
+
+        lastLeftPath = currentP1;
+        lastRightPath = currentP2;
 
         handleSoundEffects(currentIndex);
         layeredPane.repaint();
     }
 
-    private void startFadeEffect(String side, boolean fadeIn) {
-        Timer timer = side.equals("left") ? leftFadeTimer : rightFadeTimer;
-        if (timer != null) timer.stop();
+    // ==========================================
+    // --- ระบบจัดการ Transition ตัวละคร (อัปเกรด) ---
+    // ==========================================
+    private Rectangle getCharacterBounds(String path, boolean isActive, boolean isOtherActive, boolean isLeft) {
+        if (!isActive) return new Rectangle(0, 0, 0, 0);
+
+        int w = 1200, h = 1000, y = 50, x = 0;
         
-        Timer newTimer = new Timer(20, e -> {
-            if (side.equals("left")) {
-                leftAlpha += fadeIn ? 0.05f : -0.05f;
-                if (leftAlpha >= 1.0f) { leftAlpha = 1.0f; ((Timer)e.getSource()).stop(); }
-                else if (leftAlpha <= 0.0f) { leftAlpha = 0.0f; ((Timer)e.getSource()).stop(); leftCharLabel.setIcon(null); }
-                leftCharLabel.repaint();
-            } else {
-                rightAlpha += fadeIn ? 0.05f : -0.05f;
-                if (rightAlpha >= 1.0f) { rightAlpha = 1.0f; ((Timer)e.getSource()).stop(); }
-                else if (rightAlpha <= 0.0f) { rightAlpha = 0.0f; ((Timer)e.getSource()).stop(); rightCharLabel.setIcon(null); }
-                rightCharLabel.repaint();
+        if (isLeft) {
+            if (path.contains("Dan")) { w = 1200; h = 800; y = 120; }
+            else if (path.contains("Alice")) { w = 900; h = 600; y = 150; }
+            
+            x = isOtherActive ? -200 : (1280 - w) / 2;
+            if (isOtherActive && path.contains("Alice")) x = -100; // ให้อริสฝั่งซ้ายขยับเข้ากลางนิดนึง
+            
+        } else {
+            if (path.contains("Nebula")) { w = 700; h = 700; y = 100; }
+            else if (path.contains("Alice")) { w = 900; h = 600; y = 150; }
+            
+            x = isOtherActive ? 600 : (1280 - w) / 2;
+            if (isOtherActive && path.contains("Alice")) x = 500; // ให้อริสฝั่งขวาขยับซ้ายนิดนึง
+        }
+        
+        return new Rectangle(x, y, w, h);
+    }
+
+    private void handleTransition(JLabel label, String prev, String curr, boolean isLeft, boolean isOtherActive, boolean boundsChanged) {
+        boolean wasActive = !prev.contains("empty");
+        boolean isActive = !curr.contains("empty");
+
+        if (!wasActive && !isActive) return;
+
+        Rectangle target = getCharacterBounds(curr, isActive, isOtherActive, isLeft);
+
+        // 1. Fade Out
+        if (wasActive && !isActive) {
+            animateFadeOut(label, prev, isLeft);
+        } 
+        // 2. Entry (Slide + Fade)
+        else if (!wasActive && isActive) {
+            animateEntry(label, curr, target, isLeft);
+        }
+        // 3. Change expression OR Change position (Fade In Place)
+        else if (isActive && (!prev.equals(curr) || boundsChanged)) {
+            animateFadeInPlace(label, curr, target, isLeft);
+        }
+    }
+
+    private void animateFadeOut(JLabel label, String path, boolean isLeft) {
+        if (isLeft && leftFadeTimer != null) leftFadeTimer.stop();
+        if (!isLeft && rightFadeTimer != null) rightFadeTimer.stop();
+
+        Timer timer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+        final int duration = 400; // ความเร็วจางหาย 0.4s
+
+        timer.addActionListener(e -> {
+            float progress = Math.min(1.0f, (float) (System.currentTimeMillis() - startTime) / duration);
+            float alphaVal = 1.0f - progress;
+            if (isLeft) leftAlpha = alphaVal; else rightAlpha = alphaVal;
+            label.repaint();
+            
+            if (progress >= 1.0f) {
+                timer.stop();
+                label.setIcon(null); 
             }
         });
         
-        if (side.equals("left")) leftFadeTimer = newTimer; else rightFadeTimer = newTimer;
-        newTimer.start();
+        if (isLeft) leftFadeTimer = timer; else rightFadeTimer = timer;
+        timer.start();
     }
 
-    // --- ส่วนที่เหลือ (Textbox, Choice, Sound, Network) คงเดิมตามโค้ดของคุณ ---
+    private void animateEntry(JLabel label, String path, Rectangle target, boolean isLeft) {
+        if (isLeft && leftFadeTimer != null) leftFadeTimer.stop();
+        if (!isLeft && rightFadeTimer != null) rightFadeTimer.stop();
+
+        if (isLeft) leftAlpha = 0.0f; else rightAlpha = 0.0f;
+        
+        // จุดเริ่มต้นก่อนเลื่อน (ซ้ายมาจากซ้าย ขวามาจากขวา)
+        int startX = isLeft ? target.x - 60 : target.x + 60;
+        label.setIcon(getOptimizedImage(path, target.width, target.height));
+        label.setBounds(startX, target.y, target.width, target.height);
+
+        Timer timer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+        final int duration = 500; // ความเร็วเลื่อนเข้า 0.5s
+
+        timer.addActionListener(e -> {
+            float progress = Math.min(1.0f, (float) (System.currentTimeMillis() - startTime) / duration);
+            if (isLeft) leftAlpha = progress; else rightAlpha = progress;
+            
+            int curX = (int) (startX + (target.x - startX) * progress);
+            label.setBounds(curX, target.y, target.width, target.height);
+            label.repaint();
+            
+            if (progress >= 1.0f) {
+                timer.stop();
+            }
+        });
+        
+        if (isLeft) leftFadeTimer = timer; else rightFadeTimer = timer;
+        timer.start();
+    }
+
+    private void animateFadeInPlace(JLabel label, String path, Rectangle target, boolean isLeft) {
+        if (isLeft && leftFadeTimer != null) leftFadeTimer.stop();
+        if (!isLeft && rightFadeTimer != null) rightFadeTimer.stop();
+
+        if (isLeft) leftAlpha = 0.0f; else rightAlpha = 0.0f;
+        
+        label.setIcon(getOptimizedImage(path, target.width, target.height));
+        label.setBounds(target.x, target.y, target.width, target.height);
+
+        Timer timer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+        final int duration = 300; // ความเร็วเปลี่ยนรูป 0.3s
+
+        timer.addActionListener(e -> {
+            float progress = Math.min(1.0f, (float) (System.currentTimeMillis() - startTime) / duration);
+            if (isLeft) leftAlpha = progress; else rightAlpha = progress;
+            label.repaint();
+            
+            if (progress >= 1.0f) {
+                timer.stop();
+            }
+        });
+        
+        if (isLeft) leftFadeTimer = timer; else rightFadeTimer = timer;
+        timer.start();
+    }
+    // ==========================================
 
     private void handleNext() {
         if (isChoosing || isFinishing || isWaiting) return;
@@ -608,13 +694,3 @@ public class part7 extends JFrame {
         });
     }
 }
-
-/* class VisualNovelBox extends JPanel {
-    public VisualNovelBox() { setOpaque(false); }
-    @Override protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g; g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setPaint(new GradientPaint(0, 0, new Color(245, 250, 255, 180), 0, getHeight(), new Color(255, 235, 245, 230)));
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30); g2.setColor(new Color(255, 150, 200, 200));
-        g2.setStroke(new BasicStroke(4f)); g2.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 30, 30);
-    }
-} */
