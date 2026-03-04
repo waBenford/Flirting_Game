@@ -1,10 +1,10 @@
 package flirting_game;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
 
 public class EndingController extends JFrame {
 
@@ -251,7 +251,7 @@ public class EndingController extends JFrame {
         if (relationdata.isOnlineMode) {
             new Thread(() -> {
                 try (java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
-                     java.io.PrintWriter out = new java.io.PrintWriter(socket.getOutputStream(), true)) {
+                    java.io.PrintWriter out = new java.io.PrintWriter(socket.getOutputStream(), true)) {
                     
                     String e1 = relationdata.isEnding1Unlocked ? "1" : "0";
                     String e2 = relationdata.isEnding2Unlocked ? "1" : "0";
@@ -270,13 +270,13 @@ public class EndingController extends JFrame {
         if (isWin) {
             if (character.equals("ALICE")) {
                 relationdata.isEnding2Unlocked = true;
-                JOptionPane.showMessageDialog(this, "💖 คุณคือที่หนึ่งในใจของอริส!\n- ปลดล็อคฉากจบ: Alice Ending");
+                JOptionPane.showMessageDialog(this, "คุณคือที่หนึ่งในใจของอริส!\n- ปลดล็อคฉากจบ: Alice Ending");
             } else if (character.equals("NEBULA")) {
                 relationdata.isEnding3Unlocked = true;
-                JOptionPane.showMessageDialog(this, "💜 จอมมารเนบิวล่าเลือกคุณเป็นคู่หู!\n- ปลดล็อคฉากจบ: Nebula Ending");
+                JOptionPane.showMessageDialog(this, "จอมมารเนบิวล่าเลือกคุณเป็นคู่หู!\n- ปลดล็อคฉากจบ: Nebula Ending");
             }
         } else {
-            JOptionPane.showMessageDialog(this, "⚔️ น่าเสียดายที่คะแนนคุณยังไม่ถึงเป้า หรือพ่ายแพ้ในการดวล\n- ลองพยายามใหม่ในรอบหน้านะ!");
+            JOptionPane.showMessageDialog(this, "น่าเสียดายที่คะแนนคุณยังไม่ถึงเป้า หรือพ่ายแพ้ในการดวล\n- ลองพยายามใหม่ในรอบหน้านะ!");
         }
 
         // เซฟข้อมูลไปที่ Server แล้วเปิด Gallery
