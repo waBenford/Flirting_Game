@@ -951,49 +951,45 @@ public class part9 extends JFrame {
     }
 
     private void initNetwork() {
-        if (!relationdata.isOnlineMode) {
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) {
             return;
         }
         new Thread(() -> {
             try {
-                Socket socket = new Socket(relationdata.serverIP, 5000);
-                networkOut = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                // *** ใช้ Socket ส่วนกลาง ห้าม new Socket ใหม่เด็ดขาด ***
+                networkOut = relationdata.globalOut;
+                java.io.BufferedReader in = relationdata.globalIn;
+                
                 networkOut.println("SET_NAME:" + relationdata.playerName);
                 networkOut.println("SET_PART:9");
+                networkOut.println("GET_AFFINITY"); // ขอข้อมูลล่าสุด
+                
                 String line;
                 while ((line = in.readLine()) != null) {
                     if (line.startsWith("ALL_STATS:")) {
-                        allPlayersData = line.substring(10); // เก็บข้อมูลสรุปเพื่อใช้ตอนจบ
+                        allPlayersData = line.substring(10); 
                         updateLeaderboardUI(allPlayersData);
                     } else if (line.startsWith("LOAD_AFFINITY:")) {
-                        int score = Integer.parseInt(line.substring(14));
-                        relationdata.aliceRel.setAffinity(score); // รับค่าอริสตรงๆ
+                        int score = Integer.parseInt(line.substring(14).trim());
+                        relationdata.aliceRel.setAffinity(score); 
+                        SwingUtilities.invokeLater(() -> { affinityLabel.setText("อริส: " + score); statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus()); });
                     } else if (line.startsWith("LOAD_NEBULA:")) {
-                        int nScore = Integer.parseInt(line.substring(12));
-                        relationdata.nebulaRel.setAffinity(nScore); // รับค่าเนบิวล่าตรงๆ
+                        int nScore = Integer.parseInt(line.substring(12).trim());
+                        relationdata.nebulaRel.setAffinity(nScore); 
+                        SwingUtilities.invokeLater(() -> { nebulaAffinityLabel.setText("เนบิวล่า: " + nScore); nebulaStatusLabel.setText("สถานะ: " + relationdata.nebulaRel.getStatus()); });
                     } else if (line.startsWith("LOAD_ENDINGS:")) {
-                        // รับสถานะ Gallery จาก SQL
                         String[] eds = line.substring(13).split(",");
-                        if (eds.length > 0) {
-                            relationdata.isEnding1Unlocked = eds[0].equals("1");
-                        }
-                        if (eds.length > 1) {
-                            relationdata.isEnding2Unlocked = eds[1].equals("1");
-                        }
-                        if (eds.length > 2) {
-                            relationdata.isEnding3Unlocked = eds[2].equals("1");
-                        }
-                        if (eds.length > 3) {
-                            relationdata.isEnding4Unlocked = eds[3].equals("1");
-                        }
+                        if (eds.length > 0) relationdata.isEnding1Unlocked = eds[0].equals("1");
+                        if (eds.length > 1) relationdata.isEnding2Unlocked = eds[1].equals("1");
+                        if (eds.length > 2) relationdata.isEnding3Unlocked = eds[2].equals("1");
+                        if (eds.length > 3) relationdata.isEnding4Unlocked = eds[3].equals("1");
                     }
                     if (line.equals("PROCEED_TO_NEXT")) {
                         goToNextPart();
+                        break; // *** อย่าลืมใส่ break เพื่อหยุด loop เวลาไปหน้าถัดไป ***
                     }
                 }
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
         }).start();
     }
 
