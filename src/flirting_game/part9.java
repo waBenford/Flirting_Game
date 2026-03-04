@@ -745,12 +745,9 @@ public class part9 extends JFrame {
     }
 
     private void finishGame() {
-        if (isFinishing) {
-            return; // ป้องกันการคลิกซ้ำ
+        if (isFinishing) return;
+        isFinishing = true;
 
-                }isFinishing = true;
-
-        // เรียกใช้งานแผ่น Fade Out
         if (fadeOverlay.getParent() == null) {
             layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
         }
@@ -763,12 +760,8 @@ public class part9 extends JFrame {
                 ((Timer) e.getSource()).stop();
                 stopBGM();
 
-                // ตรวจสอบเงื่อนไขการปลดล็อคฉากจบ
-                if (relationdata.isOnlineMode) {
-                    calculateOnlineEnding();
-                } else {
-                    processOfflineEnding();
-                }
+                // >>> ตัดระบบ Offline ออก แล้วเรียก EndingController ทันที <<<
+                calculateOnlineEnding(); 
             }
             fadeOverlay.repaint();
         });
@@ -799,79 +792,55 @@ public class part9 extends JFrame {
     }
 
     private void calculateOnlineEnding() {
-        // 1. ตรวจสอบว่ามีข้อมูลผู้เล่นอื่นหรือไม่
-        if (allPlayersData == null || allPlayersData.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "ไม่สามารถดึงข้อมูลสรุปจากเซิร์ฟเวอร์ได้ ระบบจะใช้เกณฑ์คะแนนส่วนตัวแทน");
-            processOfflineEnding(); // ถ้าโหลดข้อมูลไม่สำเร็จ ให้ใช้ระบบออฟไลน์แทนเพื่อไม่ให้เกมค้าง
-            return;
-        }
+        // 1. เตรียมชื่อและคะแนนเริ่มต้น (P1 คือตัวเราเสมอ)
+        String n1 = relationdata.playerName;
+        String n2 = "Player 2";
+        String n3 = "Player 3";
+        
+        int p1A = relationdata.aliceRel.getAffinity();
+        int p1N = relationdata.nebulaRel.getAffinity();
+        int p2A = 0, p2N = 0, p3A = 0, p3N = 0;
 
-        // 2. ดึงค่าปัจจุบันของคุณและตั้งค่าตัวแปรสำหรับหาผู้ชนะ
-        int myAlice = relationdata.aliceRel.getAffinity();
-        int myNebula = relationdata.nebulaRel.getAffinity();
-        String myName = relationdata.playerName;
+        // 2. ถ้ามีข้อมูลออนไลน์ ให้แยกข้อมูลมาทับค่าเริ่มต้น
+        if (allPlayersData != null && !allPlayersData.isEmpty()) {
+            String[] players = allPlayersData.split(",");
+            int otherIndex = 2; 
 
-        int maxAlice = -1;
-        int maxNebula = -1;
-        boolean amIGrandWinner = false;
-        boolean amIAliceWinner = false;
-        boolean amINebulaWinner = false;
-
-        // 3. วนลูปหาค่าคะแนนสูงสุดของเซิร์ฟเวอร์
-        // ข้อมูลมาในรูปแบบ "Name1=Score1,Name2=Score2" โดย Score = (Alice*1000) + Nebula
-        String[] players = allPlayersData.split(",");
-        for (String p : players) {
-            if (p.contains("=")) {
-                try {
+            for (String p : players) {
+                if (p.contains("=")) {
                     String[] parts = p.split("=");
-                    int totalScore = Integer.parseInt(parts[1]);
-                    int aScore = totalScore / 1000;
-                    int nScore = totalScore % 1000;
+                    String name = parts[0];
+                    if (name.equals(relationdata.playerName)) continue;
 
-                    if (aScore > maxAlice) {
-                        maxAlice = aScore;
+                    int aScore = 0, nScore = 0;
+                    if (parts[1].contains("/")) {
+                        String[] sc = parts[1].split("/");
+                        aScore = Integer.parseInt(sc[0]);
+                        nScore = Integer.parseInt(sc[1]);
                     }
-                    if (nScore > maxNebula) {
-                        maxNebula = nScore;
+
+                    if (otherIndex == 2) {
+                        n2 = name; p2A = aScore; p2N = nScore;
+                        otherIndex++;
+                    } else if (otherIndex == 3) {
+                        n3 = name; p3A = aScore; p3N = nScore;
+                        break;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             }
         }
 
-        // 4. ตรวจสอบสถานะของคุณเทียบกับจุดสูงสุด
-        if (myAlice >= maxAlice && myNebula >= maxNebula) {
-            amIGrandWinner = true; 
-        }else if (myAlice >= maxAlice) {
-            amIAliceWinner = true; 
-        }else if (myNebula >= maxNebula) {
-            amINebulaWinner = true;
-        }
+        // 3. สร้างตัวแปร final เพื่อแก้ Error (effectively final) ในรูป image_f2e80c.png
+        final String resN1 = n1; final String resN2 = n2; final String resN3 = n3;
+        final int resP1A = p1A; final int resP1N = p1N;
+        final int resP2A = p2A; final int resP2N = p2N;
+        final int resP3A = p3A; final int resP3N = p3N;
 
-        // 5. ปรับปรุงสถานะการปลดล็อคใน relationdata และเตรียมข้อความ
-        String message = "--- สรุปผลการผจญภัยออนไลน์ ---\n";
-
-        if (amIGrandWinner) {
-            relationdata.isEnding1Unlocked = true; // ปลดล็อคฉากจบ Harem
-            relationdata.isEnding2Unlocked = true;
-            relationdata.isEnding3Unlocked = true;
-            message += "👑 ยินดีด้วย! คุณคือผู้เล่นระดับตำนานที่ครองใจทั้งคู่!\n- ปลดล็อคฉากจบ: True Harem";
-        } else if (amIAliceWinner) {
-            relationdata.isEnding2Unlocked = true; // ปลดล็อคฉากจบ Alice
-            message += "💖 คุณคือที่หนึ่งในใจของอริส!\n- ปลดล็อคฉากจบ: Alice Ending";
-        } else if (amINebulaWinner) {
-            relationdata.isEnding3Unlocked = true; // ปลดล็อคฉากจบ Nebula
-            message += "💜 จอมมารเนบิวล่าเลือกคุณเป็นคู่หู!\n- ปลดล็อคฉากจบ: Nebula Ending";
-        } else {
-            message += "⚔️ คุณทำคะแนนได้ดี แต่ยังมีผู้เล่นอื่นที่คะแนนสูงกว่าในครั้งนี้\n- พยายามใหม่ในรอบหน้านะ!";
-        }
-
-        // 6. แสดงผลและเปลี่ยนหน้าไปยัง Gallery
-        UIManager.put("OptionPane.messageFont", THAI_FONT);
-        JOptionPane.showMessageDialog(this, message, "Game Clear!", JOptionPane.INFORMATION_MESSAGE);
-
-        openGallery(); // ฟังก์ชันที่เรียก new GalleryPage().setVisible(true) และ dispose()
+        // 4. ส่งไปที่ EndingController ทันที ไม่ว่าจะออนไลน์หรือออฟไลน์
+        SwingUtilities.invokeLater(() -> {
+            new EndingController(resN1, resP1A, resP1N, resN2, resP2A, resP2N, resN3, resP3A, resP3N, "P1").setVisible(true);
+            dispose();
+        });
     }
 
     private void startTypewriter(String text) {
@@ -946,6 +915,7 @@ public class part9 extends JFrame {
                 while ((line = in.readLine()) != null) {
                     if (line.startsWith("ALL_STATS:")) {
                         allPlayersData = line.substring(10); // เก็บข้อมูลสรุปเพื่อใช้ตอนจบ
+                        updateLeaderboardUI(allPlayersData);
                     } else if (line.startsWith("LOAD_AFFINITY:")) {
                         int score = Integer.parseInt(line.substring(14));
                         relationdata.aliceRel.setAffinity(score); // รับค่าอริสตรงๆ
