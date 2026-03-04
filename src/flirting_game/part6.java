@@ -434,12 +434,34 @@ public class part6 extends JFrame {
 
         btn.addActionListener(e -> {
             playEffect("res/sound/click.wav", 0.0f);
-            layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton1);
+            layeredPane.remove(choiceButton2);
             isChoosing = false; 
-            if (target == 8 || target == 13 || target == 36) relationdata.aliceRel.addAffinity(10); 
-            else relationdata.aliceRel.decreaseAffinity(5);
-            if (affinityLabel != null) affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
+
+            if (target == 8 || target == 13 || target == 36) {
+                relationdata.aliceRel.addAffinity(10); 
+            } else {
+                relationdata.aliceRel.decreaseAffinity(5); 
+            }
+
+            // --- ส่วนที่แก้ไข: ย้ายการส่ง Network มาไว้ในลำดับที่แน่นอน ---
+            if (relationdata.isOnlineMode && networkOut != null) {
+                final int currentScore = relationdata.aliceRel.getAffinity();
+                new Thread(() -> {
+                    networkOut.println("UPDATE_AFFINITY:" + currentScore);
+                    networkOut.println("SYNC_INDEX:" + target);
+                }).start();
+            }
+            // --------------------------------------------------
+
+            if (affinityLabel != null) {
+                affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
+            }
+            if (statusLabel != null) statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+            
             jumpToIndex(target);
+            currentIndex = target; 
+            updateScene(); 
         });
         return btn;
     }
@@ -455,9 +477,20 @@ public class part6 extends JFrame {
         statusOverlay.setBounds(440, 150, 400, 400); 
         statusOverlay.setBackground(new Color(0, 0, 0, 210)); 
         statusOverlay.setVisible(false);
-        affinityStatusLabel = new JLabel("", SwingConstants.CENTER);
+        
+        // ใส่ข้อความเริ่มต้นเผื่อกรณีดึงข้อมูลช้าหรือเล่นโหมด Offline
+        affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล Scoreboard...", SwingConstants.CENTER);
+        affinityStatusLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
         affinityStatusLabel.setForeground(Color.WHITE);
         statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER);
+
+        // --- ส่วนที่ต้องเพิ่มเพื่อแก้ปัญหา Error กล่องดำ ---
+        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 0", SwingConstants.CENTER);
+        onlineCountLabel.setForeground(Color.YELLOW);
+        onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH);
+        // -----------------------------------------
+
         layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
     }
 
@@ -468,14 +501,69 @@ public class part6 extends JFrame {
         });
     }
 
+    // ค้นหาในเมธอด initNetwork()
     private void initNetwork() {
         if (!relationdata.isOnlineMode) return;
         new Thread(() -> {
             try {
-                java.net.Socket s = new java.net.Socket(relationdata.serverIP, 5000);
-                networkOut = new java.io.PrintWriter(s.getOutputStream(), true);
-            } catch (Exception e) {}
+                java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
+                networkOut = new java.io.PrintWriter(socket.getOutputStream(), true);
+                java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
+
+                networkOut.println("SET_NAME:" + relationdata.playerName);
+                networkOut.println("SET_PART:6");
+                
+                // --- เพิ่มตรงนี้: ร้องขอค่า Affinity ล่าสุดจากเซิร์ฟเวอร์ทันที ---
+                networkOut.println("GET_AFFINITY"); 
+                // -------------------------------------------------------
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("LOAD_AFFINITY:")) {
+                        int score = Integer.parseInt(line.substring(14).trim());
+                        relationdata.aliceRel.setAffinity(score);
+                        SwingUtilities.invokeLater(() -> {
+                            affinityLabel.setText("อริส: " + score); 
+                            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+                        });
+                    } else if (line.startsWith("ALL_STATS:")) {
+                        updateLeaderboardUI(line.substring(10));
+                    }
+                }
+            } catch (Exception e) { e.printStackTrace(); }
         }).start();
+    }
+
+    private void updateLeaderboardUI(String data) {
+        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'>");
+        sb.append("<table width='320' style='color:white; font-family:Tahoma;'>");
+        sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน (อริส)</th></tr>");
+        
+        for (String p : data.split(",")) {
+            if (p.contains("=")) {
+                String[] parts = p.split("=");
+                String name = parts[0];
+                String rawScores = parts[1]; // เช่น "10/0"
+                
+                // --- แก้ไขตรงนี้: แยกเอาเฉพาะคะแนนแรกมาแสดง ---
+                String aliceScore = rawScores;
+                if (rawScores.contains("/")) {
+                    aliceScore = rawScores.split("/")[0]; // เอาเฉพาะตัวหน้าเครื่องหมาย /
+                }
+
+                String color = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
+                sb.append("<tr>")
+                .append("<td style='color:").append(color).append(";'>").append(name).append("</td>")
+                .append("<td align='right' style='color:#FF69B4;'>").append(aliceScore).append(" pt</td>")
+                .append("</tr>");
+            }
+        }
+        sb.append("</table></body></html>");
+        
+        SwingUtilities.invokeLater(() -> {
+            affinityStatusLabel.setText(sb.toString());
+            onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length);
+        });
     }
 
     private void playSE(String path, boolean loop, float vol) {
