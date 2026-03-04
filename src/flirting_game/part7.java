@@ -204,9 +204,9 @@ public class part7 extends JFrame {
             int sw, sh, posY;
             // กำหนดขนาดตามตัวละคร
             if (lp.contains("Dan")) {
-                sw = 1200; sh = 800; posY = 50;
+                sw = 1200; sh = 800; posY = 120;
             } else if (lp.contains("Alice")) {
-                sw = 1000; sh = 700; posY = 60; // ขนาด Alice
+                sw = 900; sh = 600; posY = 150; // ขนาด Alice
             } else {
                 sw = 1200; sh = 1000; posY = 50;
             }
@@ -229,15 +229,15 @@ public class part7 extends JFrame {
             int sw, sh, posY;
             // รองรับทั้ง Nebula และ Alice (ที่ย้ายมาฝั่งขวา)
             if (rp.contains("Nebula")) {
-                sw = 1000; sh = 1000; posY = 0; // Nebula ตัวสูงสง่า
+                sw = 700; sh = 700; posY = 100; // Nebula ตัวสูงสง่า
             } else if (rp.contains("Alice")) {
-                sw = 1000; sh = 700; posY = 60; // Alice ขนาดเท่าเดิม
+                sw = 900; sh = 600; posY = 150; // Alice ขนาดเท่าเดิม
             } else {
                 sw = 1200; sh = 1000; posY = 50;
             }
 
             // ถ้ามีตัวละครฝั่งซ้าย ให้เขยิบไปทางขวา (500) ถ้าไม่มีให้ดีดเข้ากลาง
-            int posX = hasLeft ? 500 : (1280 - sw) / 2;
+            int posX = hasLeft ? 600 : (1280 - sw) / 2;
             rightCharLabel.setBounds(posX, posY, sw, sh);
 
             if (!rp.equals(lastRightPath)) {
