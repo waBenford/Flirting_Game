@@ -143,15 +143,23 @@ public class EndingController extends JFrame {
     private void advanceQueue() {
         if (duelists.isEmpty()) return;
 
-        // เลื่อนคิวไปเรื่อยๆ ถ้าคนที่ถึงคิวมีชื่อใน finishedPlayers (แปลว่าเล่นจบแล้ว)
+        // ตรวจสอบว่าทุกคนที่อยู่ในรายชื่อดวล (duelists) ตอบครบหรือยัง
+        if (finishedPlayers.containsAll(duelists)) {
+            determineWinner(lastTargetChar);
+            return;
+        }
+
+        // ถ้ายังไม่ครบ ให้เลื่อนหาคนถัดไปที่ยังไม่ได้ตอบ
         while (currentDuelistIdx < duelists.size() && finishedPlayers.contains(duelists.get(currentDuelistIdx))) {
             currentDuelistIdx++;
         }
 
+        // หากดัชนียังอยู่ในขอบเขต ให้แสดงหน้าจอต่อ
         if (currentDuelistIdx < duelists.size()) {
             currentQIndex = 0;
             showBattleUI(lastTargetChar);
         } else {
+            // กรณีกันเหนียว หากดัชนีเลยแต่ยังไม่จบ ให้ตัดสินผู้ชนะ
             determineWinner(lastTargetChar);
         }
     }
@@ -274,13 +282,21 @@ public class EndingController extends JFrame {
     }
 
     private void determineWinner(String charName) {
-        int max = -1; String winner = "";
-        for (String p : duelists) {
+        int max = -1; 
+        String winner = "";
+        
+        for (String p : duelists) { // วนลูปเฉพาะคนที่มีสิทธิ์ดวล
             int pNum = Integer.parseInt(p.substring(1));
-            if (battleScores[pNum] > max) { max = battleScores[pNum]; winner = p; }
+            if (battleScores[pNum] > max) {
+                max = battleScores[pNum];
+                winner = p;
+            }
         }
-        JOptionPane.showMessageDialog(this, "The Final Winner is " + winner + "!");
-        goToEnding(charName, winner.equals(myRole));
+        
+        if (!winner.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "The Final Winner is " + winner + "!");
+            goToEnding(charName, winner.equals(myRole));
+        }
     }
 
     private void saveEndingsToServer() {
@@ -399,19 +415,19 @@ public class EndingController extends JFrame {
                     // ฟังว่าเพื่อนตอบเสร็จและส่งคะแนนมาหรือยัง
                     if (line.startsWith("BATTLE_UPDATE:")) {
                         String[] parts = line.substring(14).split(":");
-                        String pRole = parts[0]; // เช่น P2
+                        String pRole = parts[0]; 
                         int pScore = Integer.parseInt(parts[1]);
                         
-                        // ป้องกันการจัดการข้อมูลตัวเองซ้ำ
-                        if (pRole.equals(myRole)) continue; 
+                        // บันทึกคะแนนลงใน Array ตามเลข Player (P1=1, P2=2, P3=3)
+                        int pIdx = Integer.parseInt(pRole.substring(1));
+                        battleScores[pIdx] = pScore;
                         
-                        battleScores[Integer.parseInt(pRole.substring(1))] = pScore;
-                        
-                        // บันทึกว่าเพื่อนคนนี้เล่นจบแล้ว
+                        // สำคัญ: เพิ่มชื่อเข้า Set เพื่อยืนยันว่าคนนี้เล่นจบแล้ว
                         finishedPlayers.add(pRole);
                         
+                        // ใช้ invokeLater เพื่ออัปเดต UI ให้ปลอดภัยจาก Thread อื่น
                         SwingUtilities.invokeLater(() -> {
-                            advanceQueue(); // ให้ระบบเช็คคิวและเปลี่ยนหน้าจอ
+                            advanceQueue(); 
                         });
                     }
                 }
