@@ -7,18 +7,21 @@ import java.io.PrintWriter;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.swing.*;
 
 public class EndingController extends JFrame {
 
-    // --- 1. ตัวแปรสถานะและคะแนน (Class Fields เพื่อแก้ Final Variable Error) ---
+    // --- 1. ตัวแปรสถานะและคะแนน ---
     private Image bgImage = new ImageIcon("res/menu/bg.png").getImage();
     private String myRole;
     private int myA, myN, topA, topN; 
 
     // ตัวแปรสำหรับระบบ Versus Duel
     private List<String> duelists = new ArrayList<>();
+    private Set<String> finishedPlayers = new HashSet<>(); // เก็บรายชื่อคนที่ตอบเสร็จแล้ว
     private int currentDuelistIdx = 0;
     private int currentQIndex = 0;
     private int[] battleScores = new int[4]; // [1]=P1, [2]=P2, [3]=P3
@@ -68,7 +71,7 @@ public class EndingController extends JFrame {
         titleLabel.setBounds(0, 40, 1280, 80);
         mainPanel.add(titleLabel);
 
-        // เพิ่มหัวตาราง (กู้คืนส่วนที่หายไป)
+        // เพิ่มหัวตาราง 
         addHeaderLabel(mainPanel, "PLAYER", 200, 150);
         addHeaderLabel(mainPanel, "ALICE", 600, 150);
         addHeaderLabel(mainPanel, "NEBULA", 900, 150);
@@ -95,7 +98,7 @@ public class EndingController extends JFrame {
             if (result.equals("ALONE")) {
                 goToEnding("ALONE", true);
             } else if (result.equals("HAREM_WIN")) {
-                goToEnding("HAREM", true); // เพิ่มเงื่อนไขสำหรับ Harem
+                goToEnding("HAREM", true); 
             } else {
                 String charName = result.contains("ALICE") ? "ALICE" : "NEBULA";
                 goToEnding(charName, true);
@@ -112,7 +115,10 @@ public class EndingController extends JFrame {
 
         duelBtn.addActionListener(e -> {
             duelists.clear();
+            finishedPlayers.clear(); // ล้างประวัติคนที่เล่นเสร็จแล้วเมื่อเริ่มดวลใหม่
             String charName = result.contains("ALICE") ? "ALICE" : "NEBULA";
+            this.lastTargetChar = charName;
+
             int winScore = result.contains("ALICE") ? Math.max(myA, topA) : Math.max(myN, topN);
 
             if ((result.contains("ALICE") ? p1A : p1N) == winScore) duelists.add("P1");
@@ -120,24 +126,34 @@ public class EndingController extends JFrame {
             if ((result.contains("ALICE") ? p3A : p3N) == winScore) duelists.add("P3");
 
             currentDuelistIdx = 0;
-            currentQIndex = 0;
             for(int i=0; i<4; i++) battleScores[i] = 0;
             
-            startTriviaBattle(charName);
+            getContentPane().removeAll();
+            advanceQueue(); // ให้ระบบจัดการคิวทันที
         });
 
         mainPanel.add(viewEndBtn);
         mainPanel.add(duelBtn);
 
-        initNetwork();
+        // เปิดระบบฟังข้อมูลจากเซิร์ฟเวอร์
+        initNetwork(); 
     }
 
-    private void startTriviaBattle(String targetChar) {
-    	this.lastTargetChar = targetChar;
-        getContentPane().removeAll();
-        showBattleUI(targetChar); 
-        revalidate();
-        repaint();
+    // --- ระบบจัดการคิวใหม่ (ข้ามคนที่ตอบเสร็จแล้ว) ---
+    private void advanceQueue() {
+        if (duelists.isEmpty()) return;
+
+        // เลื่อนคิวไปเรื่อยๆ ถ้าคนที่ถึงคิวมีชื่อใน finishedPlayers (แปลว่าเล่นจบแล้ว)
+        while (currentDuelistIdx < duelists.size() && finishedPlayers.contains(duelists.get(currentDuelistIdx))) {
+            currentDuelistIdx++;
+        }
+
+        if (currentDuelistIdx < duelists.size()) {
+            currentQIndex = 0;
+            showBattleUI(lastTargetChar);
+        } else {
+            determineWinner(lastTargetChar);
+        }
     }
 
     private void showBattleUI(String targetChar) {
@@ -145,7 +161,7 @@ public class EndingController extends JFrame {
         String currentPlayer = duelists.get(currentDuelistIdx); 
         String formattedName = targetChar.substring(0, 1).toUpperCase() + targetChar.substring(1).toLowerCase();
         
-        // --- 1. ตั้งค่าขนาดและตำแหน่งตัวละคร (เป๊ะตามที่วาปรับมา) ---
+        // --- 1. ตั้งค่าขนาดและตำแหน่งตัวละคร ---
         String charPath = "";
         int charW = 0, charH = 0, charX = 0, charY = 0;
 
@@ -159,7 +175,7 @@ public class EndingController extends JFrame {
             charX = -120; charY = 65;
         }
 
-        // --- 2. เช็กสิทธิ์เครื่องนี้ (Multiplayer) ---
+        // --- 2. เช็กสิทธิ์เครื่องนี้ ---
         boolean isMyTurn = currentPlayer.equals(myRole);
 
         JPanel battlePanel = new JPanel(null) {
@@ -222,6 +238,7 @@ public class EndingController extends JFrame {
                 RoundButton btn = new RoundButton("<html>" + qData[i+1] + "</html>", new Color(80, 40, 120));
                 btn.setFont(new Font("Monospaced", Font.BOLD, 22));
                 btn.setBounds(40, 260 + (i * 90), 500, 75);
+                
                 btn.addActionListener(e -> {
                     if (choiceIdx == Integer.parseInt(qData[5])) {
                         battleScores[Integer.parseInt(currentPlayer.substring(1))]++;
@@ -231,19 +248,16 @@ public class EndingController extends JFrame {
                     if (currentQIndex < 4) {
                         showBattleUI(targetChar); 
                     } else {
-                        // 1. ถ้าเล่น Online ให้ส่งคะแนนของตัวเองไปบอกคนอื่น
+                        // บันทึกว่าเราเล่นเสร็จแล้ว
+                        finishedPlayers.add(myRole); 
+
+                        // ส่งข้อมูลไปเซิร์ฟเวอร์ (ถ้าออนไลน์)
                         if (relationdata.isOnlineMode && networkOut != null) {
                             networkOut.println("BATTLE_SCORE:" + myRole + ":" + battleScores[Integer.parseInt(myRole.substring(1))]);
                         }
                         
-                        // 2. ให้ขยับคิวเล่นเป็นของคนถัดไปเสมอ (ไม่ต้องมี else กั้นแล้ว)
-                        currentDuelistIdx++;
-                        if (currentDuelistIdx < duelists.size()) {
-                            currentQIndex = 0;
-                            showBattleUI(targetChar);
-                        } else {
-                            determineWinner(targetChar);
-                        }
+                        // ให้ระบบจัดการคิวต่อไป
+                        advanceQueue(); 
                     }
                 });
                 triviaFrame.add(btn);
@@ -292,7 +306,6 @@ public class EndingController extends JFrame {
     private void goToEnding(String character, boolean isWin) {
         if (isWin) {
             if (character.equals("HAREM")) {
-                // ปลดล็อกฉากจบที่ 1 (Harem) และฉากจบของทั้งสองสาวพร้อมกัน
                 relationdata.isEnding1Unlocked = true; 
                 relationdata.isEnding2Unlocked = true;
                 relationdata.isEnding3Unlocked = true;
@@ -317,7 +330,7 @@ public class EndingController extends JFrame {
         });
     }
 
-    // --- Helper Methods (Monospaced) ---
+    // --- Helper Methods ---
     private void addHeaderLabel(JPanel p, String txt, int x, int y) {
         JLabel l = new JLabel(txt, SwingConstants.CENTER);
         l.setFont(new Font("Monospaced", Font.BOLD, 22));
@@ -357,7 +370,7 @@ public class EndingController extends JFrame {
     }
 
     public static String checkLogic(int myA, int myN, int topA, int topN) {
-    	// 1. เงื่อนไข Harem: เราได้คะแนนสูงสุดเหนือผู้เล่นคนอื่นทั้งสองตัวละคร
+        // 1. เงื่อนไข Harem: เราได้คะแนนสูงสุดเหนือผู้เล่นคนอื่นทั้งสองตัวละคร
         if (myA > topA && myN > topN) return "HAREM_WIN";
 
         // 2. เงื่อนไขชนะเดี่ยว (คะแนนตัวใดตัวหนึ่งสูงที่สุด)
@@ -373,7 +386,7 @@ public class EndingController extends JFrame {
 
     public static void main(String[] args) {
         // ทดสอบระบบ: P1 และ P2 คะแนนเท่ากัน เพื่อให้เกิดการดวล
-        // SwingUtilities.invokeLater(() -> new EndingController(70, 40, 70, 50, 20, 90, "P1").setVisible(true));
+        // SwingUtilities.invokeLater(() -> new EndingController("Player1", 70, 40, "Player2", 70, 50, "Player3", 20, 90, "P1").setVisible(true));
     }
     
     private void initNetwork() {
@@ -389,19 +402,16 @@ public class EndingController extends JFrame {
                         String pRole = parts[0]; // เช่น P2
                         int pScore = Integer.parseInt(parts[1]);
                         
-                        // --- เพิ่มบรรทัดนี้: ถ้าเป็นข้อความตัวเองที่เซิร์ฟเวอร์สะท้อนมา ให้ข้ามไป ---
-                        if (pRole.equals(myRole)) continue;
+                        // ป้องกันการจัดการข้อมูลตัวเองซ้ำ
+                        if (pRole.equals(myRole)) continue; 
                         
                         battleScores[Integer.parseInt(pRole.substring(1))] = pScore;
-                        currentDuelistIdx++; // ขยับลำดับผู้เล่นในเครื่องคนรอ
+                        
+                        // บันทึกว่าเพื่อนคนนี้เล่นจบแล้ว
+                        finishedPlayers.add(pRole);
                         
                         SwingUtilities.invokeLater(() -> {
-                            if (currentDuelistIdx < duelists.size()) {
-                                currentQIndex = 0;
-                                showBattleUI(lastTargetChar);
-                            } else {
-                                determineWinner(lastTargetChar);
-                            }
+                            advanceQueue(); // ให้ระบบเช็คคิวและเปลี่ยนหน้าจอ
                         });
                     }
                 }
