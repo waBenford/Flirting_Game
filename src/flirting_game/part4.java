@@ -11,7 +11,6 @@ import javax.sound.sampled.*;
 import javax.swing.*;
 
 public class part4 extends JFrame {
-    // --- UI Components ---
     private JLayeredPane layeredPane;
     private JLabel backgroundLabel, characterLabel, characterLabel2, dialogueArea, nameLabel;
     private float alpha = 1.0f;
@@ -29,15 +28,11 @@ public class part4 extends JFrame {
     private boolean isFading = false;
     private Map<String, ImageIcon> imageCache = new HashMap<>();
 
-    // --- Character Fade & Animation ---
     private float charAlpha1 = 0.0f; 
     private float charAlpha2 = 0.0f; 
     private Timer charFadeTimer1, charFadeTimer2;
     private boolean isAnimatingEntry = false;
-    private Timer pulseTimer;
-    private boolean pulseDown = true;
     
-    // --- Leaderboard UI ---
     private JLabel affinityLabel, statusLabel;
     private JPanel statusOverlay;
     private JLabel onlineCountLabel, affinityStatusLabel;
@@ -46,12 +41,10 @@ public class part4 extends JFrame {
     private boolean isWaiting = false;
 
     private PrintWriter networkOut;
-    private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
 
-    // --- Data Arrays (ปรับขนาดเป็น 61 ตัวเพื่อกัน Index 59 Error) ---
     private String[] imagePaths = {
         "res/scene4/s1.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
-        "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", //0-7
+        "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", 
         "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png",
         "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s2.png", "res/scene4/s3.png", 
         "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", "res/scene4/s3.png", 
@@ -125,51 +118,51 @@ public class part4 extends JFrame {
 
     private String[] names = {
         " ", "ฉัน", "ฉัน", "อริส", "ฉัน", "อริส", "ฉัน", "อริส", 
-        "อริส", "อริส", "อริส", "อริส", "อริส", "อริส","อริส","อริส",//0-16
-        "ฉัน","อริส","ฉัน","อริส","อริส","อริส","อริส","อริส", //17-24
-        " ", "อริส","ชาวบ้าน","ชาวบ้าน","อริส","อริส","ฉัน","ปีศาจ",//25-32
-        "ปีศาจ","ฉัน", "ปีศาจ", "ฉัน", "ปีศาจ", "ปีศาจ","อริส","อริส","ปีศาจ", //33-41
-        "อริส", " ", "อริส"," ", " ", "อริส", "ฉัน", "ปีศาจ",//42-49
-        "ปีศาจ", "ปีศาจ","ฉัน", "ฉัน", "ปีศาจ","ปีศาจ","ปีศาจ","อริส",//50-57
-        "ฉัน", "อริส", "อริส", "ฉัน", "ฉัน", "อริส", "อริส", "อริส", //58-65
-        "อริส", "ฉัน",//66-67
+        "อริส", "อริส", "อริส", "อริส", "อริส", "อริส","อริส","อริส",
+        "ฉัน","อริส","ฉัน","อริส","อริส","อริส","อริส","อริส", 
+        " ", "อริส","ชาวบ้าน","ชาวบ้าน","อริส","อริส","ฉัน","ปีศาจ",
+        "ปีศาจ","ฉัน", "ปีศาจ", "ฉัน", "ปีศาจ", "ปีศาจ","อริส","อริส","ปีศาจ", 
+        "อริส", " ", "อริส"," ", " ", "อริส", "ฉัน", "ปีศาจ",
+        "ปีศาจ", "ปีศาจ","ฉัน", "ฉัน", "ปีศาจ","ปีศาจ","ปีศาจ","อริส",
+        "ฉัน", "อริส", "อริส", "ฉัน", "ฉัน", "อริส", "อริส", "อริส", 
+        "อริส", "ฉัน",
     };
     
     private String[] dialogues = {
-        "เวลาผ่าน2ปี", "นี่ก็ผ่านไป2ปีเเล้ว หลังจากที่ฉันได้มาอยู่ในโลกนี้", 
-        "ตอนนี้ฉันก็น่าจะเเข็งเเกร่งขึ้นบ้างละหละ", "(ชื่อตัวละครเรา) ข้าวเที่ยงเสร็จละนะ", 
-        "โอเค กําลังจะไปเดี๋ยวนี้แหละ", "..กําลังยืนดูตัวเรา..", "นี่เธอเเอบดูกล้ามฉันรึปล่าว?", 
-        "ปล่าวซะหน่อย ใครมันจะไปดูกัน", "ช่างเรื่องนั้นเถอะ", "นี่..นายคิดว่าชุดนี้เหมาะกับฉันมั้ย?", 
-        "มันเป็นชุดสําหรับเดินทางหนะ", //10
-        "น่ารักอะไรกัน..บ้าจริง", //choice1 11
-        "โถ่ว..นี่นายจะไม่ชมฉันเลยบ้างรึไง", //choice2 12
-        "ชิ!! งั้นข้าวมื้อนี้ไม่ต้องกิน!!",//choice3 13
-        "งะ..งั้นหรอ..",//choice4 14
-        "เมื่อกี้นายกําลังฝึกหรอ?", "อือ..ก็นิดหน่อยอะ", "รีบกินสิเดี๋ยวมันจะเย็นเอานะ", 
-        "(กําลังกิน)", "เป็นไงอร่อยมั้ย?", //19
-        "จะ..จริงหรอ..งั้นก็กินเยอะๆเลยนะ", //choice1 20
-        "อือๆก็ดีเเล้ว", //choice2 21
-        "ถ้าชอบฉันก็ดีใจ",//choice3 22
-        "…",//choice4 23
+        "เวลาผ่าน 2 ปี", "นี่ก็ผ่านไป 2 ปีแล้ว หลังจากที่ฉันได้มาอยู่ในโลกนี้", 
+        "ตอนนี้ฉันก็น่าจะแข็งแกร่งขึ้นบ้างละหละ", "(ชื่อตัวละครเรา) ข้าวเที่ยงเสร็จละนะ", 
+        "โอเค กำลังจะไปเดี๋ยวนี้แหละ", "..กำลังยืนดูตัวเรา..", "นี่เธอแอบดูกล้ามฉันรึเปล่า?", 
+        "เปล่าซะหน่อย ใครมันจะไปดูกัน", "ช่างเรื่องนั้นเถอะ", "นี่..นายคิดว่าชุดนี้เหมาะกับฉันมั้ย?", 
+        "มันเป็นชุดสำหรับเดินทางหนะ", 
+        "น่ารักอะไรกัน..บ้าจริง", 
+        "โถ่ว..นี่นายจะไม่ชมฉันเลยบ้างรึไง", 
+        "ชิ!! งั้นข้าวมื้อนี้ไม่ต้องกิน!!",
+        "งะ..งั้นหรอ..",
+        "เมื่อกี้นายกำลังฝึกหรอ?", "อือ..ก็นิดหน่อยอะ", "รีบกินสิเดี๋ยวมันจะเย็นเอานะ", 
+        "(กำลังกิน)", "เป็นไงอร่อยมั้ย?", 
+        "จะ..จริงหรอ..งั้นก็กินเยอะๆเลยนะ", 
+        "อือๆก็ดีแล้ว", 
+        "ถ้าชอบฉันก็ดีใจ",
+        "…",
         "นี่!!เปิดประตูหน่อย!!", "เกิดอะไรขึ้นหรอคะ?", 
-        "เอ่อ..คือว่า..มันมีปีศาจมาบุกโจมตีหมู่บ้าน", "มีชาวบ้านหลายคนที่ได้รับบาดเจ็บ เเต่ส่วนใหญ่ก็หนีออกมาได้", //24-28
-        "เเย่ละสิ! ต้องรีบไปจัดการเเล้ว!", "ไปกันเถอะ (ชื่อตัวละครเรา)", "โอเค!!", 
-        "ไม่มีพวกเก่งๆเลยรึไง ฮ่าๆ", "มีเเต่ชาวบ้านกระจอกๆเเบบนี้ ก็ไม่สนุกนะเส้", 
-        "นี่เเกกําลังทําอะไร!!", "ก็กําลังเล่นสนุกอยู่ไงหละ ฮ่าๆ", "เล่นสนุกอย่างงั้นหรอ?", //29-36
-        "พวกเเกมันก็ไม่ต่างอะไรจากหนอนเเถลง!!", "ชีวิตของพวกเเกก็มีไว้ให้พวกข้าสนุกเท่านั้น", 
-        "เลวที่สุด..", "ฉันจะไม่ให้อภัยพวกเเกเด็ดขาด!! ", "เเน่จริงก็เข้ามา!!", //37-41
-        "เวทย์นํ้าเเข็ง Ice shot!!","ปีศาจหลบได้ เเละกําลังจะโจมตี อริส", //43
-        "ขอบคุณที่ช่วยนะ (ชื่อตัวละครเรา)", //choice1 44
-        "อริสหลบการโจมตีได้",//choice2 45
-        "อริสหลบได้เเต่โดนโจมตีเล็กน้อย",//choice3 46
-        "เวทย์นํ้าเเข็ง Ice floor", "รับไปซะ! เวทย์ลม wind storm", "เอ่อ..พลังเวทย์ขนาดนี้..มันเป็นใครกันนะ!?", 
-        "อ้ากกกก!!", "ข้าเเพ้หรอเนี่ย", "ดูเหมือนเเกจะประเมินตัวเองไว้สูงเลยสินะ", //47-52 
-        "เอาหละ..ใครเป็นคนส่งเเกมา", "เเกรู้ไปจะได้อะไรขึ้นมา", "อย่างพวกเเก ไม่มีทางชนะท่านผู้นั้นได้หรอก", 
-        "ท่านจอมมารผู้นั้นหนะ..", "จอมมารหรอ?", "อริส เธอรู้เรื่องจอมมารคนนั้นบ้างรึปล่าว?", 
-        "ฉันเคยได้ยินว่ามีจอมมารคนนึงที่อยู่ลึกสุดของป่า death end", "เเต่จอมมารคนนั้นดูเหมือนจะเป็น คนที่รักความสงบสุขมาก", //53-60
-        "ฟังดูเเล้วไม่มีเหตุที่จอมมารคนนั้นจะทําเรื่องเเบบนี้เลย", "อริส ฉันว่ามันถึงเวลาที่เราต้องออกเดินทางเเล้วหละ", 
-        "เเล้วเราจะไปที่ไหนกันหรอ?", "ไปเดทอะไรบ้ารึปล่าว อร๊ายยยย", "ขอบคุณนะ", //61-65
-        "อะ..อื้อ..", "ไม่งั้นอาจจะมีผู้คนต้องตายไปมากกว่านี้",//67
+        "เอ่อ..คือว่า..มันมีปีศาจมาบุกโจมตีหมู่บ้าน", "มีชาวบ้านหลายคนที่ได้รับบาดเจ็บ เเต่ส่วนใหญ่ก็หนีออกมาได้", 
+        "แย่ละสิ! ต้องรีบไปจัดการเเล้ว!", "ไปกันเถอะ (ชื่อตัวละครเรา)", "โอเค!!", 
+        "ไม่มีพวกเก่งๆเลยรึไง ฮ่าๆ", "มีเเต่ชาวบ้านกระจอกๆแบบนี้ ก็ไม่สนุกนะเส้", 
+        "นี่แกกำลังทำอะไร!!", "ก็กำลังเล่นสนุกอยู่ไงละ ฮ่าๆ", "เล่นสนุกอย่างงั้นหรอ?", 
+        "พวกแกมันก็ไม่ต่างอะไรจากหนอนเเถลง!!", "ชีวิตของพวกแกก็มีไว้ให้พวกข้าสนุกเท่านั้น", 
+        "เลวที่สุด..", "ฉันจะไม่ให้อภัยพวกแกเด็ดขาด!! ", "เเน่จริงก็เข้ามา!!", 
+        "เวทย์น้ำแข็ง Ice shot!!","ปีศาจหลบได้ เเละกำลังจะโจมตี อริส", 
+        "ขอบคุณที่ช่วยนะ (ชื่อตัวละครเรา)", 
+        "อริสหลบการโจมตีได้",
+        "อริสหลบได้เเต่โดนโจมตีเล็กน้อย",
+        "เวทย์น้ำแข็ง Ice floor", "รับไปซะ! เวทย์ลม wind storm", "เอ่อ..พลังเวทย์ขนาดนี้..มันเป็นใครกันนะ!?", 
+        "อ้ากกกก!!", "ข้าแพ้หรอเนี่ย", "ดูเหมือนแกจะประเมินตัวเองไว้สูงเลยสินะ", 
+        "เอาหละ..ใครเป็นคนส่งแกมา", "แกรู้ไปจะได้อะไรขึ้นมา", "อย่างพวกแก ไม่มีทางชนะท่านผู้นั้นได้หรอก", 
+        "ท่านจอมมารผู้นั้นหนะ..", "จอมมารหรอ?", "อริส เธอรู้เรื่องจอมมารคนนั้นบ้างรึเปล่า?", 
+        "ฉันเคยได้ยินว่ามีจอมมารคนนึงที่อยู่ลึกสุดของป่า death end", "เเต่จอมมารคนนั้นดูเหมือนจะเป็น คนที่รักความสงบสุขมาก", 
+        "ฟังดูแล้วไม่มีเหตุที่จอมมารคนนั้นจะทำเรื่องแบบนี้เลย", "อริส ฉันว่ามันถึงเวลาที่เราต้องออกเดินทางเเล้วหละ", 
+        "เเล้วเราจะไปที่ไหนกันหรอ?", "ไปเดทอะไรบ้ารึเปล่า อร๊ายยยย", "ขอบคุณนะ", 
+        "อะ..อื้อ..", "ไม่งั้นอาจจะมีผู้คนต้องตายไปมากกว่านี้",
     };
 
     public part4() {
@@ -178,7 +171,6 @@ public class part4 extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-        setFocusTraversalKeysEnabled(false);
 
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
@@ -228,170 +220,158 @@ public class part4 extends JFrame {
         });
     }
 
-        private void handleNext() {
-            if (isChoosing || isFading || isWaiting || isAnimatingEntry || isFinishing) return; // เพิ่ม isFinishing
+    private void handleNext() {
+        if (isChoosing || isFading || isWaiting || isAnimatingEntry || isFinishing) return;
 
-            if (isTyping) { 
-                if(typewriterTimer != null) typewriterTimer.stop(); 
-                isTyping = false; 
-                // ป้องกัน Error หาก currentIndex เกินขอบเขต
-                if (currentIndex < dialogues.length) {
-                    updateDialogueDisplay(dialogues[currentIndex]); 
-                }
-                return; 
+        if (isTyping) { 
+            if(typewriterTimer != null) typewriterTimer.stop(); 
+            isTyping = false; 
+            if (currentIndex < dialogues.length) {
+                updateDialogueDisplay(dialogues[currentIndex]); 
             }
+            return; 
+        }
 
-            // --- ส่วนเช็ค Choice ---
-            if (currentIndex == 10) { 
-                showChoices("น่ารักมากๆเลย เหมาะกับเธอสุดๆ", "ก็พอได้นะ", "ก็งั้นๆอะ", "ฉันชอบชุดนี้นะ", 11, 12, 13, 14); 
-                return; 
-            }
-            if (currentIndex == 19) { 
-                showChoices("ฉันชอบอาหารฝีมือเธอที่สุดเลย", "ก็อร่อยดีนะ", "อร่อยมากๆเลย", "ก็พอกินได้", 20, 21, 22, 23); 
-                return; 
-            }
-            // แก้ไขจุดนี้: ส่ง null เพื่อให้ Choice 4 หายไปในฉากสู้ปีศาจ
-            if (currentIndex == 42) { 
-                showChoices("พุ่งเข้าไปปกป้องอริส", "บอกให้อริสหลบเอง", "ไม่ทําอะไรเลย", null, 43, 44, 45, -1); 
-                return; 
-            }
-            if (currentIndex == 62) { 
-                showChoices("เราจะไปเดทกันไงละจ๊ะ อริสจัง", "ที่อยู่ของจอมมารยังไงหละ", "ยังจะถามอีก ก็ไปล่าจอมมารไงละ", null, 63, 64, 65, -1); 
-                return; 
-            }
+        if (currentIndex == 10) { 
+            showChoices("น่ารักมากๆเลย เหมาะกับเธอสุดๆ", "ก็พอได้นะ", "ก็งั้นๆอะ", "ฉันชอบชุดนี้นะ", 11, 12, 13, 14); 
+            return; 
+        }
+        if (currentIndex == 19) { 
+            showChoices("ฉันชอบอาหารฝีมือเธอที่สุดเลย", "ก็อร่อยดีนะ", "อร่อยมากๆเลย", "ก็พอกินได้", 20, 21, 22, 23); 
+            return; 
+        }
+        if (currentIndex == 42) { 
+            showChoices("พุ่งเข้าไปปกป้องอริส", "บอกให้อริสหลบเอง", "ไม่ทำอะไรเลย", null, 43, 44, 45, -1); 
+            return; 
+        }
+        if (currentIndex == 62) { 
+            showChoices("เราจะไปเดทกันไงละจ๊ะ อริสจัง", "ที่อยู่ของจอมมารยังไงหละ", "ยังจะถามอีก ก็ไปล่าจอมมารไงละ", null, 63, 64, 65, -1); 
+            return; 
+        }
 
-            // --- ส่วนคำนวณ Next Index ---
-            int nextIdx = currentIndex;
-            
-            if (currentIndex >= 11 && currentIndex <= 14) {
-                nextIdx = 15;
-            } else if (currentIndex >= 20 && currentIndex <= 23) {
-                nextIdx = 24;
-            } else if (currentIndex >= 43 && currentIndex <= 45) {
-                nextIdx = 46;
-            } else if (currentIndex >= 63 && currentIndex <= 65) {
-                nextIdx = 66;
-            } else {
-                nextIdx = currentIndex + 1; 
-            }
+        int nextIdx;
+        if (currentIndex >= 11 && currentIndex <= 14) nextIdx = 15;
+        else if (currentIndex >= 20 && currentIndex <= 23) nextIdx = 24;
+        else if (currentIndex >= 43 && currentIndex <= 45) nextIdx = 46;
+        else if (currentIndex >= 63 && currentIndex <= 65) nextIdx = 66;
+        else nextIdx = currentIndex + 1;
 
-            // --- ตรวจสอบความปลอดภัยก่อนอัปเดตฉาก ---
-            if (nextIdx < dialogues.length) {
-                // ตรวจสอบว่า imagePaths มีขนาดเท่ากับ dialogues หรือไม่เพื่อป้องกัน NullPointerException
-                if (nextIdx < imagePaths.length && !imagePaths[currentIndex].equals(imagePaths[nextIdx])) {
-                    final int target = nextIdx;
-                    performSceneFade(() -> { 
-                        currentIndex = target; 
-                        syncOnline(); 
-                        updateScene(); 
-                    });
-                } else { 
-                    currentIndex = nextIdx; 
+        if (nextIdx < dialogues.length) {
+            if (nextIdx < imagePaths.length && !imagePaths[currentIndex].equals(imagePaths[nextIdx])) {
+                final int target = nextIdx;
+                performSceneFade(() -> { 
+                    currentIndex = target; 
                     syncOnline(); 
                     updateScene(); 
-                }
+                });
             } else { 
-                // ถ้า nextIdx เท่ากับหรือมากกว่า dialogues.length แสดงว่าจบ Part แล้ว
-                finishPart(); 
+                currentIndex = nextIdx; 
+                syncOnline(); 
+                updateScene(); 
             }
+        } else { 
+            finishPart(); 
+        }
     }
-    // --- ระบบ Animation เข้าฉาก (เลื่อนและ Fade) ---
-        private void animateCharacterEntry(JLabel label, String path, int w, int h, int startX, int endX, int targetY, boolean isChar1) {
-            isAnimatingEntry = true;
-            label.setIcon(getOptimizedImage(path, w, h));
-            label.setBounds(startX, targetY, w, h); // ใช้ w, h ที่ส่งมาเพื่อให้ขนาดเท่าตอนปกติ
-            if (isChar1) charAlpha1 = 0.0f; else charAlpha2 = 0.0f;
-
-            Timer fadeIn = new Timer(30, null);
-            fadeIn.addActionListener(e -> {
-                if (isChar1) charAlpha1 += 0.1f; else charAlpha2 += 0.1f;
-                if ((isChar1 ? charAlpha1 : charAlpha2) >= 1.0f) {
-                    if (isChar1) charAlpha1 = 1.0f; else charAlpha2 = 1.0f;
-                    fadeIn.stop();
-                    
-                    Timer slide = new Timer(15, null);
-                    final long start = System.currentTimeMillis();
-                    slide.addActionListener(ev -> {
-                        float p = Math.min(1.0f, (System.currentTimeMillis() - start) / 500.0f);
-                        int curX = (int) (startX + (endX - startX) * p);
-                        label.setBounds(curX, targetY, w, h); // รักษาขนาด w, h ไว้ตลอดการเลื่อน
-                        if (p >= 1.0f) { slide.stop(); isAnimatingEntry = false; }
-                    });
-                    slide.start();
-                }
-                label.repaint();
-            });
-            fadeIn.start();
+//
+    private Rectangle getCharacterSettings(String path) {
+        String p = path.toLowerCase();
+        if (p.contains("uncle") || p.contains("ชาวบ้าน")) {
+            // ลองปรับ Y (200) ให้ลุงสูงหรือต่ำตามต้องการ แต่ค่านี้ต้องนิ่ง
+            return new Rectangle(-100, 200, 900, 900); 
+        } else if (p.contains("mc/body")) {
+            return new Rectangle(50, 100, 500, 900);
+        } else if (p.contains("alice") || p.contains("girl")) {
+            return new Rectangle(420, 100, 1050, 700);
+        } else if (p.contains("demon")) {
+            return new Rectangle(50, 50, 800, 900);
         }
+        return new Rectangle(50, 100, 800, 900); // ค่าเริ่มต้น
+    }
+    
+    private void animateCharacterEntry(JLabel label, String path, int startX, int endX, boolean isChar1) {
+        isAnimatingEntry = true;
+        Rectangle settings = getCharacterSettings(path); // ดึงค่า X, Y, W, H มาตรฐาน
 
-        private void updateScene() {
-            if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
-            if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
-            handleSoundEffects(currentIndex);
+        // รีเซ็ตค่า Alpha เป็น 0 ทันทีที่เริ่ม
+        if (isChar1) charAlpha1 = 0.0f; else charAlpha2 = 0.0f;
 
-            String currentBG = imagePaths[currentIndex];
-            String prevBG = (currentIndex > 0) ? imagePaths[currentIndex - 1] : "";
-            backgroundLabel.setIcon(getOptimizedImage(currentBG, 1280, 800));
+        label.setIcon(getOptimizedImage(path, settings.width, settings.height));
+        label.setBounds(startX, settings.y, settings.width, settings.height);
 
-            String currentP1 = (currentIndex < charPaths.length) ? charPaths[currentIndex] : "res/empty.png";
-            String prevP1 = (currentIndex > 0) ? charPaths[currentIndex - 1] : "res/empty.png";
-            String currentP2 = (currentIndex < charPaths2.length) ? charPaths2[currentIndex] : "res/empty.png";
-            String prevP2 = (currentIndex > 0) ? charPaths2[currentIndex - 1] : "res/empty.png";
+        // ใช้ Timer เดียวคุมทั้ง Fade และ Slide ให้เกิดพร้อมกัน
+        Timer animTimer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+        final int duration = 600; // ความเร็ว 0.6 วินาที
 
-            // --- 1. ตรรกะพิเศษสำหรับฉากเลื่อนแยก (s3, s4) ---
-            if ((currentBG.contains("s3.png") && !prevBG.contains("s3.png")) || 
-                (currentBG.contains("s4.png") && !prevBG.contains("s4.png"))) {
-                
-                if (!currentP1.contains("empty")) {
-                    // Mc ปกติ: w=500, h=900, y=100, endX=50
-                    animateCharacterEntry(characterLabel, currentP1, 500, 900, 390, 50, 100, true);
-                }
-                if (!currentP2.contains("empty")) {
-                    // Alice ปกติ: w=1050, h=700, y=70, endX=420
-                    animateCharacterEntry(characterLabel2, currentP2, 1050, 700, 115, 420, 100, false);
-                }
-            } 
-            // --- 2. ตัวละครโผล่ครั้งแรก (Slide เข้า) ---
-         // --- 2. ตัวละครโผล่ครั้งแรก (Slide เข้า) ---
-            else if (prevP1.contains("empty") && !currentP1.contains("empty")) {
-                if (currentP1.contains("Uncle.png") || currentP1.contains("factor/Uncle")) {
-                    // ล็อกค่าให้เท่ากับ updateCharacterLayer: W=900, H=900, EndX=-100, Y=200
-                    animateCharacterEntry(characterLabel, currentP1, 900, 900, 100, -100, 200, true);
-                } 
-                else if (currentP1.contains("demon")) {
-                    // ปีศาจ: W=800, H=900, EndX=50, Y=100
-                    animateCharacterEntry(characterLabel, currentP1, 800, 900, 390, 50, 100, true);
-                }
-                else {
-                    int w = currentP1.contains("Mc") ? 500 : 800;
-                    animateCharacterEntry(characterLabel, currentP1, w, 900, 390, 50, 100, true);
-                }
-            }
+        animTimer.addActionListener(e -> {
+            float progress = Math.min(1.0f, (float) (System.currentTimeMillis() - startTime) / duration);
             
-            else if (prevP2.contains("empty") && !currentP2.contains("empty")) {
-                // Alice หรือตัวละครหญิงอื่นๆ
-                animateCharacterEntry(characterLabel2, currentP2, 1050, 700, 115, 420, 100, false);
-            }
-            // --- 3. เปลี่ยนท่าทาง/สีหน้า (Fade In อยู่กับที่) ---
-            else {
-                if (!currentP1.equals(prevP1) && !currentP1.contains("empty")) {
-                    updateCharacterLayer(characterLabel, charPaths); // ใช้ Layer ปกติเพื่อล็อกตำแหน่ง
-                    startCharacterFadeIn1();
-                }
-                if (!currentP2.equals(prevP2) && !currentP2.contains("empty")) {
-                    updateCharacterLayer(characterLabel2, charPaths2); // ใช้ Layer ปกติเพื่อล็อกตำแหน่ง
-                    startCharacterFadeIn2();
-                }
-            }
+            // 1. อัปเดต Alpha (Fade In)
+            if (isChar1) charAlpha1 = progress; else charAlpha2 = progress;
+            
+            // 2. อัปเดตตำแหน่ง X (Slide)
+            int curX = (int) (startX + (endX - startX) * progress);
+            label.setBounds(curX, settings.y, settings.width, settings.height);
+            
+            label.repaint();
 
-            if (!isAnimatingEntry) {
-                updateCharacterLayer(characterLabel, charPaths);
-                updateCharacterLayer(characterLabel2, charPaths2);
-                charAlpha1 = currentP1.contains("empty") ? 0.0f : 1.0f;
-                charAlpha2 = currentP2.contains("empty") ? 0.0f : 1.0f;
+            if (progress >= 1.0f) {
+                animTimer.stop();
+                isAnimatingEntry = false;
             }
-            layeredPane.repaint();
+        });
+        animTimer.start();
+    }
+
+    private void updateScene() {
+        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+        if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
+        handleSoundEffects(currentIndex);
+
+        String currentBG = imagePaths[currentIndex];
+        String prevBG = (currentIndex > 0) ? imagePaths[currentIndex - 1] : "";
+        backgroundLabel.setIcon(getOptimizedImage(currentBG, 1280, 800));
+
+        String currentP1 = (currentIndex < charPaths.length) ? charPaths[currentIndex] : "res/empty.png";
+        String prevP1 = (currentIndex > 0) ? charPaths[currentIndex - 1] : "res/empty.png";
+        String currentP2 = (currentIndex < charPaths2.length) ? charPaths2[currentIndex] : "res/empty.png";
+        String prevP2 = (currentIndex > 0) ? charPaths2[currentIndex - 1] : "res/empty.png";
+
+        // กรณีตัวละครที่ 1 (MC, ลุง, ปีศาจ) โผล่ครั้งแรก
+        if (prevP1.contains("empty") && !currentP1.contains("empty")) {
+            Rectangle s = getCharacterSettings(currentP1);
+            // ให้เริ่มจาก X ที่ไกลออกไปหน่อย (เช่น s.x + 100) แล้วเลื่อนเข้าหา s.x
+            animateCharacterEntry(characterLabel, currentP1, s.x + 100, s.x, true);
+        } 
+        // กรณีตัวละครที่ 2 (อริส) โผล่ครั้งแรก
+        else if (prevP2.contains("empty") && !currentP2.contains("empty")) {
+            Rectangle s = getCharacterSettings(currentP2);
+            animateCharacterEntry(characterLabel2, currentP2, s.x + 100, s.x, false);
+        } 
+        // ถ้าตัวละครอยู่บนจออยู่แล้ว แต่อยากเปลี่ยนท่าทาง
+        else if (!isAnimatingEntry) {
+            updateCharacterLayer(characterLabel, charPaths);
+            updateCharacterLayer(characterLabel2, charPaths2);
+            // บังคับ Alpha ให้เป็น 1 ถ้ามีรูป
+            charAlpha1 = currentP1.contains("empty") ? 0.0f : 1.0f;
+            charAlpha2 = currentP2.contains("empty") ? 0.0f : 1.0f;
         }
+        layeredPane.repaint();
+    }
+
+    private void updateCharacterLayer(JLabel label, String[] paths) {
+        if (isAnimatingEntry || currentIndex >= paths.length || paths[currentIndex].contains("empty")) {
+            if (!isAnimatingEntry && (currentIndex >= paths.length || paths[currentIndex].contains("empty"))) {
+                label.setIcon(null);
+            }
+            return;
+        }
+        String path = paths[currentIndex];
+        Rectangle s = getCharacterSettings(path);
+        label.setIcon(getOptimizedImage(path, s.width, s.height));
+        label.setBounds(s.x, s.y, s.width, s.height);
+    }
 
     public void screenShake(int intensity, int duration) {
         Point originalLoc = getLocation();
@@ -400,96 +380,16 @@ public class part4 extends JFrame {
         shakeTimer.addActionListener(e -> {
             long elapsed = System.currentTimeMillis() - startTime;
             if (elapsed < duration) {
-                // สุ่มตำแหน่ง X และ Y ตามความแรง (intensity)
                 int x = (int) (Math.random() * intensity * 2 - intensity);
                 int y = (int) (Math.random() * intensity * 2 - intensity);
                 setLocation(originalLoc.x + x, originalLoc.y + y);
             } else {
-                // เมื่อครบเวลา ให้กลับไปตำแหน่งเดิมและหยุด Timer
                 setLocation(originalLoc);
                 ((Timer) e.getSource()).stop();
             }
         });
         shakeTimer.start();
     }
-
-    private void updateCharacterLayer(JLabel label, String[] paths) {
-        if (currentIndex >= paths.length || paths[currentIndex].contains("empty")) { 
-            label.setIcon(null); 
-            return; 
-        }
-        String path = paths[currentIndex];
-        
-        // ล็อกตำแหน่งชาวบ้าน/ลุง ให้คงที่ (อ้างอิงจากภาพที่ต้องการให้หัวอยู่ระดับพอดี)
-        if (path.contains("Uncle.png") || path.contains("ชาวบ้าน")) { 
-            // ปรับขนาดเป็น 900x900 และตำแหน่ง x=-100, y=200 (หรือตามความเหมาะสมของไฟล์ภาพ)
-            label.setIcon(getOptimizedImage(path, 900, 900)); 
-            label.setBounds(-100, 200, 900, 900); 
-        } 
-        else if (path.contains("Mc/body")) { 
-            label.setIcon(getOptimizedImage(path, 500, 900)); 
-            label.setBounds(50, 100, 500, 900); 
-        } 
-        else if (path.contains("Alice") || path.contains("Girl")) { 
-            // ล็อก Alice ไว้ที่เดิมเสมอ
-            label.setIcon(getOptimizedImage(path, 1050, 700)); 
-            label.setBounds(420, 100, 1050, 700); 
-        } 
-        else { 
-            label.setIcon(getOptimizedImage(path, 800, 900)); 
-            label.setBounds(50, 100, 800, 900); 
-        }
-    }
-    
-    private void startCharacterFadeIn1() {
-        charAlpha1 = 0.0f;
-        if (charFadeTimer1 != null && charFadeTimer1.isRunning()) charFadeTimer1.stop();
-        charFadeTimer1 = new Timer(30, e -> {
-            charAlpha1 += 0.1f;
-            if (charAlpha1 >= 1.0f) {
-                charAlpha1 = 1.0f;
-                ((Timer)e.getSource()).stop();
-            }
-            characterLabel.repaint();
-        });
-        charFadeTimer1.start();
-    }
-
-    private void startCharacterFadeIn2() {
-        charAlpha2 = 0.0f;
-        if (charFadeTimer2 != null && charFadeTimer2.isRunning()) charFadeTimer2.stop();
-        charFadeTimer2 = new Timer(30, e -> {
-            charAlpha2 += 0.1f;
-            if (charAlpha2 >= 1.0f) {
-                charAlpha2 = 1.0f;
-                ((Timer)e.getSource()).stop();
-            }
-            characterLabel2.repaint();
-        });
-        charFadeTimer2.start();
-    }
-
-    // --- Scoreboard (UI เหมือน Part 3) ---
-    private void setupStatusOverlay() {
-        statusOverlay = new JPanel(new BorderLayout(10, 10));
-        statusOverlay.setBackground(new Color(0, 0, 0, 210)); 
-        statusOverlay.setBounds(440, 150, 400, 400); 
-        statusOverlay.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
-        statusOverlay.setVisible(false);
-        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
-        onlineCountLabel.setForeground(Color.CYAN); onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
-        JLabel titleLabel = new JLabel("--- ความสัมพันธ์ทั้งหมด ---", SwingConstants.CENTER);
-        titleLabel.setForeground(Color.YELLOW); titleLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
-        affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล...", SwingConstants.CENTER);
-        affinityStatusLabel.setForeground(Color.WHITE); affinityStatusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        affinityStatusLabel.setVerticalAlignment(SwingConstants.TOP);
-        statusOverlay.add(titleLabel, BorderLayout.NORTH); statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER); statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH); 
-        layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
-    }
-
-    // --- ป้องกันการค้าง: Null Check ในระบบเสียง ---
-    private void stopBGM() { if (bgmClip != null) { if (bgmClip.isRunning()) bgmClip.stop(); bgmClip.close(); bgmClip = null; } }
-    private void stopEffect() { if (effectClip != null) { if (effectClip.isRunning()) effectClip.stop(); effectClip.close(); effectClip = null; } }
 
     private void playSE(String path, boolean loop, float volume) {
         try {
@@ -502,6 +402,9 @@ public class part4 extends JFrame {
         } catch (Exception e) {}
     }
 
+    private void stopBGM() { if (bgmClip != null) { if (bgmClip.isRunning()) bgmClip.stop(); bgmClip.close(); bgmClip = null; } }
+    private void stopEffect() { if (effectClip != null) { if (effectClip.isRunning()) effectClip.stop(); effectClip.close(); effectClip = null; } }
+
     private void handleSoundEffects(int index) {
         if (index == 11) playSE("res/sound/baka.wav", false, 5.0f);
         if (index == 12) playSE("res/sound/muuuu.wav", false, 5.0f);
@@ -509,20 +412,7 @@ public class part4 extends JFrame {
         if (index == 19) playSE("res/sound/emmm.wav", false, 5.0f);
         if (index == 22) { stopBGM(); playSE("res/sound/soundtrack6.wav", true, -10.0f); }
         if (index == 27) { playSE("res/sound/evillaugh.wav", false, -10.0f); playSE("res/sound/housefire.wav", true, -10.0f); }
-        
-        // --- เพิ่ม Effect สั่นหน้าจอตรงนี้ ---
-        if (index == 37) { 
-            // อริสร่ายเวทย์น้ำแข็ง (สั่นนิดนึง)
-            // screenShake(6, 500); 
-        }
-        if (index == 39) playSE("res/sound/Arigato.wav", false, 0.0f);
-        
-        if (index == 42) {
-            // ฉันร่ายเวทย์ลม (สั่นแรงนิดหน่อย)
-            screenShake(20, 1200);
-        }
-        // ---------------------------------
-
+        if (index == 42) screenShake(20, 1200);
         if (index == 46) { stopBGM(); stopEffect(); playSE("res/sound/soundtrack7.wav", true, -10.0f); }
         if (index == 58) playSE("res/sound/Baka janai no.wav", false, 5.0f);
         if (index == 59) playSE("res/sound/Arigato.wav", false, 0.0f);
@@ -540,19 +430,15 @@ public class part4 extends JFrame {
                 networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
                 String line;
                 while ((line = in.readLine()) != null) {
-                    // ค้นหาในเมธอด initNetwork()
                     if (line.startsWith("LOAD_AFFINITY:")) {
                         int score = Integer.parseInt(line.substring(14));
                         relationdata.aliceRel.setAffinity(score);
                         SwingUtilities.invokeLater(() -> {
-                            // แก้ไขตรงนี้เช่นกันครับ
                             affinityLabel.setText("อริส: " + score); 
                             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
                         });
                     } else if (line.startsWith("ALL_STATS:")) { updateLeaderboardUI(line.substring(10)); }
-                    if (line.equals("PROCEED_TO_NEXT")) {
-                        goToNextPart();
-                    }
+                    if (line.equals("PROCEED_TO_NEXT")) goToNextPart();
                 }
             } catch (Exception e) {}
         }).start();
@@ -562,304 +448,214 @@ public class part4 extends JFrame {
         StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'>");
         sb.append("<table width='320' style='color:white; font-family:Tahoma;'>");
         sb.append("<tr style='color:#FFD700;'><th>ผู้เล่น</th><th align='right'>คะแนน (อริส)</th></tr>");
-        
         for (String p : data.split(",")) {
             if (p.contains("=")) {
                 String[] parts = p.split("=");
                 String name = parts[0];
-                String rawScores = parts[1]; // เช่น "10/0"
-                
-                // --- แก้ไขตรงนี้: แยกเอาเฉพาะคะแนนแรกมาแสดง ---
-                String aliceScore = rawScores;
-                if (rawScores.contains("/")) {
-                    aliceScore = rawScores.split("/")[0]; // เอาเฉพาะตัวหน้าเครื่องหมาย /
-                }
-
+                String rawScores = parts[1];
+                String aliceScore = rawScores.contains("/") ? rawScores.split("/")[0] : rawScores;
                 String color = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
-                sb.append("<tr>")
-                .append("<td style='color:").append(color).append(";'>").append(name).append("</td>")
-                .append("<td align='right' style='color:#FF69B4;'>").append(aliceScore).append(" pt</td>")
-                .append("</tr>");
+                sb.append("<tr><td style='color:").append(color).append(";'>").append(name).append("</td>")
+                .append("<td align='right' style='color:#FF69B4;'>").append(aliceScore).append(" pt</td></tr>");
             }
         }
         sb.append("</table></body></html>");
-        
         SwingUtilities.invokeLater(() -> {
             affinityStatusLabel.setText(sb.toString());
             onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length);
         });
     }
 
-    // --- ส่วนเสริม UI (คงเดิมแต่ปรับตำแหน่งและฟอนต์) ---
-    private void setupDialogueUI() { dialoguePanel = new VisualNovelBox(); dialoguePanel.setLayout(null); dialoguePanel.setBounds(225, 520, 800, 200); layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER); nameLabel = new JLabel(); nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26)); nameLabel.setForeground(new Color(180, 40, 90)); nameLabel.setBounds(60, 15, 300, 40); dialoguePanel.add(nameLabel); dialogueArea = new JLabel(); dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22)); dialogueArea.setForeground(new Color(45, 65, 115)); dialogueArea.setBounds(60, 65, 700, 110); dialogueArea.setVerticalAlignment(SwingConstants.TOP); dialoguePanel.add(dialogueArea); }
+    private void setupDialogueUI() { 
+        dialoguePanel = new VisualNovelBox(); 
+        dialoguePanel.setLayout(null); 
+        dialoguePanel.setBounds(225, 520, 800, 200); 
+        layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER); 
+        nameLabel = new JLabel(); 
+        nameLabel.setFont(new Font("Tahoma", Font.BOLD, 26)); 
+        nameLabel.setForeground(new Color(180, 40, 90)); 
+        nameLabel.setBounds(60, 15, 300, 40); 
+        dialoguePanel.add(nameLabel); 
+        dialogueArea = new JLabel(); 
+        dialogueArea.setFont(new Font("Tahoma", Font.BOLD, 22)); 
+        dialogueArea.setForeground(new Color(45, 65, 115)); 
+        dialogueArea.setBounds(60, 65, 700, 110); 
+        dialogueArea.setVerticalAlignment(SwingConstants.TOP); 
+        dialoguePanel.add(dialogueArea); 
+    }
+
+    private void setupRelationshipUI() {
+        JPanel relPanel = new JPanel(new GridLayout(2, 1, 0, 0)); 
+        relPanel.setBounds(0, 0, 280, 75); 
+        relPanel.setBackground(new Color(0, 0, 0, 190)); 
+        relPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 105, 180), 2),
+            BorderFactory.createEmptyBorder(5, 15, 5, 10)
+        ));
+        affinityLabel = new JLabel("อริส: " + relationdata.aliceRel.getAffinity());
+        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18)); 
+        affinityLabel.setForeground(new Color(255, 192, 203));
+        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        statusLabel.setForeground(Color.WHITE);
+        relPanel.add(affinityLabel);
+        relPanel.add(statusLabel);
+        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
+    }
+
+    private void setupStatusOverlay() {
+        statusOverlay = new JPanel(new BorderLayout(10, 10));
+        statusOverlay.setBackground(new Color(0, 0, 0, 210)); 
+        statusOverlay.setBounds(440, 150, 400, 400); 
+        statusOverlay.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        statusOverlay.setVisible(false);
+        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
+        onlineCountLabel.setForeground(Color.CYAN); onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
+        JLabel titleLabel = new JLabel("--- ความสัมพันธ์ทั้งหมด ---", SwingConstants.CENTER);
+        titleLabel.setForeground(Color.YELLOW); titleLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
+        affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล...", SwingConstants.CENTER);
+        affinityStatusLabel.setForeground(Color.WHITE); affinityStatusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
+        affinityStatusLabel.setVerticalAlignment(SwingConstants.TOP);
+        statusOverlay.add(titleLabel, BorderLayout.NORTH); statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER); statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH); 
+        layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
+    }
+
     private void syncOnline() { if (relationdata.isOnlineMode && networkOut != null) networkOut.println("SYNC_INDEX:" + currentIndex); }
     private void setupTabKeyBinding() { layeredPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("TAB"), "toggleTab"); layeredPane.getActionMap().put("toggleTab", new AbstractAction() { @Override public void actionPerformed(java.awt.event.ActionEvent e) { statusOverlay.setVisible(!statusOverlay.isVisible()); } }); }
     private void startTypewriter(String text) { if (typewriterTimer != null) typewriterTimer.stop(); charIndex = 0; isTyping = true; dialogueArea.setText(""); typewriterTimer = new Timer(25, e -> { if (charIndex < text.length()) { charIndex++; updateDialogueDisplay(text.substring(0, charIndex)); } else { typewriterTimer.stop(); isTyping = false; } }); typewriterTimer.start(); }
     private void updateDialogueDisplay(String text) { dialogueArea.setText("<html><body style='width: 700px;'>" + text + "</body></html>"); }
-    private void setupRelationshipUI() {
-        // 1. ปรับตำแหน่งติดซ้ายบน (0, 0) และลดความสูงลงเพื่อให้พอดีกับคนเดียว
-        JPanel relPanel = new JPanel(new GridLayout(2, 1, 0, 0)); 
-        relPanel.setBounds(0, 0, 280, 75); 
-        
-        // 2. ใช้พื้นหลังสีดำโปร่งแสงเพื่อให้ข้อความอ่านง่ายบนทุกพื้นหลัง
-        relPanel.setBackground(new Color(0, 0, 0, 190)); 
-        relPanel.setOpaque(true);
-
-        // 3. เพิ่มกรอบสีชมพูหนา 2 พิกเซล และใส่ระยะห่าง (Padding) ด้านใน
-        relPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 105, 180), 2), // กรอบสีชมพู
-            BorderFactory.createEmptyBorder(5, 15, 5, 10) // ระยะห่างจากขอบ
-        ));
-
-        // 4. ตั้งค่าการแสดงผลของ อริส (ใช้โทนสีเดียวกับ Part 7)
-        affinityLabel = new JLabel("อริส: " + relationdata.aliceRel.getAffinity());
-        affinityLabel.setFont(new Font("Tahoma", Font.BOLD, 18)); 
-        affinityLabel.setForeground(new Color(255, 192, 203)); // สีชมพูสว่าง
-
-        statusLabel = new JLabel("สถานะ: " + relationdata.aliceRel.getStatus());
-        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        statusLabel.setForeground(Color.WHITE); // สีขาวอ่านง่าย
-
-        relPanel.add(affinityLabel);
-        relPanel.add(statusLabel);
-        
-        // นำไปวางไว้ในเลเยอร์ POPUP เพื่อให้อยู่หน้าสุดเสมอ
-        layeredPane.add(relPanel, JLayeredPane.POPUP_LAYER);
-    }
-    private void updateAffinityUI() { affinityLabel.setText("ความสนิท: " + relationdata.aliceRel.getAffinity()); statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus()); }
     private void setupFadeOverlay() { fadeOverlay = new JPanel() { @Override protected void paintComponent(Graphics g) { Graphics2D g2d = (Graphics2D) g; g2d.setColor(new Color(0, 0, 0, (int) (alpha * 255))); g2d.fillRect(0, 0, getWidth(), getHeight()); } }; fadeOverlay.setBounds(0, 0, 1280, 800); fadeOverlay.setOpaque(false); }
     private void startFadeIn() { alpha = 1.0f; if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER); Timer fadeTimer = new Timer(40, e -> { alpha -= 0.02f; if (alpha <= 0) { alpha = 0; ((Timer) e.getSource()).stop(); layeredPane.remove(fadeOverlay); } fadeOverlay.repaint(); }); fadeTimer.start(); }
     private void performSceneFade(Runnable onBlack) { isFading = true; alpha = 0.0f; if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER); Timer fadeOut = new Timer(30, e -> { alpha += 0.1f; if (alpha >= 1.0f) { alpha = 1.0f; ((Timer)e.getSource()).stop(); onBlack.run(); new Timer(300, ev -> { ((Timer)ev.getSource()).stop(); new Timer(30, eve -> { alpha -= 0.1f; if (alpha <= 0) { alpha = 0; ((Timer)eve.getSource()).stop(); isFading = false; } fadeOverlay.repaint(); }).start(); }).start(); } fadeOverlay.repaint(); }); fadeOut.start(); }
     private ImageIcon getOptimizedImage(String path, int w, int h) { String key = path + w + h; if (!imageCache.containsKey(key)) { imageCache.put(key, scaleImage(path, w, h)); } return imageCache.get(key); }
     public ImageIcon scaleImage(String path, int width, int height) { try { return new ImageIcon(new ImageIcon(path).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH)); } catch (Exception e) { return null; } }
-        private void showChoices(String text1, String text2, String text3, String text4, int t1, int t2, int t3, int t4) {
-            isChoosing = true;
-
-            // เคลียร์ปุ่มเก่าออกจาก LayeredPane ก่อนเพื่อป้องกันปุ่มซ้อน
-            if (choiceButton1 != null) layeredPane.remove(choiceButton1);
-            if (choiceButton2 != null) layeredPane.remove(choiceButton2);
-            if (choiceButton3 != null) layeredPane.remove(choiceButton3);
-            if (choiceButton4 != null) layeredPane.remove(choiceButton4);
-
-            // กำหนดระยะห่าง Y (ถ้ามี 4 ปุ่มอาจจะเริ่มที่ 250, ถ้ามี 3 ปุ่มอาจจะปรับให้ลงมาหน่อยที่ 300)
-            int startY = (text4 == null || text4.isEmpty()) ? 300 : 250; 
-            int gap = 70; // ระยะห่างระหว่างปุ่ม
-
-            choiceButton1 = createChoiceButton(text1, startY, t1); 
-            choiceButton2 = createChoiceButton(text2, startY + gap, t2);
-            choiceButton3 = createChoiceButton(text3, startY + (gap * 2), t3);
-            
-            // เพิ่ม 3 ปุ่มแรกเสมอ
-            layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
-            layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
-            layeredPane.add(choiceButton3, JLayeredPane.POPUP_LAYER);
-
-            // ตรวจสอบว่ามีปุ่มที่ 4 หรือไม่
-            if (text4 != null && !text4.isEmpty() && t4 != -1) {
-                choiceButton4 = createChoiceButton(text4, startY + (gap * 3), t4);
-                layeredPane.add(choiceButton4, JLayeredPane.POPUP_LAYER);
-            } else {
-                choiceButton4 = null; // เคลียร์ reference ถ้าไม่มีปุ่มที่ 4
-            }
-
-            layeredPane.revalidate();
-            layeredPane.repaint();
+    
+    private void showChoices(String text1, String text2, String text3, String text4, int t1, int t2, int t3, int t4) {
+        isChoosing = true;
+        if (choiceButton1 != null) layeredPane.remove(choiceButton1);
+        if (choiceButton2 != null) layeredPane.remove(choiceButton2);
+        if (choiceButton3 != null) layeredPane.remove(choiceButton3);
+        if (choiceButton4 != null) layeredPane.remove(choiceButton4);
+        int startY = (text4 == null || text4.isEmpty()) ? 300 : 250; 
+        int gap = 70;
+        choiceButton1 = createChoiceButton(text1, startY, t1); 
+        choiceButton2 = createChoiceButton(text2, startY + gap, t2);
+        choiceButton3 = createChoiceButton(text3, startY + (gap * 2), t3);
+        layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton3, JLayeredPane.POPUP_LAYER);
+        if (text4 != null && !text4.isEmpty() && t4 != -1) {
+            choiceButton4 = createChoiceButton(text4, startY + (gap * 3), t4);
+            layeredPane.add(choiceButton4, JLayeredPane.POPUP_LAYER);
+        }
+        layeredPane.revalidate(); layeredPane.repaint();
     }
-        private JButton createChoiceButton(String text, int y, int target) {
-            JButton btn = new JButton(text) {
-            // --- ตัวแปรสำหรับ Animation ---
-            private double scale = 1.0;
-            private int alphaMod = 180; // ความโปร่งใสของพื้นหลัง
-            private Timer animTimer;
 
-            @Override
-            protected void paintComponent(Graphics g) {
+    private JButton createChoiceButton(String text, int y, int target) {
+        JButton btn = new JButton(text) {
+            private double scale = 1.0;
+            private int alphaMod = 180;
+            private Timer animTimer;
+            @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                // --- ส่วนการทำ Animation Scale ---
-                int centerX = getWidth() / 2;
-                int centerY = getHeight() / 2;
-                g2.translate(centerX, centerY);
-                g2.scale(scale, scale);
-                g2.translate(-centerX, -centerY);
-
-                // วาดพื้นหลังปุ่ม (สีขาวใสที่เปลี่ยนค่า alpha ตามการ Hover)
+                int centerX = getWidth() / 2; int centerY = getHeight() / 2;
+                g2.translate(centerX, centerY); g2.scale(scale, scale); g2.translate(-centerX, -centerY);
                 g2.setColor(new Color(255, 255, 255, alphaMod));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
-
-                // วาดเส้นขอบสีชมพู
-                g2.setColor(new Color(225, 105, 180));
-                g2.setStroke(new BasicStroke(2));
+                g2.setColor(new Color(225, 105, 180)); g2.setStroke(new BasicStroke(2));
                 g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 22, 22);
-
-                g2.dispose();
-                super.paintComponent(g);
+                g2.dispose(); super.paintComponent(g);
             }
-
             {
-                // เพิ่ม MouseListener สำหรับดักจับการ Hover และ Click
                 addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        startAnimation(1.05, 230); // ขยายขึ้น 5% และสว่างขึ้น
-                    }
-
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        startAnimation(1.0, 180); // กลับสู่ขนาดปกติ
-                    }
-
-                    @Override
-                    public void mousePressed(MouseEvent e) {
-                        scale = 0.95; // ปุ่มยุบลงตอนกด
-                        repaint();
-                    }
+                    @Override public void mouseEntered(MouseEvent e) { startAnimation(1.05, 230); }
+                    @Override public void mouseExited(MouseEvent e) { startAnimation(1.0, 180); }
                 });
             }
-
-            private void startAnimation(double targetScale, int targetAlpha) {
-                if (animTimer != null && animTimer.isRunning()) animTimer.stop();
+            private void startAnimation(double tS, int tA) {
+                if (animTimer != null) animTimer.stop();
                 animTimer = new Timer(15, ev -> {
-                    // ค่อยๆ ปรับ Scale ให้สมูท
-                    if (scale < targetScale) scale += 0.01;
-                    else if (scale > targetScale) scale -= 0.01;
-
-                    // ค่อยๆ ปรับความสว่างพื้นหลัง
-                    if (alphaMod < targetAlpha) alphaMod += 5;
-                    else if (alphaMod > targetAlpha) alphaMod -= 5;
-
-                    if (Math.abs(scale - targetScale) < 0.01 && alphaMod == targetAlpha) {
-                        scale = targetScale;
-                        ((Timer)ev.getSource()).stop();
-                    }
+                    if (scale < tS) scale += 0.01; else if (scale > tS) scale -= 0.01;
+                    if (alphaMod < tA) alphaMod += 5; else if (alphaMod > tA) alphaMod -= 5;
+                    if (Math.abs(scale - tS) < 0.01 && alphaMod == tA) { scale = tS; ((Timer)ev.getSource()).stop(); }
                     repaint();
                 });
                 animTimer.start();
             }
         };
-
-        // --- การตั้งค่าปุ่มพื้นฐาน ---
         btn.setBounds(800, y, 350, 60);
         btn.setFont(new Font("Tahoma", Font.BOLD, 18));
         btn.setForeground(new Color(45, 65, 115));
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false); btn.setBorderPainted(false); btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // --- Logic การกดปุ่มและระบบ Affinity ของ Part 4 ---
         btn.addActionListener(e -> {
-            playSE("res/sound/click.wav", false, 0.0f);
-            layeredPane.remove(choiceButton1);
-            layeredPane.remove(choiceButton2);
-            layeredPane.remove(choiceButton3);
+            layeredPane.remove(choiceButton1); layeredPane.remove(choiceButton2); layeredPane.remove(choiceButton3);
             if (choiceButton4 != null) layeredPane.remove(choiceButton4);
-            isChoosing = false;
-            currentIndex = target;
-            updateScene();
-
-            // ตรวจสอบเงื่อนไขคะแนนความสนิทตามที่คุณส่งมา
-            if (target == 11 || target == 20 || target == 43 || target == 64) {
-                relationdata.aliceRel.addAffinity(10);
-            } else if (target == 14 || target == 22 || target == 65) {
-                relationdata.aliceRel.addAffinity(5);
-            } else if (target == 12 || target == 21){ // เท่าเดิม
-                // relationdata.aliceRel.decreaseAffinity(5); 
-            } else if (target == 13 || target == 23 || target == 44 || target == 45 || target == 63) { 
-                relationdata.aliceRel.decreaseAffinity(5); 
-            }
-
-            // ส่งข้อมูลไปยัง Server เพื่อบันทึก SQL (Online Mode)
+            isChoosing = false; currentIndex = target; updateScene();
+            if (target == 11 || target == 20 || target == 43 || target == 64) relationdata.aliceRel.addAffinity(10);
+            else if (target == 14 || target == 22 || target == 65) relationdata.aliceRel.addAffinity(5);
+            else if (target == 13 || target == 23 || target == 44 || target == 45 || target == 63) relationdata.aliceRel.decreaseAffinity(5);
             if (relationdata.isOnlineMode && networkOut != null) {
                 networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
                 networkOut.println("SYNC_INDEX:" + target);
             }
-
-            // อัปเดตการแสดงผลบน UI
-            updateAffinityUI(); 
-            layeredPane.revalidate();
-            layeredPane.repaint();
+            affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
+            statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
+            layeredPane.revalidate(); layeredPane.repaint();
         });
-
         return btn;
     }
+
     private void finishPart() {
-        if (isFinishing) return; // ล็อคป้องกันการเรียกซ้ำ
-        isFinishing = true;
-        isFading = true; // ล็อคการคลิกซ้ำ
-        stopBGM();
-        stopEffect();
-        alpha = 0.0f; // เริ่มจากใสไปดำ
-
-        // 1. ตรวจสอบว่ามี fadeOverlay หรือไม่ ถ้าไม่มีให้เพิ่มเข้าเลเยอร์หน้าสุด
-        if (fadeOverlay.getParent() == null) {
-            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
-        }
-
-        // 2. เริ่มการ Fade Out (ค่อยๆ ดำ)
+        if (isFinishing) return;
+        isFinishing = true; isFading = true; stopBGM(); stopEffect();
+        alpha = 0.0f;
+        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
         Timer fadeOut = new Timer(30, e -> {
             alpha += 0.05f; 
             if (alpha >= 1.0f) {
-                alpha = 1.0f;
-                ((Timer)e.getSource()).stop();
-
-                // 3. สลับไป Part 5 หลังจากจอดำสนิทแล้ว
+                alpha = 1.0f; ((Timer)e.getSource()).stop();
                 SwingUtilities.invokeLater(() -> {
-                	if (relationdata.isOnlineMode) {
-                        showWaitPoint(); // แสดงหน้าจอดำรอเพื่อน
-                    } else {
-                        goToNextPart(); // ถ้าเล่นคนเดียวให้ข้ามไปเลย
-                    }
+                    if (relationdata.isOnlineMode) showWaitPoint(); else goToNextPart();
                 });
             }
             fadeOverlay.repaint();
         });
         fadeOut.start();
     }
-    public static void main(String[] args) { SwingUtilities.invokeLater(() -> new part4().setVisible(true)); }
-    
+
     private void showWaitPoint() {
         isWaiting = true;
         waitOverlay = new JPanel(null) {
-            @Override protected void paintComponent(Graphics g) {
-                g.setColor(new Color(0, 0, 0, 220)); 
-                g.fillRect(0, 0, getWidth(), getHeight());
-            }
+            @Override protected void paintComponent(Graphics g) { g.setColor(new Color(0, 0, 0, 220)); g.fillRect(0, 0, getWidth(), getHeight()); }
         };
-        waitOverlay.setBounds(0, 0, 1280, 800);
-        waitOverlay.setOpaque(false);
+        waitOverlay.setBounds(0, 0, 1280, 800); waitOverlay.setOpaque(false);
         JLabel msg = new JLabel("WAITING FOR PLAYERS...", SwingConstants.CENTER);
-        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
-        msg.setForeground(Color.WHITE);
-        msg.setBounds(0, 350, 1280, 100);
-        waitOverlay.add(msg);
+        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); msg.setForeground(Color.WHITE);
+        msg.setBounds(0, 350, 1280, 100); waitOverlay.add(msg);
         layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
-        layeredPane.moveToFront(waitOverlay);
         if (networkOut != null) networkOut.println("READY_FOR_NEXT");
         revalidate(); repaint();
     }
 
     private void goToNextPart() {
         SwingUtilities.invokeLater(() -> {
-            // *** ตรงนี้ต้องเปลี่ยนชื่อ Class ตาม Part เป้าหมาย ***
-            new part5().setVisible(true); 
-            dispose(); 
+            new part5().setVisible(true); dispose(); 
         });
     }
+
+    public static void main(String[] args) { SwingUtilities.invokeLater(() -> new part4().setVisible(true)); }
 }
 
-/*class VisualNovelBox extends JPanel {
-    private int cornerRadius = 30;
-    public VisualNovelBox() { setOpaque(false); }
-    @Override
-    protected void paintComponent(Graphics g) {
+class VisualNovelBox extends JPanel {
+    @Override protected void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        GradientPaint gradient = new GradientPaint(0, 0, new Color(245, 250, 255, 180), 0, getHeight(), new Color(255, 235, 245, 230));
-        g2d.setPaint(gradient); g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+        GradientPaint gp = new GradientPaint(0, 0, new Color(245, 250, 255, 180), 0, getHeight(), new Color(255, 235, 245, 230));
+        g2d.setPaint(gp); g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
         g2d.setColor(new Color(255, 150, 200, 200)); g2d.setStroke(new BasicStroke(3));
-        g2d.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, cornerRadius, cornerRadius);
+        g2d.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
         g2d.dispose();
     }
-}*/
+}
