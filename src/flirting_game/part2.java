@@ -706,8 +706,7 @@ public class part2 extends JFrame {
     }
     
 }
-
-/*class VisualNovelBox extends JPanel {
+class VisualNovelBox extends JPanel {
     private int cornerRadius = 30;
     public VisualNovelBox() { setOpaque(false); }
     @Override
@@ -725,4 +724,4 @@ public class part2 extends JFrame {
         g2d.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, cornerRadius, cornerRadius);
         g2d.dispose();
     }
-}*/
+}
