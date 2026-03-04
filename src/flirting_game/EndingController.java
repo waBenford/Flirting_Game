@@ -128,6 +128,8 @@ public class EndingController extends JFrame {
 
         mainPanel.add(viewEndBtn);
         mainPanel.add(duelBtn);
+
+        initNetwork();
     }
 
     private void startTriviaBattle(String targetChar) {
@@ -229,19 +231,18 @@ public class EndingController extends JFrame {
                     if (currentQIndex < 4) {
                         showBattleUI(targetChar); 
                     } else {
-                        // --- แก้ไขจุดที่ 2: เพิ่มระบบให้รองรับตอนเล่นออฟไลน์ด้วย ---
+                        // 1. ถ้าเล่น Online ให้ส่งคะแนนของตัวเองไปบอกคนอื่น
                         if (relationdata.isOnlineMode && networkOut != null) {
-                            // ส่งคำสั่ง BATTLE_SCORE:Role:Score ไปยัง Server
                             networkOut.println("BATTLE_SCORE:" + myRole + ":" + battleScores[Integer.parseInt(myRole.substring(1))]);
+                        }
+                        
+                        // 2. ให้ขยับคิวเล่นเป็นของคนถัดไปเสมอ (ไม่ต้องมี else กั้นแล้ว)
+                        currentDuelistIdx++;
+                        if (currentDuelistIdx < duelists.size()) {
+                            currentQIndex = 0;
+                            showBattleUI(targetChar);
                         } else {
-                            // กรณีออฟไลน์ ให้ขยับคิวผู้เล่นถัดไป หรือสรุปผลผู้ชนะทันที
-                            currentDuelistIdx++;
-                            if (currentDuelistIdx < duelists.size()) {
-                                currentQIndex = 0;
-                                showBattleUI(targetChar);
-                            } else {
-                                determineWinner(targetChar);
-                            }
+                            determineWinner(targetChar);
                         }
                     }
                 });
@@ -388,13 +389,16 @@ public class EndingController extends JFrame {
                         String pRole = parts[0]; // เช่น P2
                         int pScore = Integer.parseInt(parts[1]);
                         
+                        // --- เพิ่มบรรทัดนี้: ถ้าเป็นข้อความตัวเองที่เซิร์ฟเวอร์สะท้อนมา ให้ข้ามไป ---
+                        if (pRole.equals(myRole)) continue;
+                        
                         battleScores[Integer.parseInt(pRole.substring(1))] = pScore;
                         currentDuelistIdx++; // ขยับลำดับผู้เล่นในเครื่องคนรอ
                         
                         SwingUtilities.invokeLater(() -> {
                             if (currentDuelistIdx < duelists.size()) {
                                 currentQIndex = 0;
-                                showBattleUI(lastTargetChar); // lastTargetChar คือตัวแปรที่เก็บชื่อ Alice/Nebula ไว้
+                                showBattleUI(lastTargetChar);
                             } else {
                                 determineWinner(lastTargetChar);
                             }
