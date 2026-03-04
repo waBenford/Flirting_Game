@@ -96,22 +96,89 @@ public class menu {
             showSettings(frame);
         });
 
-        // --- ฟังก์ชันปุ่ม Online ---
         onlineBtn.addActionListener(e -> {
-            UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 18));
-            String name = JOptionPane.showInputDialog(frame, "กรุณาใส่ชื่อของคุณเพื่อเข้าเล่นออนไลน์:", "Join Online", JOptionPane.QUESTION_MESSAGE);
-            
-            if (name != null && !name.trim().isEmpty()) {
-                //สั่งหยุดเพลงก่อนไปหน้าถัดไป
+            // สร้าง Dialog แบบกำหนดเอง
+            JDialog dialog = new JDialog(frame, "Online Mode", true);
+            dialog.setSize(450, 250);
+            dialog.setLocationRelativeTo(frame);
+            dialog.setResizable(false);
+
+            // ใช้ LayeredPane เพื่อใส่พื้นหลัง
+            JLayeredPane dl = new JLayeredPane();
+            dialog.setContentPane(dl);
+
+            // 1. พื้นหลัง (ใช้รูปเดียวกับเมนูแต่ย่อขนาดหรือใช้สีพื้นม่วงเข้ม)
+            JPanel bgPanel = new JPanel();
+            bgPanel.setBackground(new Color(30, 0, 50)); // สีม่วงเข้มมาก
+            bgPanel.setBounds(0, 0, 450, 250);
+            bgPanel.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 2)); // ขอบทอง
+            dl.add(bgPanel, JLayeredPane.DEFAULT_LAYER);
+
+            // 2. ข้อความคำถาม
+            JLabel label = new JLabel("คุณต้องการสร้างห้องหรือเข้าร่วมห้อง?", SwingConstants.CENTER);
+            label.setFont(new Font("Tahoma", Font.BOLD, 18));
+            label.setForeground(Color.WHITE);
+            label.setBounds(0, 40, 450, 30);
+            dl.add(label, JLayeredPane.PALETTE_LAYER);
+
+            // 3. ปุ่มกด (สร้างสไตล์ใหม่)
+            JButton createBtn = new JButton("สร้างห้อง (Create)");
+            JButton joinBtn = new JButton("เข้าร่วมห้อง (Join)");
+            JButton cancelBtn = new JButton("ยกเลิก");
+
+            // ฟังก์ชันช่วยแต่งปุ่ม
+            styleFantasyButton(createBtn, new Color(100, 30, 150));
+            styleFantasyButton(joinBtn, new Color(100, 30, 150));
+            styleFantasyButton(cancelBtn, new Color(80, 80, 80));
+
+            createBtn.setBounds(50, 100, 160, 45);
+            joinBtn.setBounds(230, 100, 160, 45);
+            cancelBtn.setBounds(170, 165, 100, 35);
+
+            // Actions
+            createBtn.addActionListener(ev -> {
+                dialog.dispose();
+                
+                // --- เพิ่ม 3 บรรทัดนี้เพื่อแก้บัคกล่องสี่เหลี่ยม ---
+                UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 16));
+                UIManager.put("TextField.font", new Font("Tahoma", Font.PLAIN, 16));
+                UIManager.put("Button.font", new Font("Tahoma", Font.PLAIN, 14));
+
+                String name = JOptionPane.showInputDialog(frame, "ชื่อของคุณ (Host):");
+                if (name == null || name.trim().isEmpty()) return;
+                String maxStr = JOptionPane.showInputDialog(frame, "จำนวนผู้เล่นสูงสุด (เช่น 3):", "3");
+                try {
+                    int maxP = Integer.parseInt(maxStr);
+                    SoundManager.stopBGM();
+                    new LobbyWindow(name.trim(), true, maxP, "").setVisible(true);
+                    frame.dispose();
+                } catch (Exception ex) {}
+            });
+
+            joinBtn.addActionListener(ev -> {
+                dialog.dispose();
+
+                // --- เพิ่ม 3 บรรทัดนี้เหมือนกัน ---
+                UIManager.put("OptionPane.messageFont", new Font("Tahoma", Font.PLAIN, 16));
+                UIManager.put("TextField.font", new Font("Tahoma", Font.PLAIN, 16));
+                UIManager.put("Button.font", new Font("Tahoma", Font.PLAIN, 14));
+
+                String code = JOptionPane.showInputDialog(frame, "ใส่รหัสห้อง:");
+                if (code == null || code.trim().isEmpty()) return;
+                String name = JOptionPane.showInputDialog(frame, "ชื่อของคุณ:");
+                if (name == null || name.trim().isEmpty()) return;
                 SoundManager.stopBGM();
-                // เก็บค่าลง relationdata 
-                relationdata.isOnlineMode = true;
-                relationdata.playerName = name.trim();
-                new part1().setVisible(true); 
+                new LobbyWindow(name.trim(), false, 0, code.trim()).setVisible(true);
                 frame.dispose();
-            } else if (name != null) {
-                JOptionPane.showMessageDialog(frame, "กรุณาใส่ชื่อก่อนเข้าเล่น");
-            }
+            });
+
+            cancelBtn.addActionListener(ev -> dialog.dispose());
+
+            dl.add(createBtn, JLayeredPane.PALETTE_LAYER);
+            dl.add(joinBtn, JLayeredPane.PALETTE_LAYER);
+            dl.add(cancelBtn, JLayeredPane.PALETTE_LAYER);
+
+            dialog.setVisible(true);
         });
 
         startBtn.addActionListener(e -> {
@@ -138,6 +205,15 @@ public class menu {
 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    private static void styleFantasyButton(JButton btn, Color color) {
+        btn.setFont(new Font("Tahoma", Font.BOLD, 14));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(color);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 1));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
     // --- ฟังก์ชันแสดงหน้าต่าง Setting ---

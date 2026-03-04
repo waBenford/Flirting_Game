@@ -423,14 +423,13 @@ public class part7 extends JFrame {
     }
 
     private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) return;
         new Thread(() -> {
             try {
-                java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
-                networkOut = new java.io.PrintWriter(socket.getOutputStream(), true);
-                java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
-                networkOut.println("SET_NAME:" + relationdata.playerName);
-                networkOut.println("SET_PART:7");
+                // *** ดึงข้อมูลจากส่วนกลาง ไม่ต้อง new Socket ใหม่ ***
+                networkOut = relationdata.globalOut;
+                java.io.BufferedReader in = relationdata.globalIn;
+                
                 String line;
                 while ((line = in.readLine()) != null) {
                     if (line.startsWith("LOAD_AFFINITY:")) {
@@ -441,9 +440,12 @@ public class part7 extends JFrame {
                         int nScore = Integer.parseInt(line.substring(12));
                         relationdata.nebulaRel.setAffinity(nScore);
                         SwingUtilities.invokeLater(() -> { nebulaAffinityLabel.setText("เนบิวล่า: " + nScore); nebulaStatusLabel.setText("สถานะ: " + relationdata.nebulaRel.getStatus()); });
-                    } else if (line.startsWith("ALL_STATS:")) { updateLeaderboardUI(line.substring(10)); }
-                    if (line.equals("PROCEED_TO_NEXT")) {
+                    } else if (line.startsWith("ALL_STATS:")) { 
+                        updateLeaderboardUI(line.substring(10)); 
+                    }
+                    else if (line.equals("PROCEED_TO_NEXT")) {
                         goToNextPart();
+                        break; // *** สำคัญ! ต้องมี break เพื่อหยุดการรับข้อความเก่า ***
                     }
                 }
             } catch (Exception e) {}

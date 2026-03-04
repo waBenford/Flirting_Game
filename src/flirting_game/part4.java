@@ -405,15 +405,13 @@ public class part4 extends JFrame {
     }
 
     private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) return;
         new Thread(() -> {
             try {
-                Socket socket = new Socket(relationdata.serverIP, 5000);
-                networkOut = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                networkOut.println("SET_NAME:" + relationdata.playerName);
-                networkOut.println("SET_PART:4");
-                networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
+                // *** ดึงข้อมูลจากส่วนกลาง ไม่ต้อง new Socket ใหม่ ***
+                networkOut = relationdata.globalOut;
+                BufferedReader in = relationdata.globalIn;
+                
                 String line;
                 while ((line = in.readLine()) != null) {
                     if (line.startsWith("LOAD_AFFINITY:")) {
@@ -423,10 +421,14 @@ public class part4 extends JFrame {
                             affinityLabel.setText("อริส: " + score); 
                             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
                         });
-                    } else if (line.startsWith("ALL_STATS:")) { updateLeaderboardUI(line.substring(10)); }
-                    if (line.equals("PROCEED_TO_NEXT")) goToNextPart();
+                    } else if (line.startsWith("ALL_STATS:")) { 
+                        updateLeaderboardUI(line.substring(10)); 
+                    } else if (line.equals("PROCEED_TO_NEXT")) {
+                        goToNextPart();
+                        break; // *** สำคัญ! ต้องมี break เพื่อหยุดอ่านข้อความเมื่อย้ายด่าน ***
+                    }
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) { e.printStackTrace(); }
         }).start();
     }
 

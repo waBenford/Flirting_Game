@@ -9,6 +9,10 @@ public class relationdata {
     public static String playerName = "Guest";      // << เพิ่มบรรทัดนี้เพื่อเก็บชื่อ
     public static int onlinePlayerCount = 1;
 
+    public static java.net.Socket globalSocket;
+    public static java.io.PrintWriter globalOut;
+    public static java.io.BufferedReader globalIn;
+
     // --- สถานะการปลดล็อคฉากจบ (ทดสอบ: ปลดล็อคฉากแรกไว้เป็นตัวอย่าง) ---
     public static boolean isEnding1Unlocked = false;
     public static boolean isEnding2Unlocked = false;

@@ -308,32 +308,28 @@ public class part2 extends JFrame {
     }
 
     private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) return;
         new Thread(() -> {
             try {
-                Socket socket = new Socket(relationdata.serverIP, 5000);
-                networkOut = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                networkOut.println("SET_NAME:" + relationdata.playerName);
-                networkOut.println("SET_PART:2"); // เพิ่มบรรทัดนี้ครับ
+                // *** ดึงข้อมูลจากส่วนกลาง ไม่ต้อง new Socket ใหม่ ***
+                networkOut = relationdata.globalOut;
+                BufferedReader in = relationdata.globalIn;
 
                 String line;
                 while ((line = in.readLine()) != null) {
-                    if (line.startsWith("ALL_STATS:")) {
-                        // ส่งข้อมูลไปประมวลผลตาราง HTML
-                        updateLeaderboardUI(line.substring(10));
-                    }
                     if (line.startsWith("LOAD_AFFINITY:")) {
                         int score = Integer.parseInt(line.substring(14));
                         relationdata.aliceRel.setAffinity(score);
                         SwingUtilities.invokeLater(() -> {
-                            // แก้ไขตรงนี้เช่นกันครับ
                             affinityLabel.setText("อริส: " + score); 
                             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
                         });
+                    } else if (line.startsWith("ALL_STATS:")) {
+                        updateLeaderboardUI(line.substring(10));
                     }
-                    if (line.equals("PROCEED_TO_NEXT")) {
+                    else if (line.equals("PROCEED_TO_NEXT")) {
                         goToNextPart();
+                        break; // *** สำคัญ! ต้องมี break เช่นกัน ***
                     }
                 }
             } catch (Exception e) { e.printStackTrace(); }
