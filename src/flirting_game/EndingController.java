@@ -87,9 +87,11 @@ public class EndingController extends JFrame {
         viewEndBtn.addActionListener(e -> {
             if (result.equals("ALONE")) {
                 goToEnding("ALONE", true);
+            } else if (result.equals("HAREM_WIN")) {
+                goToEnding("HAREM", true); // เพิ่มเงื่อนไขสำหรับ Harem
             } else {
                 String charName = result.contains("ALICE") ? "ALICE" : "NEBULA";
-                goToEnding(charName, true); // ถือว่าชนะขาดลอย
+                goToEnding(charName, true);
             }
         });
 
@@ -273,19 +275,25 @@ public class EndingController extends JFrame {
 
     private void goToEnding(String character, boolean isWin) {
         if (isWin) {
-            if (character.equals("ALICE")) {
+            if (character.equals("HAREM")) {
+                // ปลดล็อกฉากจบที่ 1 (Harem) และฉากจบของทั้งสองสาวพร้อมกัน
+                relationdata.isEnding1Unlocked = true; 
                 relationdata.isEnding2Unlocked = true;
-                JOptionPane.showMessageDialog(this, "คุณคือที่หนึ่งในใจของอริส!\n- ปลดล็อคฉากจบ: Alice Ending");
+                relationdata.isEnding3Unlocked = true;
+                JOptionPane.showMessageDialog(this, "Special Ending: You won both Alice and Nebula!\n- ปลดล็อคฉากจบ: Harem Ending");
+            } else if (character.equals("ALICE")) {
+                relationdata.isEnding2Unlocked = true;
+                JOptionPane.showMessageDialog(this, "คุณคือที่หนึ่งในใจของอริส!...");
             } else if (character.equals("NEBULA")) {
                 relationdata.isEnding3Unlocked = true;
-                JOptionPane.showMessageDialog(this, "จอมมารเนบิวล่าเลือกคุณเป็นคู่หู!\n- ปลดล็อคฉากจบ: Nebula Ending");
+                JOptionPane.showMessageDialog(this, "จอมมารเนบิวล่าเลือกคุณเป็นคู่หู!...");
             } else if (character.equals("ALONE")) {
                 relationdata.isEnding4Unlocked = true;
-                JOptionPane.showMessageDialog(this, "คุณเลือกที่จะเดินตามเส้นทางของตัวเอง\n- ปลดล็อคฉากจบ: Alone Ending");
+                JOptionPane.showMessageDialog(this, "คุณเลือกที่จะเดินตามเส้นทางของตัวเอง...");
             }
         }
 
-        // เซฟข้อมูลไปที่ Server แล้วเปิด Gallery
+        // บันทึกสถานะไปที่ Server และเปิดหน้า Gallery
         saveEndingsToServer();
         SwingUtilities.invokeLater(() -> {
             new GalleryPage().setVisible(true);
@@ -333,10 +341,17 @@ public class EndingController extends JFrame {
     }
 
     public static String checkLogic(int myA, int myN, int topA, int topN) {
-        if (myA > topA && myA >= myN) return "ALICE_WIN";
-        if (myA == topA && myA >= myN && myA > 0) return "ALICE_TRIVIA_BATTLE";
-        if (myN > topN && myN >= myA) return "NEBULA_WIN";
-        if (myN == topN && myN >= myA && myN > 0) return "NEBULA_TRIVIA_BATTLE";
+    	// 1. เงื่อนไข Harem: เราได้คะแนนสูงสุดเหนือผู้เล่นคนอื่นทั้งสองตัวละคร
+        if (myA > topA && myN > topN) return "HAREM_WIN";
+
+        // 2. เงื่อนไขชนะเดี่ยว (คะแนนตัวใดตัวหนึ่งสูงที่สุด)
+        if (myA > topA && myA > myN) return "ALICE_WIN";
+        if (myN > topN && myN > myA) return "NEBULA_WIN";
+
+        // 3. เงื่อนไขต้องดวล (คะแนนสูงสุดของเราไปเท่ากับคนอื่น)
+        if (myA == topA && myA > 0) return "ALICE_TRIVIA_BATTLE";
+        if (myN == topN && myN > 0) return "NEBULA_TRIVIA_BATTLE";
+
         return "ALONE";
     }
 
