@@ -229,10 +229,19 @@ public class EndingController extends JFrame {
                     if (currentQIndex < 4) {
                         showBattleUI(targetChar); 
                     } else {
-                    	// --- นี่คือจุดที่ 2: เมื่อตอบครบ 4 ข้อ ให้ส่งคะแนนบอกเพื่อนคนอื่น ---
-                        if (networkOut != null) {
-                            // ส่งคำสั่ง BATTLE_SCORE:Role:Score เช่น BATTLE_SCORE:P1:3
+                        // --- แก้ไขจุดที่ 2: เพิ่มระบบให้รองรับตอนเล่นออฟไลน์ด้วย ---
+                        if (relationdata.isOnlineMode && networkOut != null) {
+                            // ส่งคำสั่ง BATTLE_SCORE:Role:Score ไปยัง Server
                             networkOut.println("BATTLE_SCORE:" + myRole + ":" + battleScores[Integer.parseInt(myRole.substring(1))]);
+                        } else {
+                            // กรณีออฟไลน์ ให้ขยับคิวผู้เล่นถัดไป หรือสรุปผลผู้ชนะทันที
+                            currentDuelistIdx++;
+                            if (currentDuelistIdx < duelists.size()) {
+                                currentQIndex = 0;
+                                showBattleUI(targetChar);
+                            } else {
+                                determineWinner(targetChar);
+                            }
                         }
                     }
                 });
