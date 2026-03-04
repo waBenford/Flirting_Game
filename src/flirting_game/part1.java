@@ -33,7 +33,10 @@ public class part1 extends JFrame {
 
     private PrintWriter networkOut;
 
-    // --- ฟอนต์ภาษาไทยสำหรับจอ 1280 ---
+    // --- ส่วนที่เพิ่ม: ระบบรอเพื่อน (Checkpoint) ---
+    private JPanel waitOverlay;
+    private boolean isWaiting = false;
+
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
     private final Font THAI_FONT_BOLD = new Font("Tahoma", Font.BOLD, 30);
 
@@ -68,8 +71,8 @@ public class part1 extends JFrame {
     };
 
     public part1() {
-        setTitle("ISEKAI DEMO - Part 1");
-        setSize(1280, 800); // แก้ขนาดเฟรม
+        setTitle("ISEKAI LOVER - Part 1");
+        setSize(1280, 800); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -79,12 +82,10 @@ public class part1 extends JFrame {
 
         playSE("res/sound/city_sound.wav", true, -10.0f);
 
-        // พื้นหลังปรับเป็น 1280x800
         backgroundLabel = new JLabel(scaleImage(imagePaths[0], 1280, 800));
         backgroundLabel.setBounds(0, 0, 1280, 800);
         layeredPane.add(backgroundLabel, JLayeredPane.DEFAULT_LAYER);
 
-        // ปรับพิกัดตัวละครมาตรฐาน (190, 100, 900, 900)
         characterLabel = new JLabel(scaleImage(charPaths[0], 900, 900));
         characterLabel.setBounds(190, 100, 900, 900);
         layeredPane.add(characterLabel, JLayeredPane.PALETTE_LAYER);
@@ -92,7 +93,6 @@ public class part1 extends JFrame {
         setupDialogueUI();
         initNetwork();
 
-        // แผ่นดำสำหรับ Fade In (1280x800)
         fadeOverlay = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -116,7 +116,7 @@ public class part1 extends JFrame {
     }
 
     private void handleNext() {
-        if (isFading) return; 
+        if (isFading || isWaiting) return; // ถ้ากำลังรอเพื่อน จะกดไปต่อไม่ได้
         
         if (isAnimating) {
             stopAnimation();
@@ -124,15 +124,12 @@ public class part1 extends JFrame {
             return;
         }
 
-        // --- ตรวจสอบฉากสุดท้าย ---
         if (currentIndex >= dialogues.length - 1) {
             stopBGM();
-            // เริ่ม Fade Out แบบพิเศษสำหรับเปลี่ยน Part
             fadeOutToNextPart(); 
             return;
         }
 
-        // การเปลี่ยนฉากปกติระหว่างเล่น
         performSceneFade(() -> {
             currentIndex++; 
             if (relationdata.isOnlineMode && networkOut != null) {
@@ -147,7 +144,6 @@ public class part1 extends JFrame {
     private void setupDialogueUI() {
         dialoguePanel = new VisualNovelBox();
         dialoguePanel.setLayout(null);
-        // ปรับตำแหน่งกล่องข้อความให้อยู่กลางจอ (x=90, width=1100)
         dialoguePanel.setBounds(225, 520, 800, 200);
         layeredPane.add(dialoguePanel, JLayeredPane.MODAL_LAYER);
 
@@ -182,7 +178,6 @@ public class part1 extends JFrame {
             characterLabel.setBounds(190, 0, 900, 900);
         }
         if (currentIndex < dialogues.length) animateText(dialogues[currentIndex]);
-        
         layeredPane.repaint();
     }
 
@@ -229,40 +224,63 @@ public class part1 extends JFrame {
     }
 
     private void fadeOutToNextPart() {
-    isFading = true;
-    alpha = 0.0f;
-    
-    if (fadeOverlay.getParent() == null) {
-        layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        isFading = true;
+        alpha = 0.0f;
+        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+
+        Timer fadeOut = new Timer(30, null);
+        fadeOut.addActionListener(e -> {
+            alpha += 0.05f; 
+            if (alpha >= 1.0f) {
+                alpha = 1.0f;
+                fadeOut.stop();
+
+                // --- จุดตัดสินใจ: ออนไลน์ต้องรอ / ออฟไลน์ไปต่อ ---
+                if (relationdata.isOnlineMode) {
+                    showWaitPoint(); 
+                } else {
+                    goToNextPart(); 
+                }
+            }
+            fadeOverlay.repaint();
+        });
+        fadeOut.start();
     }
 
-    Timer fadeOut = new Timer(30, null);
-    fadeOut.addActionListener(e -> {
-        alpha += 0.05f; // ค่อยๆ ดำขึ้น
-        if (alpha >= 1.0f) {
-            alpha = 1.0f;
-            fadeOut.stop();
-
-            // ส่งข้อมูลเน็ตเวิร์ค
-            if (relationdata.isOnlineMode && networkOut != null) {
-                networkOut.println("END_PART:1");
+    // --- ส่วนที่เพิ่ม: ฟังก์ชันแสดงหน้าจอรอ (Monospaced Font) ---
+    private void showWaitPoint() {
+        isWaiting = true;
+        waitOverlay = new JPanel(null) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 220)); 
+                g.fillRect(0, 0, getWidth(), getHeight());
             }
-
-            // หน่วงเวลาเล็กน้อย (200ms) ให้ OS เคลียร์ Memory ก่อนสลับหน้าจอ
-            Timer transitionTimer = new Timer(200, ev -> {
-                SwingUtilities.invokeLater(() -> {
-                    part2 next = new part2();
-                    next.setVisible(true);
-                    dispose(); // ปิดหน้าปัจจุบัน
-                });
-            });
-            transitionTimer.setRepeats(false);
-            transitionTimer.start();
+        };
+        waitOverlay.setBounds(0, 0, 1280, 800);
+        waitOverlay.setOpaque(false);
+        
+        JLabel msg = new JLabel("WAITING FOR PLAYERS...", SwingConstants.CENTER);
+        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
+        msg.setForeground(Color.WHITE);
+        msg.setBounds(0, 350, 1280, 100);
+        waitOverlay.add(msg);
+        
+        layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
+        layeredPane.moveToFront(waitOverlay); 
+        
+        if (networkOut != null) {
+            networkOut.println("READY_FOR_NEXT"); // ส่งสัญญาณบอก Server
         }
-        fadeOverlay.repaint();
-    });
-    fadeOut.start();
-}
+        revalidate(); repaint();
+    }
+
+    private void goToNextPart() {
+        SwingUtilities.invokeLater(() -> {
+            new part2().setVisible(true);
+            dispose(); 
+        });
+    }
 
     public void playSE(String path, boolean isLoop, float volume) {
         try {
@@ -295,18 +313,6 @@ public class part1 extends JFrame {
             } else { stopAnimation(); }
         });
         typewriterTimer.start();
-    }
-
-    private ImageIcon getOptimizedImage(String path, int w, int h) {
-        String key = path + w + h;
-        if (!imageCache.containsKey(key)) {
-            try {
-                ImageIcon icon = new ImageIcon(path);
-                Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
-                imageCache.put(key, new ImageIcon(img));
-            } catch (Exception e) { return null; }
-        }
-        return imageCache.get(key);
     }
 
     private void stopAnimation() {
@@ -345,41 +351,22 @@ public class part1 extends JFrame {
     private void performSceneFade(Runnable onBlack) {
         isFading = true; 
         alpha = 0.0f;
-        
-        // ตรวจสอบว่า fadeOverlay ถูกเพิ่มเข้าไปใน layeredPane หรือยัง
-        if (fadeOverlay.getParent() == null) {
-            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
-        }
-        
-        // ขั้นตอนที่ 1: Fade Out (ดำมืด)
-        Timer fadeOut = new Timer(20, null); // เร็วขึ้นเล็กน้อยเพื่อความกระฉับกระเฉง
+        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
+        Timer fadeOut = new Timer(20, null);
         fadeOut.addActionListener(e -> {
-            alpha += 0.1f; // เพิ่มความเร็วการ Fade
+            alpha += 0.1f; 
             if (alpha >= 1.0f) {
-                alpha = 1.0f;
-                fadeOut.stop();
-                
-                // เปลี่ยนฉาก/เสียง ในขณะที่จอมืด
-                onBlack.run(); 
-                
-                // รอสักครู่ (100ms) แล้วค่อย Fade In
+                alpha = 1.0f; fadeOut.stop(); onBlack.run(); 
                 Timer waitTimer = new Timer(100, ev -> {
                     ((Timer)ev.getSource()).stop();
-                    
-                    // ขั้นตอนที่ 2: Fade In (กลับมาสว่าง)
                     Timer fadeIn = new Timer(20, eve -> {
                         alpha -= 0.1f;
-                        if (alpha <= 0) {
-                            alpha = 0;
-                            ((Timer)eve.getSource()).stop();
-                            isFading = false;
-                        }
+                        if (alpha <= 0) { alpha = 0; ((Timer)eve.getSource()).stop(); isFading = false; }
                         fadeOverlay.repaint();
                     });
                     fadeIn.start();
                 });
-                waitTimer.setRepeats(false);
-                waitTimer.start();
+                waitTimer.setRepeats(false); waitTimer.start();
             }
             fadeOverlay.repaint();
         });
@@ -388,17 +375,21 @@ public class part1 extends JFrame {
 
     private void initNetwork() {
         if (!relationdata.isOnlineMode) return;
-        
         new Thread(() -> {
             try {
                 Socket socket = new Socket(relationdata.serverIP, 5000);
                 networkOut = new PrintWriter(socket.getOutputStream(), true);
-                
-                // --- ส่วนที่เพิ่ม: ส่งชื่อของเราไปบอก Server ทันทีที่ต่อติด ---
                 networkOut.println("SET_NAME:" + relationdata.playerName);
+                networkOut.println("SET_PART:1"); 
                 
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                // ... ส่วนที่เหลือคงเดิม (การรับ SYNC_INDEX และ ALL_STATS) ...
+                String line;
+                while ((line = in.readLine()) != null) {
+                    // --- หัวใจสำคัญ: รอคำสั่งข้ามฉากจาก Server ---
+                    if (line.equals("PROCEED_TO_NEXT")) {
+                        goToNextPart();
+                    }
+                }
             } catch (Exception e) { e.printStackTrace(); }
         }).start();
     }
@@ -415,10 +406,7 @@ class VisualNovelBox extends JPanel {
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        GradientPaint gradient = new GradientPaint(
-            0, 0, new Color(245, 250, 255, 180), 
-            0, getHeight(), new Color(255, 235, 245, 230)
-        );
+        GradientPaint gradient = new GradientPaint(0, 0, new Color(245, 250, 255, 180), 0, getHeight(), new Color(255, 235, 245, 230));
         g2.setPaint(gradient);
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
         g2.setColor(new Color(255, 150, 200, 200));
