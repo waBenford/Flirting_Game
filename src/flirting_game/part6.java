@@ -629,16 +629,15 @@ public class part6 extends JFrame {
     }
 
     private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) return;
         new Thread(() -> {
             try {
-                java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
-                networkOut = new java.io.PrintWriter(socket.getOutputStream(), true);
-                java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
+                // *** ดึงข้อมูลจากส่วนกลาง ไม่ต้อง new Socket ใหม่ เหมือน Part 5 และ 7 ***
+                networkOut = relationdata.globalOut;
+                java.io.BufferedReader in = relationdata.globalIn;
 
                 networkOut.println("SET_NAME:" + relationdata.playerName);
                 networkOut.println("SET_PART:6");
-                
                 networkOut.println("GET_AFFINITY"); 
 
                 String line;
@@ -653,8 +652,9 @@ public class part6 extends JFrame {
                     } else if (line.startsWith("ALL_STATS:")) {
                         updateLeaderboardUI(line.substring(10));
                     }
-                    if (line.equals("PROCEED_TO_NEXT")) {
+                    else if (line.equals("PROCEED_TO_NEXT")) {
                         goToNextPart();
+                        break; // *** สำคัญ! ต้องมี break เพื่อหยุด loop การรอรับข้อมูล ***
                     }
                 }
             } catch (Exception e) { e.printStackTrace(); }
