@@ -330,7 +330,6 @@ public class part4 extends JFrame {
         handleSoundEffects(currentIndex);
 
         String currentBG = imagePaths[currentIndex];
-        String prevBG = (currentIndex > 0) ? imagePaths[currentIndex - 1] : "";
         backgroundLabel.setIcon(getOptimizedImage(currentBG, 1280, 800));
 
         String currentP1 = (currentIndex < charPaths.length) ? charPaths[currentIndex] : "res/empty.png";
@@ -338,25 +337,12 @@ public class part4 extends JFrame {
         String currentP2 = (currentIndex < charPaths2.length) ? charPaths2[currentIndex] : "res/empty.png";
         String prevP2 = (currentIndex > 0) ? charPaths2[currentIndex - 1] : "res/empty.png";
 
-        // กรณีตัวละครที่ 1 (MC, ลุง, ปีศาจ) โผล่ครั้งแรก
-        if (prevP1.contains("empty") && !currentP1.contains("empty")) {
-            Rectangle s = getCharacterSettings(currentP1);
-            // ให้เริ่มจาก X ที่ไกลออกไปหน่อย (เช่น s.x + 100) แล้วเลื่อนเข้าหา s.x
-            animateCharacterEntry(characterLabel, currentP1, s.x + 100, s.x, true);
-        } 
-        // กรณีตัวละครที่ 2 (อริส) โผล่ครั้งแรก
-        else if (prevP2.contains("empty") && !currentP2.contains("empty")) {
-            Rectangle s = getCharacterSettings(currentP2);
-            animateCharacterEntry(characterLabel2, currentP2, s.x + 100, s.x, false);
-        } 
-        // ถ้าตัวละครอยู่บนจออยู่แล้ว แต่อยากเปลี่ยนท่าทาง
-        else if (!isAnimatingEntry) {
-            updateCharacterLayer(characterLabel, charPaths);
-            updateCharacterLayer(characterLabel2, charPaths2);
-            // บังคับ Alpha ให้เป็น 1 ถ้ามีรูป
-            charAlpha1 = currentP1.contains("empty") ? 0.0f : 1.0f;
-            charAlpha2 = currentP2.contains("empty") ? 0.0f : 1.0f;
-        }
+        // จัดการตัวละครที่ 1 (MC, ลุง, ปีศาจ)
+        handleCharacterTransition(characterLabel, prevP1, currentP1, true);
+
+        // จัดการตัวละครที่ 2 (อริส)
+        handleCharacterTransition(characterLabel2, prevP2, currentP2, false);
+
         layeredPane.repaint();
     }
 
@@ -607,6 +593,27 @@ public class part4 extends JFrame {
         return btn;
     }
 
+    private void handleCharacterTransition(JLabel label, String prevPath, String currPath, boolean isChar1) {
+        // 1. กรณีตัวละครเดิมหายไป (Fade Out)
+        if (!prevPath.contains("empty") && currPath.contains("empty")) {
+            animateFade(label, prevPath, false, isChar1);
+        } 
+        // 2. กรณีตัวละครใหม่ปรากฏตัวครั้งแรก (Slide + Fade In)
+        else if (prevPath.contains("empty") && !currPath.contains("empty")) {
+            Rectangle s = getCharacterSettings(currPath);
+            animateCharacterEntry(label, currPath, s.x + 50, s.x, isChar1);
+        } 
+        // 3. กรณีตัวละครอยู่บนจออยู่แล้ว แต่เปลี่ยนท่าทาง/อารมณ์ (Fade In ใหม่)
+        else if (!currPath.contains("empty") && !prevPath.equals(currPath)) {
+            Rectangle s = getCharacterSettings(currPath);
+            label.setIcon(getOptimizedImage(currPath, s.width, s.height));
+            label.setBounds(s.x, s.y, s.width, s.height);
+            
+            // เพิ่มการเรียก Fade In ตรงนี้เพื่อให้เหมือน Part 3
+            animateFade(label, currPath, true, isChar1);
+        }
+    }
+
     private void finishPart() {
         if (isFinishing) return;
         isFinishing = true; isFading = true; stopBGM(); stopEffect();
@@ -623,6 +630,34 @@ public class part4 extends JFrame {
             fadeOverlay.repaint();
         });
         fadeOut.start();
+    }
+
+    private void animateFade(JLabel label, String path, boolean fadeIn, boolean isChar1) {
+        // ถ้าเป็นการ Fade In ให้เริ่มจาก 0 (โปร่งใส)
+        if (fadeIn) {
+            if (isChar1) charAlpha1 = 0.0f; else charAlpha2 = 0.0f;
+        }
+
+        Timer fadeTimer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+        final int duration = 300; // ปรับความเร็วตามต้องการ (Part 3 ใช้ประมาณนี้)
+
+        fadeTimer.addActionListener(e -> {
+            float progress = Math.min(1.0f, (float) (System.currentTimeMillis() - startTime) / duration);
+            float currentAlpha = fadeIn ? progress : (1.0f - progress);
+
+            if (isChar1) charAlpha1 = currentAlpha; else charAlpha2 = currentAlpha;
+            
+            label.repaint();
+
+            if (progress >= 1.0f) {
+                fadeTimer.stop();
+                if (!fadeIn) {
+                    label.setIcon(null);
+                }
+            }
+        });
+        fadeTimer.start();
     }
 
     private void showWaitPoint() {
