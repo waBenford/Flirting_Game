@@ -597,7 +597,7 @@ public class part2 extends JFrame {
             // ส่งข้อมูลไปยัง Server (ถ้าเปิด Online Mode)
             if (relationdata.isOnlineMode && networkOut != null) {
                 networkOut.println("UPDATE_AFFINITY:" + relationdata.aliceRel.getAffinity());
-                networkOut.println("SYNC_INDEX:" + target);
+                networkOut.println("SYNC_INDEX:" + target);    
             }
 
             // อัปเดตการแสดงผลคะแนนบนหน้าจอ
