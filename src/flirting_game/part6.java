@@ -222,78 +222,150 @@ public class part6 extends JFrame {
         handleSoundEffects(currentIndex);
         startTypewriter(dialogues[currentIndex]);
 
-        String path1 = (currentIndex < charPaths.length) ? charPaths[currentIndex] : "res/empty.png";
-        String path2 = (currentIndex < charPaths2.length) ? charPaths2[currentIndex] : "res/empty.png";
+        String currentP1 = (currentIndex < charPaths.length) ? charPaths[currentIndex] : "res/empty.png";
+        String currentP2 = (currentIndex < charPaths2.length) ? charPaths2[currentIndex] : "res/empty.png";
+        String prevP1 = lastP1.isEmpty() ? "res/empty.png" : lastP1;
+        String prevP2 = lastP2.isEmpty() ? "res/empty.png" : lastP2;
 
-        boolean hasAlice = !path1.contains("empty");
-        boolean hasDan = !path2.contains("empty");
+        boolean hasAlice = !currentP1.contains("empty");
+        boolean hasDan = !currentP2.contains("empty");
 
-        handleCharacterTransitions(path1, path2);
+        // ตรวจสอบว่าตำแหน่งตัวละครจำเป็นต้องเลื่อนหรือไม่
+        boolean boundsChanged1 = false;
+        boolean boundsChanged2 = false;
+        
+        if (hasAlice) {
+            Rectangle newBounds1 = getCharacterBounds(hasAlice, hasDan, true);
+            if (characterLabel.getBounds().x != newBounds1.x) boundsChanged1 = true;
+        }
+        if (hasDan) {
+            Rectangle newBounds2 = getCharacterBounds(hasDan, hasAlice, false);
+            if (characterLabel2.getBounds().x != newBounds2.x) boundsChanged2 = true;
+        }
 
-        // Logic จัดวางตัวละคร: ถ้าหายไปหนึ่งตัว ให้อีกตัวอยู่กลาง
-        updatePosition(characterLabel, path1, hasAlice, hasDan, true);  
-        updatePosition(characterLabel2, path2, hasDan, hasAlice, false); 
+        handleTransition(characterLabel, prevP1, currentP1, true, hasDan, boundsChanged1);
+        handleTransition(characterLabel2, prevP2, currentP2, false, hasAlice, boundsChanged2);
+
+        lastP1 = currentP1;
+        lastP2 = currentP2;
 
         layeredPane.repaint();
     }
 
-    private void updatePosition(JLabel label, String path, boolean isMeActive, boolean isOtherActive, boolean isAlice) {
-        if (!isMeActive) {
-            label.setIcon(null);
-            return;
-        }
+    // ==========================================
+    // --- ระบบจัดการ Transition ตัวละคร (อัปเกรด) ---
+    // ==========================================
+    private Rectangle getCharacterBounds(boolean isActive, boolean isOtherActive, boolean isAlice) {
+        if (!isActive) return new Rectangle(0, 0, 0, 0);
 
         if (isAlice) {
-            label.setIcon(getOptimizedImage(path, 1200, 800));
-            if (!isOtherActive) {
-                label.setBounds(40, 100, 1200, 800); // กลาง
-            } else {
-                label.setBounds(-300, 100, 1200, 800); // ซ้าย
-            }
+            int x = !isOtherActive ? 40 : -300;
+            return new Rectangle(x, 100, 1200, 800);
         } else {
-            label.setIcon(getOptimizedImage(path, 1200, 900));
-            if (!isOtherActive) {
-                label.setBounds(100, 50, 1200, 900); // กลาง
-            } else {
-                label.setBounds(300, 50, 1200, 900); // ขวา
+            int x = !isOtherActive ? 100 : 300;
+            return new Rectangle(x, 50, 1200, 900);
+        }
+    }
+
+    private void handleTransition(JLabel label, String prev, String curr, boolean isChar1, boolean isOtherActive, boolean boundsChanged) {
+        boolean wasActive = !prev.contains("empty");
+        boolean isActive = !curr.contains("empty");
+
+        if (!wasActive && !isActive) return;
+
+        Rectangle target = getCharacterBounds(isActive, isOtherActive, isChar1);
+
+        // 1. Fade Out
+        if (wasActive && !isActive) {
+            animateFadeOut(label, prev, isChar1);
+        } 
+        // 2. Entry (Slide + Fade)
+        else if (!wasActive && isActive) {
+            boolean fromLeft = isChar1; // Alice มาจากซ้าย, Dan มาจากขวา
+            animateEntry(label, curr, target, fromLeft, isChar1);
+        }
+        // 3. Change expression OR Change position (Fade In Place)
+        else if (isActive && (!prev.equals(curr) || boundsChanged)) {
+            animateFadeInPlace(label, curr, target, isChar1);
+        }
+    }
+
+    private void animateFadeOut(JLabel label, String path, boolean isChar1) {
+        if (isChar1 && charFadeTimer1 != null) charFadeTimer1.stop();
+        if (!isChar1 && charFadeTimer2 != null) charFadeTimer2.stop();
+
+        Timer timer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+        final int duration = 400; 
+
+        timer.addActionListener(e -> {
+            float progress = Math.min(1.0f, (float) (System.currentTimeMillis() - startTime) / duration);
+            float alphaVal = 1.0f - progress;
+            if (isChar1) charAlpha1 = alphaVal; else charAlpha2 = alphaVal;
+            label.repaint();
+            if (progress >= 1.0f) {
+                timer.stop();
+                label.setIcon(null); 
             }
-        }
-    }
-
-    private void handleCharacterTransitions(String p1, String p2) {
-        if (!p1.equals(lastP1)) {
-            if (!p1.contains("empty")) startCharacterFadeIn1();
-            else charAlpha1 = 0.0f;
-            lastP1 = p1;
-        }
-        if (!p2.equals(lastP2)) {
-            if (!p2.contains("empty")) startCharacterFadeIn2();
-            else charAlpha2 = 0.0f;
-            lastP2 = p2;
-        }
-    }
-
-    private void startCharacterFadeIn1() {
-        charAlpha1 = 0.0f;
-        if (charFadeTimer1 != null && charFadeTimer1.isRunning()) charFadeTimer1.stop();
-        charFadeTimer1 = new Timer(30, e -> {
-            charAlpha1 += 0.1f;
-            if (charAlpha1 >= 1.0f) { charAlpha1 = 1.0f; ((Timer)e.getSource()).stop(); }
-            characterLabel.repaint();
         });
-        charFadeTimer1.start();
+        if (isChar1) charFadeTimer1 = timer; else charFadeTimer2 = timer;
+        timer.start();
     }
 
-    private void startCharacterFadeIn2() {
-        charAlpha2 = 0.0f;
-        if (charFadeTimer2 != null && charFadeTimer2.isRunning()) charFadeTimer2.stop();
-        charFadeTimer2 = new Timer(30, e -> {
-            charAlpha2 += 0.1f;
-            if (charAlpha2 >= 1.0f) { charAlpha2 = 1.0f; ((Timer)e.getSource()).stop(); }
-            characterLabel2.repaint();
+    private void animateEntry(JLabel label, String path, Rectangle target, boolean fromLeft, boolean isChar1) {
+        if (isChar1 && charFadeTimer1 != null) charFadeTimer1.stop();
+        if (!isChar1 && charFadeTimer2 != null) charFadeTimer2.stop();
+
+        if (isChar1) charAlpha1 = 0.0f; else charAlpha2 = 0.0f;
+        
+        int startX = fromLeft ? target.x - 60 : target.x + 60;
+        label.setIcon(getOptimizedImage(path, target.width, target.height));
+        label.setBounds(startX, target.y, target.width, target.height);
+
+        Timer timer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+        final int duration = 500; 
+
+        timer.addActionListener(e -> {
+            float progress = Math.min(1.0f, (float) (System.currentTimeMillis() - startTime) / duration);
+            if (isChar1) charAlpha1 = progress; else charAlpha2 = progress;
+            
+            int curX = (int) (startX + (target.x - startX) * progress);
+            label.setBounds(curX, target.y, target.width, target.height);
+            label.repaint();
+            if (progress >= 1.0f) {
+                timer.stop();
+            }
         });
-        charFadeTimer2.start();
+        if (isChar1) charFadeTimer1 = timer; else charFadeTimer2 = timer;
+        timer.start();
     }
+
+    private void animateFadeInPlace(JLabel label, String path, Rectangle target, boolean isChar1) {
+        if (isChar1 && charFadeTimer1 != null) charFadeTimer1.stop();
+        if (!isChar1 && charFadeTimer2 != null) charFadeTimer2.stop();
+
+        if (isChar1) charAlpha1 = 0.0f; else charAlpha2 = 0.0f;
+        
+        label.setIcon(getOptimizedImage(path, target.width, target.height));
+        label.setBounds(target.x, target.y, target.width, target.height);
+
+        Timer timer = new Timer(20, null);
+        final long startTime = System.currentTimeMillis();
+        final int duration = 300; 
+
+        timer.addActionListener(e -> {
+            float progress = Math.min(1.0f, (float) (System.currentTimeMillis() - startTime) / duration);
+            if (isChar1) charAlpha1 = progress; else charAlpha2 = progress;
+            label.repaint();
+            if (progress >= 1.0f) {
+                timer.stop();
+            }
+        });
+        if (isChar1) charFadeTimer1 = timer; else charFadeTimer2 = timer;
+        timer.start();
+    }
+    // ==========================================
 
     private void setupRelationshipUI() {
         JPanel relPanel = new JPanel(new GridLayout(2, 1)); 
@@ -447,7 +519,6 @@ public class part6 extends JFrame {
                 relationdata.aliceRel.decreaseAffinity(5); 
             }
 
-            // --- ส่วนที่แก้ไข: ย้ายการส่ง Network มาไว้ในลำดับที่แน่นอน ---
             if (relationdata.isOnlineMode && networkOut != null) {
                 final int currentScore = relationdata.aliceRel.getAffinity();
                 new Thread(() -> {
@@ -455,7 +526,6 @@ public class part6 extends JFrame {
                     networkOut.println("SYNC_INDEX:" + target);
                 }).start();
             }
-            // --------------------------------------------------
 
             if (affinityLabel != null) {
                 affinityLabel.setText("อริส: " + relationdata.aliceRel.getAffinity());
@@ -481,18 +551,15 @@ public class part6 extends JFrame {
         statusOverlay.setBackground(new Color(0, 0, 0, 210)); 
         statusOverlay.setVisible(false);
         
-        // ใส่ข้อความเริ่มต้นเผื่อกรณีดึงข้อมูลช้าหรือเล่นโหมด Offline
         affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล Scoreboard...", SwingConstants.CENTER);
         affinityStatusLabel.setFont(new Font("Tahoma", Font.BOLD, 16));
         affinityStatusLabel.setForeground(Color.WHITE);
         statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER);
 
-        // --- ส่วนที่ต้องเพิ่มเพื่อแก้ปัญหา Error กล่องดำ ---
         onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 0", SwingConstants.CENTER);
         onlineCountLabel.setForeground(Color.YELLOW);
         onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
         statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH);
-        // -----------------------------------------
 
         layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
     }
@@ -504,7 +571,6 @@ public class part6 extends JFrame {
         });
     }
 
-    // ค้นหาในเมธอด initNetwork()
     private void initNetwork() {
         if (!relationdata.isOnlineMode) return;
         new Thread(() -> {
@@ -516,9 +582,7 @@ public class part6 extends JFrame {
                 networkOut.println("SET_NAME:" + relationdata.playerName);
                 networkOut.println("SET_PART:6");
                 
-                // --- เพิ่มตรงนี้: ร้องขอค่า Affinity ล่าสุดจากเซิร์ฟเวอร์ทันที ---
                 networkOut.println("GET_AFFINITY"); 
-                // -------------------------------------------------------
 
                 String line;
                 while ((line = in.readLine()) != null) {
@@ -549,12 +613,11 @@ public class part6 extends JFrame {
             if (p.contains("=")) {
                 String[] parts = p.split("=");
                 String name = parts[0];
-                String rawScores = parts[1]; // เช่น "10/0"
+                String rawScores = parts[1]; 
                 
-                // --- แก้ไขตรงนี้: แยกเอาเฉพาะคะแนนแรกมาแสดง ---
                 String aliceScore = rawScores;
                 if (rawScores.contains("/")) {
-                    aliceScore = rawScores.split("/")[0]; // เอาเฉพาะตัวหน้าเครื่องหมาย /
+                    aliceScore = rawScores.split("/")[0]; 
                 }
 
                 String color = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
@@ -624,9 +687,9 @@ public class part6 extends JFrame {
                 ((Timer)e.getSource()).stop();
                 SwingUtilities.invokeLater(() -> {
                     if (relationdata.isOnlineMode) {
-                        showWaitPoint(); // แสดงหน้าจอดำรอเพื่อน
+                        showWaitPoint(); 
                     } else {
-                        goToNextPart(); // ถ้าเล่นคนเดียวให้ข้ามไปเลย
+                        goToNextPart(); 
                     }
                 });
             }
@@ -665,7 +728,6 @@ public class part6 extends JFrame {
 
     private void goToNextPart() {
         SwingUtilities.invokeLater(() -> {
-            // *** ตรงนี้ต้องเปลี่ยนชื่อ Class ตาม Part เป้าหมาย ***
             new part7().setVisible(true); 
             dispose(); 
         });
