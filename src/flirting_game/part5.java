@@ -44,6 +44,9 @@ public class part5 extends JFrame {
     private String lastBgPath = ""; // เก็บเส้นทางรูปภาพล่าสุดเพื่อเช็คการเปลี่ยนแปลง
     private boolean isBgFading = false; // เช็คสถานะการ Fade
     
+    private JPanel waitOverlay;
+    private boolean isWaiting = false;
+    
     private final Font THAI_FONT = new Font("Tahoma", Font.PLAIN, 24);
 
     private String[] imagePaths = {
@@ -260,7 +263,7 @@ public class part5 extends JFrame {
     }
 
     private void handleNext() {
-            if (isChoosing || isFinishing) return;
+            if (isChoosing || isFinishing || isWaiting) return;
             
             // ป้องกัน Error กรณีดัชนีเกิน
             if (currentIndex >= dialogues.length) {
@@ -770,8 +773,11 @@ public class part5 extends JFrame {
             
             // เมื่อหน้าจอมืดสนิทแล้ว จึงสลับหน้าจอไป Part 6
             SwingUtilities.invokeLater(() -> {
-                new part6().setVisible(true); // จะเปิดเพียงครั้งเดียวเพราะโดนล็อคไว้แล้ว
-                dispose(); // ปิดหน้าจอ Part 5
+            	if (relationdata.isOnlineMode) {
+                    showWaitPoint(); // แสดงหน้าจอดำรอเพื่อน
+                } else {
+                    goToNextPart(); // ถ้าเล่นคนเดียวให้ข้ามไปเลย
+                }
             });
         });
     }
@@ -820,6 +826,9 @@ public class part5 extends JFrame {
                         } else if (line.startsWith("ALL_STATS:")) {
                         updateLeaderboardUI(line.substring(10));
                     }
+                    if (line.equals("PROCEED_TO_NEXT")) {
+                    	goToNextPart();
+                    }
                 }
             } catch (Exception e) {}
         }).start();
@@ -859,6 +868,35 @@ public class part5 extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part5().setVisible(true));
+    }
+    
+    private void showWaitPoint() {
+        isWaiting = true;
+        waitOverlay = new JPanel(null) {
+            @Override protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 220)); 
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        waitOverlay.setBounds(0, 0, 1280, 800);
+        waitOverlay.setOpaque(false);
+        JLabel msg = new JLabel("WAITING FOR FRIENDS...", SwingConstants.CENTER);
+        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
+        msg.setForeground(Color.WHITE);
+        msg.setBounds(0, 350, 1280, 100);
+        waitOverlay.add(msg);
+        layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
+        layeredPane.moveToFront(waitOverlay);
+        if (networkOut != null) networkOut.println("READY_FOR_NEXT");
+        revalidate(); repaint();
+    }
+
+    private void goToNextPart() {
+        SwingUtilities.invokeLater(() -> {
+            // *** ตรงนี้ต้องเปลี่ยนชื่อ Class ตาม Part เป้าหมาย ***
+            new part6().setVisible(true); 
+            dispose(); 
+        });
     }
 }
 

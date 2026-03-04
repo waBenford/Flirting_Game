@@ -41,6 +41,9 @@ public class part4 extends JFrame {
     private JLabel affinityLabel, statusLabel;
     private JPanel statusOverlay;
     private JLabel onlineCountLabel, affinityStatusLabel;
+    
+    private JPanel waitOverlay;
+    private boolean isWaiting = false;
 
     private PrintWriter networkOut;
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
@@ -226,7 +229,7 @@ public class part4 extends JFrame {
     }
 
         private void handleNext() {
-            if (isChoosing || isFading || isAnimatingEntry || isFinishing) return; // เพิ่ม isFinishing
+            if (isChoosing || isFading || isWaiting || isAnimatingEntry || isFinishing) return; // เพิ่ม isFinishing
 
             if (isTyping) { 
                 if(typewriterTimer != null) typewriterTimer.stop(); 
@@ -547,6 +550,9 @@ public class part4 extends JFrame {
                             statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus());
                         });
                     } else if (line.startsWith("ALL_STATS:")) { updateLeaderboardUI(line.substring(10)); }
+                    if (line.equals("PROCEED_TO_NEXT")) {
+                        goToNextPart();
+                    }
                 }
             } catch (Exception e) {}
         }).start();
@@ -797,13 +803,13 @@ public class part4 extends JFrame {
                 alpha = 1.0f;
                 ((Timer)e.getSource()).stop();
 
-                // ปิดการเชื่อมต่อ Network ก่อนย้ายพาร์ท
-                if (networkOut != null) networkOut.close();
-
                 // 3. สลับไป Part 5 หลังจากจอดำสนิทแล้ว
                 SwingUtilities.invokeLater(() -> {
-                    new part5().setVisible(true); // เปิด Part 5
-                    dispose(); // ปิดหน้าจอ Part 4
+                	if (relationdata.isOnlineMode) {
+                        showWaitPoint(); // แสดงหน้าจอดำรอเพื่อน
+                    } else {
+                        goToNextPart(); // ถ้าเล่นคนเดียวให้ข้ามไปเลย
+                    }
                 });
             }
             fadeOverlay.repaint();
@@ -811,6 +817,35 @@ public class part4 extends JFrame {
         fadeOut.start();
     }
     public static void main(String[] args) { SwingUtilities.invokeLater(() -> new part4().setVisible(true)); }
+    
+    private void showWaitPoint() {
+        isWaiting = true;
+        waitOverlay = new JPanel(null) {
+            @Override protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 220)); 
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        waitOverlay.setBounds(0, 0, 1280, 800);
+        waitOverlay.setOpaque(false);
+        JLabel msg = new JLabel("WAITING FOR FRIENDS...", SwingConstants.CENTER);
+        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
+        msg.setForeground(Color.WHITE);
+        msg.setBounds(0, 350, 1280, 100);
+        waitOverlay.add(msg);
+        layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
+        layeredPane.moveToFront(waitOverlay);
+        if (networkOut != null) networkOut.println("READY_FOR_NEXT");
+        revalidate(); repaint();
+    }
+
+    private void goToNextPart() {
+        SwingUtilities.invokeLater(() -> {
+            // *** ตรงนี้ต้องเปลี่ยนชื่อ Class ตาม Part เป้าหมาย ***
+            new part5().setVisible(true); 
+            dispose(); 
+        });
+    }
 }
 
 /*class VisualNovelBox extends JPanel {
