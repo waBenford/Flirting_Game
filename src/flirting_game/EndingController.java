@@ -1,5 +1,9 @@
 package flirting_game;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
@@ -18,6 +22,8 @@ public class EndingController extends JFrame {
     private int currentDuelistIdx = 0;
     private int currentQIndex = 0;
     private int[] battleScores = new int[4]; // [1]=P1, [2]=P2, [3]=P3
+    private java.io.PrintWriter networkOut;
+    private String lastTargetChar = ""; // เอาไว้จำว่าดวล Alice หรือ Nebula
 
     // --- 2. คลังคำถามภาษาอังกฤษ ---
     private String[][] aliceQuestions = {
@@ -36,6 +42,7 @@ public class EndingController extends JFrame {
 
     public EndingController(String n1, int p1A, int p1N, String n2, int p2A, int p2N, String n3, int p3A, int p3N, String role) {
         this.myRole = role;
+        this.networkOut = relationdata.globalOut;
         setTitle("Isekai Lover - Final Decisions");
         setSize(1280, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -124,6 +131,7 @@ public class EndingController extends JFrame {
     }
 
     private void startTriviaBattle(String targetChar) {
+    	this.lastTargetChar = targetChar;
         getContentPane().removeAll();
         showBattleUI(targetChar); 
         revalidate();
@@ -217,16 +225,14 @@ public class EndingController extends JFrame {
                         battleScores[Integer.parseInt(currentPlayer.substring(1))]++;
                     }
                     currentQIndex++;
+                    
                     if (currentQIndex < 4) {
                         showBattleUI(targetChar); 
                     } else {
-                        currentDuelistIdx++;
-                        if (currentDuelistIdx < duelists.size()) {
-                            currentQIndex = 0;
-                            JOptionPane.showMessageDialog(this, "Next Player: " + duelists.get(currentDuelistIdx));
-                            showBattleUI(targetChar);
-                        } else {
-                            determineWinner(targetChar);
+                    	// --- นี่คือจุดที่ 2: เมื่อตอบครบ 4 ข้อ ให้ส่งคะแนนบอกเพื่อนคนอื่น ---
+                        if (networkOut != null) {
+                            // ส่งคำสั่ง BATTLE_SCORE:Role:Score เช่น BATTLE_SCORE:P1:3
+                            networkOut.println("BATTLE_SCORE:" + myRole + ":" + battleScores[Integer.parseInt(myRole.substring(1))]);
                         }
                     }
                 });
@@ -358,6 +364,36 @@ public class EndingController extends JFrame {
     public static void main(String[] args) {
         // ทดสอบระบบ: P1 และ P2 คะแนนเท่ากัน เพื่อให้เกิดการดวล
         // SwingUtilities.invokeLater(() -> new EndingController(70, 40, 70, 50, 20, 90, "P1").setVisible(true));
+    }
+    
+    private void initNetwork() {
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) return;
+        new Thread(() -> {
+            try {
+                BufferedReader in = relationdata.globalIn;
+                String line;
+                while ((line = in.readLine()) != null) {
+                    // ฟังว่าเพื่อนตอบเสร็จและส่งคะแนนมาหรือยัง
+                    if (line.startsWith("BATTLE_UPDATE:")) {
+                        String[] parts = line.substring(14).split(":");
+                        String pRole = parts[0]; // เช่น P2
+                        int pScore = Integer.parseInt(parts[1]);
+                        
+                        battleScores[Integer.parseInt(pRole.substring(1))] = pScore;
+                        currentDuelistIdx++; // ขยับลำดับผู้เล่นในเครื่องคนรอ
+                        
+                        SwingUtilities.invokeLater(() -> {
+                            if (currentDuelistIdx < duelists.size()) {
+                                currentQIndex = 0;
+                                showBattleUI(lastTargetChar); // lastTargetChar คือตัวแปรที่เก็บชื่อ Alice/Nebula ไว้
+                            } else {
+                                determineWinner(lastTargetChar);
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        }).start();
     }
 }
 
