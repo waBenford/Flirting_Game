@@ -463,7 +463,7 @@ public class part7 extends JFrame {
             isChoosing = false; 
             if (target == 7) relationdata.aliceRel.addAffinity(10);
             else if (target == 9) relationdata.aliceRel.decreaseAffinity(5);
-            if (target == 49 || target == 54) relationdata.nebulaRel.addAffinity(15);
+            if (target == 49 || target == 54) relationdata.nebulaRel.addAffinity(10);
             else if (target == 48 || target == 53) relationdata.nebulaRel.addAffinity(5);
             else if (target == 50) relationdata.nebulaRel.decreaseAffinity(5);
             if (relationdata.isOnlineMode && networkOut != null) {

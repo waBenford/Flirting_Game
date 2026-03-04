@@ -378,9 +378,10 @@ public class part8 extends JFrame {
             layeredPane.remove(choiceButton1); 
             layeredPane.remove(choiceButton2);
             isChoosing = false; 
-            if (target == 32) relationdata.aliceRel.addAffinity(10);
-            else if (target == 12 || target == 24 || target == 42 || target == 56 || target == 69) relationdata.nebulaRel.addAffinity(10);
-            else relationdata.nebulaRel.addAffinity(5);
+            if (target == 32) relationdata.aliceRel.addAffinity(5);
+            else if (target == 12 || target == 24 || target == 42 || target == 56 || target == 68) relationdata.nebulaRel.addAffinity(10);
+            else if (target == 11 || target == 23 || target == 33 || target == 52 || target == 55 || target == 69) relationdata.nebulaRel.addAffinity(5);
+            else if (target == 41 || target == 51)
             
             if (relationdata.isOnlineMode && networkOut != null) {
                 new Thread(() -> {

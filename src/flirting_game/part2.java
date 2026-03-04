@@ -595,10 +595,10 @@ public class part2 extends JFrame {
             
             if (target == 8) {
                 // ตัวเลือก "ฉันไม่รู้" -> ไม่เพิ่มแต้ม
-                relationdata.aliceRel.addAffinity(10);
+                relationdata.aliceRel.addAffinity(5);
             } else if (target == 9) {
                 // ตัวเลือก "ฉันจำชื่อไม่ได้" -> อริสสงสาร +5
-                relationdata.aliceRel.addAffinity(10);
+                relationdata.aliceRel.addAffinity(5);
             } else if (target == 10) {
                 // ตัวเลือก "ฉันไม่ค่อยเเน่ใจเลย" -> อริสเอ็นดู +10
                 relationdata.aliceRel.addAffinity(10);
