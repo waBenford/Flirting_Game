@@ -41,6 +41,9 @@ public class part3 extends JFrame {
     private PrintWriter networkOut;
 
     private Map<String, ImageIcon> imageCache = new HashMap<>();
+    
+    private JPanel waitOverlay;
+    private boolean isWaiting = false;
 
     // --- Fonts for 1280x800 ---
     private final Font THAI_FONT_PLAIN = new Font("Tahoma", Font.PLAIN, 28);
@@ -184,7 +187,7 @@ public class part3 extends JFrame {
 
     private void handleNext() {
         // 1. ป้องกันการคลิกซ้ำขณะเลือกตอบหรือกำลัง Fade ฉาก
-        if (isChoosing || isFading) return; 
+    	if (isFading || isWaiting || isChoosing) return;
 
         // 2. ถ้าตัวอักษรกำลังพิมพ์อยู่ ให้หยุดและแสดงข้อความเต็มทันที
         if (isTyping) {
@@ -241,7 +244,7 @@ public class part3 extends JFrame {
             }
         } else {
             // เมื่อจบ Part 3 ให้หยุดเพลงและไป Part 4
-            finishPartWithTimeSkip();
+            finishPart();
         }
     }
 
@@ -354,50 +357,31 @@ public class part3 extends JFrame {
         layeredPane.revalidate();
         layeredPane.repaint();
     }
+    
 
-    private void finishPartWithTimeSkip() {
-        isFading = true; // ล็อคการคลิกซ้ำ
+    private void finishPart() {
+    	isFading = true; // ล็อคการคลิกซ้ำ
         stopBGM();
         stopEffect();
         alpha = 0.0f;
         
-        // 1. ตรวจสอบว่ามี fadeOverlay หรือไม่
-        if (fadeOverlay.getParent() == null) {
-            layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
-        }
+        if (fadeOverlay.getParent() == null) layeredPane.add(fadeOverlay, JLayeredPane.DRAG_LAYER);
 
-        // 2. สร้างข้อความ "ผ่านไปแล้ว 2 ปี..."
-        JLabel transitionText = new JLabel("ผ่านไปแล้ว 2 ปี...", SwingConstants.CENTER);
-        transitionText.setFont(new Font("Tahoma", Font.BOLD, 45)); // ขนาดใหญ่ชัดเจน
-        transitionText.setForeground(Color.WHITE);
-        transitionText.setBounds(0, 0, 1280, 800);
-        transitionText.setOpaque(false);
-        transitionText.setVisible(false); // ซ่อนไว้ก่อนจนกว่าจะจอดำ
-        layeredPane.add(transitionText, JLayeredPane.DRAG_LAYER);
-        layeredPane.setLayer(transitionText, JLayeredPane.DRAG_LAYER + 1); // ให้อยู่เหนือแผ่นดำ
-
-        // 3. เริ่มการ Fade Out (ดำมืด)
         Timer fadeOut = new Timer(30, e -> {
-            alpha += 0.02f; // ปรับให้ค่อยๆ ดำช้าๆ (ช้ากว่าปกติ)
+            alpha += 0.05f;
             if (alpha >= 1.0f) {
-                alpha = 1.0f;
-                ((Timer)e.getSource()).stop();
-
-                // เมื่อจอดำสนิทแล้ว แสดงข้อความ
-                transitionText.setVisible(true);
-
-                // 4. หน่วงเวลาหน้าจอดำนานๆ (เช่น 3 วินาที) ตามที่ต้องการ
-                Timer delayTimer = new Timer(3000, ev -> {
-                    ((Timer)ev.getSource()).stop();
-                    
-                    // สลับไป Part 4
+                alpha = 1.0f; ((Timer)e.getSource()).stop();
+                Timer transitionTimer = new Timer(200, ev -> {
                     SwingUtilities.invokeLater(() -> {
-                        new part4().setVisible(true);
-                        dispose(); // ปิดหน้าจอ Part 3
+                    	if (relationdata.isOnlineMode) {
+                    		showWaitPoint(); // แสดงหน้าจอดำรอเพื่อน
+                    		} else {
+                    		goToNextPart(); // ถ้าออฟไลน์ให้ข้ามไปเลย
+                    		}
                     });
                 });
-                delayTimer.setRepeats(false);
-                delayTimer.start();
+                transitionTimer.setRepeats(false);
+                transitionTimer.start();
             }
             fadeOverlay.repaint();
         });
@@ -547,6 +531,9 @@ public class part3 extends JFrame {
                     } else if (line.startsWith("ALL_STATS:")) {
                         updateLeaderboardUI(line.substring(10));
                     }
+                    if (line.equals("PROCEED_TO_NEXT")) {
+                        goToNextPart();
+                    }
                 }
             } catch (Exception e) {}
         }).start();
@@ -613,6 +600,7 @@ public class part3 extends JFrame {
     }
 
     private void setupStatusOverlay() {
+        // ใช้เลย์เอาต์ BorderLayout ตาม Part 3
         statusOverlay = new JPanel();
         statusOverlay.setLayout(new BorderLayout(10, 10)); 
         statusOverlay.setBackground(new Color(0, 0, 0, 200)); 
@@ -620,7 +608,6 @@ public class part3 extends JFrame {
         statusOverlay.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
         statusOverlay.setVisible(false);
 
-        // 1. สร้างป้ายจำนวนผู้เล่น (ต้องสร้างเพื่อไม่ให้เกิด Null Error)
         onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
         onlineCountLabel.setForeground(Color.CYAN);
         onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
@@ -632,11 +619,11 @@ public class part3 extends JFrame {
         affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล...", SwingConstants.CENTER);
         affinityStatusLabel.setForeground(Color.WHITE);
         affinityStatusLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
+        affinityStatusLabel.setVerticalAlignment(SwingConstants.TOP);
 
-        // 2. เพิ่ม UI ลงใน Panel
         statusOverlay.add(titleLabel, BorderLayout.NORTH);
         statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER);
-        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH); // เพิ่ม onlineCountLabel ไว้ล่างสุด
+        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH); 
         
         layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
     }
@@ -805,5 +792,34 @@ public class part3 extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new part3().setVisible(true));
+    }
+    
+    private void showWaitPoint() {
+        isWaiting = true;
+        waitOverlay = new JPanel(null) {
+            @Override protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 220)); 
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        waitOverlay.setBounds(0, 0, 1280, 800);
+        waitOverlay.setOpaque(false);
+        JLabel msg = new JLabel("WAITING FOR FRIENDS...", SwingConstants.CENTER);
+        msg.setFont(new Font("Monospaced", Font.BOLD, 40)); 
+        msg.setForeground(Color.WHITE);
+        msg.setBounds(0, 350, 1280, 100);
+        waitOverlay.add(msg);
+        layeredPane.add(waitOverlay, JLayeredPane.DRAG_LAYER);
+        layeredPane.moveToFront(waitOverlay);
+        if (networkOut != null) networkOut.println("READY_FOR_NEXT");
+        revalidate(); repaint();
+    }
+
+    private void goToNextPart() {
+        SwingUtilities.invokeLater(() -> {
+            // *** ตรงนี้ต้องเปลี่ยนชื่อ Class ตาม Part เป้าหมาย ***
+            new part4().setVisible(true); 
+            dispose(); 
+        });
     }
 }
