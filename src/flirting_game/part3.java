@@ -69,8 +69,8 @@ public class part3 extends JFrame {
         "res/Charactor/Alice-happy1.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy2.png","res/Charactor/Alice-happy1.png", 
         "res/Charactor/Alice-sad2_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad1_1.png","res/empty.png", "res/empty.png","res/empty.png", "res/empty.png", 
         "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice-cry1_1.png","res/Charactor/Alice-cry2_1.png", 
-        "res/Charactor/Alice-cry1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad2_1.png", 
-        "res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png",
+        "res/Charactor/Alice-cry1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad1_1.png","res/Charactor/Alice-sad1_1.png", 
+        "res/Charactor/Alice-sad2_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png",
         "res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile2_1.png","res/Charactor/Alice-smile1_1.png","res/Charactor/Alice-smile1_1.png"
     };
 
@@ -100,7 +100,7 @@ public class part3 extends JFrame {
         "มีปีศาจที่เเข็งเเกร่งตัวนึง ได้มาทําลายหมู่บ้านของพวกเรา",
         "มันพรากชีวิตของผู้คนไปมากมาย หนึ่งในนั้นก็มีพ่อเเม่ของฉันด้วย",
         "พ่อเเม่ของฉันปกป้องฉันจนวินาทีสุดท้าย..", "จากเหตุการณ์ครั้งนั้น ฉันเลยรอดมาได้..",
-        "อริสกําลังเศร้า..", "ขอโทษนะที่ถามอะไรเเบบนั้น", "ไม่เป็นไรหหรอก", //33
+        "อริสกําลังเศร้า..", "ขอโทษนะที่ถามอะไรเเบบนั้น", "ไม่เป็นไรหรอก", //33
         "ขอบคุณนะ..", //choice1 //34
         "...", //choice2 //35
         "อื้อ",//choice3 //36
@@ -109,7 +109,7 @@ public class part3 extends JFrame {
         "ฝึกฝนตัวเองให้เเข็งเเกร่งมากขึ้น", "เพื่อที่ฉันจะได้เเก้เเค้นให้พ่อกับเเม่",//40
         "นี่...", "เธออยากจะร่วมเดินทางกับฉันมั้ย?",
         "เธอเป็นคนที่จิตใจดี เเละอ่อนโยนมาก", "เพราะอย่างงั้นฉันเลยอยากที่จะปกป้องเธอ", //41-44
-        "ไม่มีเหตุผลเลยที่ฉันปฏิเสธเธอ", "เเน่นอน!! ฉันจะออกเดินทางกับเธอ",
+        "ไม่มีเหตุผลเลยที่ฉันจะปฏิเสธเธอ", "เเน่นอน!! ฉันจะออกเดินทางกับเธอ",
         "ฉันจะต้องเเข็งเเกร่งขึ้นให้ได้เหมือนกัน", "ขอบคุณนะ …",
         "เออ..ว่าเเต่เธอชื่ออะไรกันเเน่", "ฉันชื่อ..." //45-50
     };

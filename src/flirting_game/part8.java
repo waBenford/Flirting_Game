@@ -19,7 +19,7 @@ public class part8 extends JFrame {
     private int currentIndex = 0;
     private Clip bgmClip;      
     private Clip effectClip;
-    private JButton choiceButton1, choiceButton2;
+    private JButton choiceButton1, choiceButton2, choiceButton3;
     private boolean isChoosing = false;
     private boolean isFinishing = false; 
     private Timer typewriterTimer;
@@ -38,52 +38,153 @@ public class part8 extends JFrame {
     private float leftAlpha = 0.0f; 
     private float rightAlpha = 0.0f;
     private Timer leftFadeTimer, rightFadeTimer;
-    private String lastLeftPath = "", lastRightPath = "";
-    
+    private String lastLeftPath = "res/empty.png";
+    private String lastRightPath = "res/empty.png";
     private float bgAlpha = 0.0f; 
     private Timer bgFadeTimer;
     private String lastBgPath = "";
     private JPanel bgFadeOverlay; 
 
     private String[] leftCharPaths = { 
-       "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", 
-       "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Alice/Girl/Alice-shy2.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png","res/Charactor/Dan/dan-normal1.png",
-       "res/Charactor/Dan/dan-normal2.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
-       "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/empty.png", "res/empty.png"
-    };
+    /* 0-9   */ "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png",
+    /* 10-14 */ "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
+    /* 15-20 */ "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
+    /* 21-23 */ "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png",
+    /* 24-27 */ "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png",
+    /* 28-32 */ "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
+    /* 33-36 */ "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",
+    /* 37-42 */ "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",
+    /* 43-46 */ "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png",
+    /* 47-52 */ "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+    /* 53-57 */ "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+    /* 58-62 */ "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
+    /* 63-70 */ "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
+    /* 71-76 */ "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png",
+    /* 77-80 */ "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png"
+};
 
     private String[] rightCharPaths = { 
-       "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
-       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
-       "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
-       "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png",
-       "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
-       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/Charactor/Nebula/Nebula-normal2.png",
-       "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-shy1.png", "res/Charactor/Nebula/Nebula-shy2.png",
-       "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
-       "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/empty.png", "res/Charactor/Nebula/Nebula-normal2.png",
-       "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
-       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-shy2.png", "res/Charactor/Nebula/Nebula-shy1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png",
-       "res/Charactor/Nebula/Nebula-shy1.png", "res/Charactor/Nebula/Nebula-shy2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
-       "res/Charactor/Nebula/Nebula-normal2.png",  "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
-       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-shy1.png", "res/Charactor/Nebula/Nebula-normal1.png",
-       "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png"
-    };
+    /* 0-9   */ "res/empty.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png",
+    /* 10-14 */ "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+    /* 15-20 */ "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+    /* 21-23 */ "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
+    /* 24-27 */ "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
+    /* 28-32 */ "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-shy1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+    /* 33-36 */ "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png",
+    /* 37-42 */ "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal2.png",
+    /* 43-46 */ "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+    /* 47-52 */ "res/empty.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+    /* 53-57 */ "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-shy2.png", "res/Charactor/Nebula/Nebula-shy1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+    /* 58-62 */ "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-shy2.png",
+    /* 63-70 */ "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+    /* 71-76 */ "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png",
+    /* 77-80 */ "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png", "res/Charactor/Nebula/Nebula-normal2.png", "res/Charactor/Nebula/Nebula-normal1.png"
+};
 
-    private String[] imagePaths = { "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png" };
-    private String[] names = { " ","Dan","อริส","Nebula","Nebula","Nebula","ฉัน","Nebula", "Nebula","Dan","อริส","Nebula","Nebula","Nebula","Nebula","ฉัน", "Nebula","ฉัน","Nebula","Nebula","Nebula","Dan","อริส","Nebula", "Nebula","Nebula","อริส","Dan","อริส","Nebula","Nebula","ฉัน", "Nebula","Nebula","Nebula","Nebula","Nebula","Nebula","Dan","อริส", "Dan","Nebula","Nebula"," ","ฉัน","Nebula","ฉัน","Nebula", "Nebula","ฉัน","Nebula","Nebula","Nebula","Nebula","Nebula","Nebula", "Nebula","Nebula","Nebula","Nebula","Nebula"," ","Dan","อริส", "ฉัน","Nebula","Nebula","Nebula","Nebula","Nebula","Nebula","Nebula","Nebula" };
-    private String[] dialogues = { "หลังจากการต่อสู้จบลง บรรยากาศในปราสาทก็กลับมาเงียบสงบอีกครั้ง", "ไม่อยากเชื่อเลยว่าเราจะมายืนคุยกับจอมมารแบบนี้ได้", "ฉันก็ยังไม่ค่อยเชื่อเหมือนกัน...", "พวกเจ้ามนุษย์นี่แปลกจริงๆ", "ปกติแล้วมนุษย์ที่มาที่นี่ จะตัวสั่นด้วยความกลัว", "แต่พวกเจ้ากลับยืนคุยกันสบายๆ", "ก็เพราะเธอไม่ได้ดูเหมือนศัตรูของพวกเรานี่", "หืม?", "เจ้ากล้าพูดกับจอมมารแบบนั้นเลยงั้นหรอ", "นายพูดกับจอมมารเหมือนคุยกับคนปกติเลยนะ","นะ...นายไม่กลัวเลยรึไง", "หึ...มนุษย์ที่คิดแบบนี้ไม่ค่อยมีหรอกนะ", "เจ้าดูเข้าใจสถานการณ์ดีนี่", "เจ้าพวกมนุษย์...", "ทําไมถึงกล้าเดินทางมาถึงที่นี่", "ก็เพราะเราอยากหยุดเรื่องทั้งหมดนี่", "เพื่อมนุษย์คนอื่นงั้นหรอ", "ก็ประมาณนั้น", "มนุษย์ส่วนใหญ่เห็นแก่ตัว", "แต่เจ้ากลับเสี่ยงชีวิตเพื่อคนอื่น","เจ้าคนนี้น่าสนใจจริงๆ", "เหมือนจอมมารกําลังชมอยู่นะเนี่ย", "นายอย่าทําตัวสนิทกับจอมมารเกินไปสิ!", "หึ...เจ้าคนนี้ไม่ถ่อมตัวเลยนะ", "ใครจะไปชมเจ้ากันเล่า", "แต่ก็ไม่ปฏิเสธหรอกนะ", "นี่พวกนายคุยกันสนิทเกินไปแล้วนะ!", "ดูเหมือนจะมีคนเริ่มหึงแล้ว", "ขะ...ใครหึงกัน!", "หึงงั้นหรอ?","หรือว่าเจ้าจะ..หึๆ..", "อย่าแกล้งอริสมากนักสิ", "ข้าก็แค่พูดเล่นเท่านั้นเอง", "ก็เพราะพวกเจ้าดูน่าสนุกนี่", "มนุษย์...", "ปกติข้าไม่ค่อยให้ใครอยู่ในปราสาทนานนัก", "แต่พวกเจ้าดูต่างออกไป", "ข้าจะให้พวกเจ้าพักที่นี่คืนนี้ก็ได้", "จริงหรอเนี่ย", "พักในปราสาทจอมมาร...","นี่มันประสบการณ์แปลกๆจริงๆ", "ข้าไม่ได้ใจดีหรอก", "เจ้านี่พูดเก่งจริงๆ", "คืนนั้น ฉันออกมาเดินเล่นที่ระเบียงของปราสาท", "ลมเย็นดีแฮะ", "เจ้าก็มาที่นี่เหมือนกันสินะ", "อ้าว เธอก็อยู่ที่นี่หรอ", "ข้ามักจะมามองป่าตอนกลางคืน", "มันเงียบดี", "เธอดูไม่เหมือนจอมมารเลยนะ", "มนุษย์คิดว่าจอมมารต้องเป็นยังไงล่ะ", "เจ้ากล้าพูดกับจอมมารแบบนั้นอีกแล้วนะ", "เจ้าพูดเเบบนี้อีกเเล้วนะ...", "เจ้าคนนี้...", "ไม่กลัวข้าเลยจริงๆสินะ", "หึ…", "งั้นเหรอ...", "มนุษย์อย่างเจ้าแปลกจริงๆ", "แต่ก็ไม่ได้น่ารําคาญ", "ตรงกันข้าม...","ข้ากลับรู้สึกว่าเจ้าคือน่าสนใจ", "เช้าวันต่อมา...","ได้เวลาออกเดินทางแล้วสินะ","เป้าหมายต่อไปคือ Grey","ใช่", "มนุษย์...","ถ้าเจ้าจะไปสู้กับ Grey","ก็อย่าตายซะก่อนล่ะ", "หึ...", "ถ้าเจ้ารอดกลับมาได้จริง", "ข้าจะรอดู","มนุษย์...","เจ้าเป็นคนที่น่าสนใจจริงๆ" };
+    private String[] imagePaths = {
+    /* 0-9   */ "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png",
+    /* 10-19 */ "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png",
+    /* 20-29 */ "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png",
+    /* 30-39 */ "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png",
+    /* 40-46 */ "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png",
+    /* 47-56 */ "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png",
+    /* 57-66 */ "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png", "res/scene8/s2.png",
+    /* 67-76 */ "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png",
+    /* 77-80 */ "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png", "res/scene8/s1.png"
+};
+    private String[] names = {
+    /* 0-9   */ " ", "Dan", "อริส", "Nebula", "Nebula", "Nebula", "ฉัน", "Nebula", "Nebula", "Dan",
+    /* 10-20 */ "อริส", "Nebula", "Nebula", "Nebula","Nebula","Nebula","ฉัน","Nebula","ฉัน","Nebula","Nebula",
+    /* 21-31 */ "Nebula", "Dan", "อริส", "Nebula", "Nebula", "Nebula","Nebula","อริส", "Dan", "อริส", "Nebula",
+    /* 32-42 */ "Nebula", "ฉัน", "Nebula", "Nebula", "Nebula","Nebula","Nebula","Nebula","Nebula","Dan","อริส",
+    /* 43-53 */ "Dan", "Nebula", "Nebula", "Nebula", " ", "ฉัน", "Nebula", "ฉัน", "Nebula", "Nebula", "ฉัน",
+    /* 54-65 */ "Nebula", "Nebula", "Nebula","Nebula","Nebula","Nebula","Nebula","Nebula","Nebula","Nebula","Nebula","Nebula",
+    /* 66-75 */ "Nebula", " ", "Dan", "อริส", "ฉัน", "Nebula", "Nebula", "Nebula", "Nebula", "Nebula",
+    /* 76-79 */ "Nebula", "Nebula","Nebula", "Nebula"
+    };
+    private String[] dialogues = { 
+        "หลังจากการต่อสู้จบลง บรรยากาศในปราสาทก็กลับมาเงียบสงบอีกครั้ง", // 0
+        "ไม่อยากเชื่อเลยว่าเราจะมายืนคุยกับจอมมารแบบนี้ได้", // 1
+        "ฉันก็ยังไม่ค่อยเชื่อเหมือนกัน...", // 2
+        "พวกเจ้ามนุษย์นี่แปลกจริงๆ", // 3
+        "ปกติแล้วมนุษย์ที่มาที่นี่ จะตัวสั่นด้วยความกลัว", // 4
+        "แต่พวกเจ้ากลับยืนคุยกันสบายๆ", // 5
+        "ก็เพราะเธอไม่ได้ดูเหมือนศัตรูของพวกเรานี่", // 6
+        "หืม?", // 7
+        "เจ้ากล้าพูดกับจอมมารแบบนั้นเลยงั้นหรอ", // 8
+        "นายพูดกับจอมมารเหมือนคุยกับคนปกติเลยนะ", // 9
+        "นะ...นายไม่กลัวเลยรึไง", // 10
+        "หึ...มนุษย์ที่คิดแบบนี้ไม่ค่อยมีหรอกนะ", // 11 choice1
+        "เจ้าดูเข้าใจสถานการณ์ดีนี่", // 12 choice2
+        "ปากเก่งจริงๆเลยนะ", // 13 choice3
+        "เจ้าพวกมนุษย์...", // 14
+        "ทําไมถึงกล้าเดินทางมาถึงที่นี่", // 15
+        "ก็เพราะเราอยากหยุดเรื่องทั้งหมดนี่", // 16
+        "เพื่อมนุษย์คนอื่นงั้นหรอ", // 17
+        "ก็ประมาณนั้น", // 18
+        "มนุษย์ส่วนใหญ่เห็นแก่ตัว", // 19
+        "แต่เจ้ากลับเสี่ยงชีวิตเพื่อคนอื่น", // 20
+        "เจ้าคนนี้น่าสนใจจริงๆ", // 21
+        "เหมือนจอมมารกําลังชมอยู่นะเนี่ย", // 22
+        "นายอย่าทําตัวสนิทกับจอมมารเกินไปสิ!", // 23
+        "หึ...เจ้าคนนี้ไม่ถ่อมตัวเลยนะ", // 24 choice1
+        "ใครจะไปชมเจ้ากันเล่า", // 25 choice2
+        "ก็ถือว่าดี", // 26 choice3
+        "แต่ก็ไม่ปฏิเสธหรอกนะ", // 27
+        "นี่พวกนายคุยกันสนิทเกินไปแล้วนะ!", // 28
+        "ดูเหมือนจะมีคนเริ่มหึงแล้ว", // 29
+        "ขะ...ใครหึงกัน!", // 30
+        "หึงงั้นหรอ?", // 31
+        "หรือว่าเจ้าจะ..หึๆ..", // 32
+        "อย่าแกล้งอริสมากนักสิ", // 33
+        "ข้าก็แค่พูดเล่นเท่านั้นเอง", // 34 choice1
+        "ก็เพราะพวกเจ้าดูน่าสนุกนี่", // 35 choice2
+        "...",// 36 choice3
+        "มนุษย์...", // 37
+        "ปกติข้าไม่ค่อยให้ใครอยู่ในปราสาทนานนัก", // 38
+        "แต่พวกเจ้าดูต่างออกไป", // 39
+        "ข้าจะให้พวกเจ้าพักที่นี่คืนนี้ก็ได้", // 40
+        "จริงหรอเนี่ย", // 41
+        "พักในปราสาทจอมมาร...", // 42
+        "นี่มันประสบการณ์แปลกๆจริงๆ", // 43
+        "ข้าไม่ได้ใจดีหรอก", // 44 choice1
+        "เจ้านี่พูดเก่งจริงๆ", // 45 choice2
+        "ก็เอาตามนั้นละกัน", // 46 choice3
+        "คืนนั้น ฉันออกมาเดินเล่นที่ระเบียงของปราสาท", // 47
+        "ลมเย็นดีแฮะ", // 48
+        "เจ้าก็มาที่นี่เหมือนกันสินะ", // 49
+        "อ้าว เธอก็อยู่ที่นี่หรอ", // 50
+        "ข้ามักจะมามองป่าตอนกลางคืน", // 51
+        "มันเงียบดี", // 52
+        "เธอดูไม่เหมือนจอมมารเลยนะ", // 53
+        "มนุษย์คิดว่าจอมมารต้องเป็นยังไงล่ะ", // 54
+        "เจ้ากล้าพูดกับจอมมารแบบนั้นอีกแล้วนะ", // 55 choice1
+        "เจ้าพูดเเบบนี้อีกเเล้วนะ...", // 56 choice2
+        "เห้อ...", // 57 choice3
+        "เจ้าคนนี้...", // 58
+        "ไม่กลัวข้าเลยจริงๆสินะ", // 59
+        "หึ…", // 60 choice1
+        "งั้นเหรอ...", // 61 choice2
+        "เจ้าบ้านี่…",// 62 choice3
+        "มนุษย์อย่างเจ้าแปลกจริงๆ", // 63
+        "แต่ก็ไม่ได้น่ารําคาญ", // 64
+        "ตรงกันข้าม...", // 65
+        "ข้ากลับรู้สึกว่าเจ้าคือน่าสนใจ", // 66
+        "เช้าวันต่อมา...", // 67
+        "ได้เวลาออกเดินทางแล้วสินะ", // 68
+        "เป้าหมายต่อไปคือ Grey", // 69
+        "ใช่", // 70
+        "มนุษย์...", // 71
+        "ถ้าเจ้าจะไปสู้กับ Grey", // 72
+        "ก็อย่าตายซะก่อนล่ะ", // 73
+        "หึ...", // 74 choice1
+        "หึ...", // 75 choice2
+        "หึ...", // 76 choice3
+        "ถ้าเจ้ารอดกลับมาได้จริง", // 77
+        "ข้าจะรอดู", // 78
+        "มนุษย์...", // 79
+        "เจ้าเป็นคนที่น่าสนใจจริงๆ" //80
+    };
 
     public part8() {
         setTitle("ISEKAI DEMO - Part 8 (Dual Path System)");
@@ -144,75 +245,71 @@ public class part8 extends JFrame {
     }
 
     private void updateScene() {
-        if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
-        if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
-        
-        if (currentIndex < imagePaths.length) {
-            String newBg = imagePaths[currentIndex];
-            if (!newBg.equals(lastBgPath)) { startBackgroundTransition(newBg); lastBgPath = newBg; }
-        }
-
-        String lp = (currentIndex < leftCharPaths.length) ? leftCharPaths[currentIndex] : "res/empty.png";
-        String rp = (currentIndex < rightCharPaths.length) ? rightCharPaths[currentIndex] : "res/empty.png";
-        
-        boolean hasLeft = !lp.contains("empty.png");
-        boolean hasRight = !rp.contains("empty.png");
-
-        // --- จัดการตัวละครฝั่งซ้าย ---
-        if (!hasLeft) {
-            if (!lastLeftPath.equals(lp)) startLeftFadeOut();
-        } else {
-            int sw, sh;
-            // ลดความกว้างของ Dan ลงเล็กน้อย (จาก 1300 เป็น 1100) เพื่อไม่ให้ไหล่กว้างจนทับอีกฝั่ง
-            if (lp.contains("Dan")) { sw = 1200; sh = 1000; } 
-            else if (lp.contains("Alice")) { sw = 1100; sh = 950; }
-            else { sw = 1000; sh = 950; }
+            if (currentIndex < names.length) nameLabel.setText(names[currentIndex]);
+            if (currentIndex < dialogues.length) startTypewriter(dialogues[currentIndex]);
             
-            int posX;
-            if (hasRight) {
-                // ถ้ามีตัวละครขวา ให้ Dan ถอยออกไปทางซ้ายมากขึ้น (จาก -50 เป็น -150)
-                posX = -250; 
+            // --- จัดการ Background ---
+            if (currentIndex < imagePaths.length) {
+                String newBg = imagePaths[currentIndex];
+                if (!newBg.equals(lastBgPath)) { 
+                    startBackgroundTransition(newBg); 
+                    lastBgPath = newBg; 
+                }
+            }
+
+            String lp = (currentIndex < leftCharPaths.length) ? leftCharPaths[currentIndex] : "res/empty.png";
+            String rp = (currentIndex < rightCharPaths.length) ? rightCharPaths[currentIndex] : "res/empty.png";
+            
+            boolean hasLeft = !lp.contains("empty.png");
+            boolean hasRight = !rp.contains("empty.png");
+            boolean lastHadLeft = !lastLeftPath.contains("empty.png");
+            boolean lastHadRight = !lastRightPath.contains("empty.png");
+
+            // --- จัดการตัวละครฝั่งซ้าย (Left Character) ---
+            if (!hasLeft) {
+                // ถ้าเดิมเคยมี แต่ตอนนี้ไม่มี ให้ Fade Out
+                if (lastHadLeft) startLeftFadeOut();
             } else {
-                posX = (1280 - sw) / 2;
-            }
-            
-            leftCharLabel.setBounds(posX, 50, sw, sh);
-            if (!lp.equals(lastLeftPath)) {
-                leftCharLabel.setIcon(getOptimizedImage(lp, sw, sh));
-                startLeftFadeIn();
-            }
-        }
-        lastLeftPath = lp;
+                int sw = lp.contains("Dan") ? 1500 : (lp.contains("Alice") ? 1100 : 1000);
+                int sh = lp.contains("Dan") ? 1100 : (lp.contains("Alice") ? 900 : 1000);
+                int posX = hasRight ? -400 : (1280 - sw) / 2;
 
-        // --- จัดการตัวละครฝั่งขวา ---
-        if (!hasRight) {
-            if (!lastRightPath.equals(rp)) startRightFadeOut();
-        } else {
-            int sw, sh;
-            if (rp.contains("Nebula")) { sw = 900; sh = 900; }
-            else if (rp.contains("Alice")) { sw = 1000; sh = 800; }
-            else { sw = 1000; sh = 1000; }
-            
-            int posX;
-            if (hasLeft) {
-                // ถ้ามีตัวละครซ้าย ให้ตัวละครขวาขยับหนีไปทางขวามากขึ้น (จาก 500 เป็น 550 หรือ 600)
-                posX = 550; 
+                leftCharLabel.setBounds(posX, 50, sw, sh);
+                
+                if (!lp.equals(lastLeftPath)) {
+                    leftCharLabel.setIcon(getOptimizedImage(lp, sw, sh));
+                    // Fade In เฉพาะตอนที่ตัวละคร "โผล่มาจากความว่างเปล่า" 
+                    // ถ้าแค่เปลี่ยนท่า (เดิมมีอยู่แล้ว) ไม่ต้อง Fade เพื่อให้ภาพต่อเนื่อง
+                    if (!lastHadLeft) {
+                        startLeftFadeIn();
+                    }
+                }
+            }
+            lastLeftPath = lp;
+
+            // --- จัดการตัวละครฝั่งขวา (Right Character) ---
+            if (!hasRight) {
+                if (lastHadRight) startRightFadeOut();
             } else {
-                posX = (1280 - sw) / 2;
-            }
+                int sw = rp.contains("Nebula") ? 900 : (rp.contains("Alice") ? 1100 : 1000);
+                int sh = rp.contains("Nebula") ? 900 : (rp.contains("Alice") ? 900 : 900);
+                int posX = hasLeft ? 400 : (1280 - sw) / 2;
 
-            rightCharLabel.setBounds(posX, 50, sw, sh);
-            if (!rp.equals(lastRightPath)) {
-                rightCharLabel.setIcon(getOptimizedImage(rp, sw, sh));
-                startRightFadeIn();
+                rightCharLabel.setBounds(posX, 100, sw, sh);
+                
+                if (!rp.equals(lastRightPath)) {
+                    rightCharLabel.setIcon(getOptimizedImage(rp, sw, sh));
+                    // Fade In เฉพาะตอนที่ "ตัวละครเพิ่งปรากฏตัว"
+                    if (!lastHadRight) {
+                        startRightFadeIn();
+                    }
+                }
             }
-        }
-        lastRightPath = rp;
+            lastRightPath = rp;
 
-        handleSoundEffects(currentIndex);
-        layeredPane.repaint();
+            handleSoundEffects(currentIndex);
+            layeredPane.repaint();
     }
-
     private JLabel createLeftFadeLabel() {
         return new JLabel() {
             @Override protected void paintComponent(Graphics g) {
@@ -312,13 +409,18 @@ public class part8 extends JFrame {
         fadeInTimer.start();
     }
 
-    private void showChoices(String c1, String c2, int t1, int t2) {
+    private void showChoices(String c1, String c2, String c3, int t1, int t2, int t3) {
         isChoosing = true;
+        if (choiceButton1 != null) layeredPane.remove(choiceButton1);
+        if (choiceButton2 != null) layeredPane.remove(choiceButton2);
+        if (choiceButton3 != null) layeredPane.remove(choiceButton3);
         // ปรับ Y ตามโค้ด Part 6 เพื่อไม่ให้ทับกล่องข้อความ
-        choiceButton1 = createChoiceButton(c1, 350, t1);
-        choiceButton2 = createChoiceButton(c2, 425, t2);
+        choiceButton1 = createChoiceButton(c1, 250, t1);
+        choiceButton2 = createChoiceButton(c2, 320, t2);
+        choiceButton3 = createChoiceButton(c3, 390, t3);
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton3, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
     }
 
@@ -374,10 +476,24 @@ public class part8 extends JFrame {
             playEffect("res/sound/click.wav", 0.0f);
             layeredPane.remove(choiceButton1); 
             layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton3);
             isChoosing = false; 
-            if (target == 32) relationdata.aliceRel.addAffinity(10);
-            else if (target == 12 || target == 24 || target == 42 || target == 56 || target == 69) relationdata.nebulaRel.addAffinity(10);
-            else relationdata.nebulaRel.addAffinity(5);
+            if (target == 34){
+                relationdata.aliceRel.addAffinity(5);
+            } else if (target == 36){
+                relationdata.aliceRel.decreaseAffinity(5);
+            }
+            if (target == 62){
+                relationdata.nebulaRel.addAffinity(15);
+            } else if (target == 12 || target == 25 || target == 45 || target == 61 || target == 74){
+                relationdata.nebulaRel.addAffinity(10);
+            } else if (target == 11 || target == 24 || target == 35 || target == 56 || target == 60 || target == 75){
+                relationdata.nebulaRel.addAffinity(5);
+            } else if (target == 13 || target == 36 || target == 46 || target == 57){
+                relationdata.nebulaRel.decreaseAffinity(5);
+            } else if (target == 26 || target == 44 || target == 55 || target == 76){             
+            }
+           
             
             if (relationdata.isOnlineMode && networkOut != null) {
                 new Thread(() -> {
@@ -424,20 +540,62 @@ public class part8 extends JFrame {
         if (isChoosing || isFinishing) return;
         if (isTyping) { stopTypewriter(); dialogueArea.setText("<html><body style='width: 700px;'>" + dialogues[currentIndex] + "</body></html>"); return; }
         
-        if (currentIndex == 10) { showChoices("ก็เธอไม่ได้ทําอะไรพวกเรานี่", "ถ้าเธออยากฆ่าพวกเรา เราคงตายไปแล้ว", 11, 12); return; }
-        if (currentIndex == 11) { currentIndex = 13; updateScene(); return; }
-        if (currentIndex == 22) { showChoices("ฉันก็แค่พูดตามที่คิด", "หรือว่าเธอกําลังชมฉันอยู่?", 23, 24); return; }
-        if (currentIndex == 23) { currentIndex = 25; updateScene(); return; }
-        if (currentIndex == 31) { showChoices("เดี๋ยวเธอร้องไห้ขึ้นมาจะทํายังไง", "เธอแกล้งคนอื่นสนุกนักรึไง", 32, 33); return; }
-        if (currentIndex == 32) { currentIndex = 34; updateScene(); return; }
-        if (currentIndex == 40) { showChoices("งั้นคืนนี้ฉันจะรบกวนหน่อยนะ", "เธอใจดีกว่าที่คิดนะ", 41, 42); return; }
-        if (currentIndex == 41) { currentIndex = 43; updateScene(); return; }
-        if (currentIndex == 50) { showChoices("น่ากลัวกว่านี้มั้ง", "ไม่สวยขนาดนี้แน่ๆ", 51, 52); return; }
-        if (currentIndex == 51) { currentIndex = 53; updateScene(); return; }
-        if (currentIndex == 54) { showChoices("ก็เธอไม่ได้น่ากลัวนี่", "เพราะฉันเริ่มชินกับเธอแล้วมั้ง", 55, 56); return; }
-        if (currentIndex == 55) { currentIndex = 57; updateScene(); return; }
-        if (currentIndex == 67) { showChoices("ถ้าฉันรอดกลับมา...ฉันจะมาเจอเธออีก", "ถ้าฉันรอดกลับมา เธอต้องเลี้ยงข้าวฉัน", 68, 69); return; }
-        if (currentIndex == 68) { currentIndex = 70; updateScene(); return; }
+        if (currentIndex == 10) { 
+            showChoices("ก็เธอไม่ได้ทําอะไรพวกเรานี่", "ถ้าเธออยากฆ่าพวกเรา เราคงตายไปแล้ว", "ก็เเค่จอมมารจะกลัวทําไม", 11, 12, 13); 
+            return; 
+        }
+        if (currentIndex == 11 || currentIndex == 12 || currentIndex == 13) { 
+            currentIndex = 14; updateScene(); 
+            return; 
+        }
+        if (currentIndex == 23) { 
+            showChoices("ฉันก็แค่พูดตามที่คิด", "หรือว่าเธอกําลังชมฉันอยู่?", "ฉันเเค่ไม่อยากให้มันวุ่นวาย", 24, 25, 26); 
+            return; 
+        }
+        if (currentIndex == 24 || currentIndex == 25 || currentIndex == 26) { 
+            currentIndex = 27; updateScene(); 
+            return; 
+        }
+        if (currentIndex == 33) { 
+            showChoices("เดี๋ยวเธอร้องไห้ขึ้นมาจะทํายังไง", "เธอแกล้งคนอื่นสนุกนักรึไง", "ไร้สาระกันจริงๆ", 34, 35, 36); 
+            return; 
+        }
+        if (currentIndex == 34 || currentIndex == 35 || currentIndex == 36) { 
+            currentIndex = 37; updateScene(); 
+            return; 
+        }
+        if (currentIndex == 43) { 
+            showChoices("งั้นคืนนี้ฉันจะรบกวนหน่อยนะ", "เธอใจดีกว่าที่คิดนะ", "ก็ดีเหมือนกัน", 44, 45, 46); 
+            return; 
+        }
+        if (currentIndex == 44 || currentIndex == 45 || currentIndex == 46) { 
+            currentIndex = 47; updateScene(); 
+            return; 
+        }
+        if (currentIndex == 54) { 
+            showChoices("น่ากลัวกว่านี้มั้ง", "ไม่สวยขนาดนี้แน่ๆ", "ก็ไม่รู้สิ หน้าตาน่ากลัวมั้ง", 55, 56, 57); 
+            return; 
+        }
+        if (currentIndex == 55 || currentIndex == 56 || currentIndex == 57) { 
+            currentIndex = 58; updateScene(); 
+            return; 
+        }
+        if (currentIndex == 59) { 
+            showChoices("ก็เธอไม่ได้น่ากลัวนี่", "เพราะฉันเริ่มชินกับเธอแล้วมั้ง", "เพราะฉันอาจจะเริ่มชอบเธอก็ได้", 60, 61, 62); 
+            return; 
+        }
+        if (currentIndex == 60 || currentIndex == 61 || currentIndex == 62) { 
+            currentIndex = 63; updateScene(); 
+            return; 
+        }
+        if (currentIndex == 73) { 
+            showChoices("ถ้าฉันรอดกลับมา...ฉันจะมาเจอเธออีก", "ถ้าฉันรอดกลับมา เธอต้องเลี้ยงข้าวฉัน","ฉันไม่ตายง่ายๆหรอกน่า", 74, 75, 76); 
+            return; 
+        }
+        if (currentIndex == 74 || currentIndex == 75 || currentIndex == 76) { 
+            currentIndex = 77; updateScene(); 
+            return; 
+        }
 
         if (currentIndex < dialogues.length - 1) { currentIndex++; updateScene(); } 
         else { finishGame(); }
