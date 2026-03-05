@@ -280,7 +280,9 @@ public class part9 extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setColor(new Color(0, 0, 0, (int) (bgAlpha * 255)));
+                // แก้ไข: ใช้ Math.max/min เพื่อป้องกันค่าเกิน 0-255
+                int alphaValue = Math.max(0, Math.min(255, (int) (bgAlpha * 255)));
+                g2d.setColor(new Color(0, 0, 0, alphaValue));
                 g2d.fillRect(0, 0, getWidth(), getHeight());
                 g2d.dispose();
             }
@@ -299,7 +301,9 @@ public class part9 extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(new Color(0, 0, 0, (int) (alpha * 255)));
+                // แก้ไข: ป้องกันค่า Alpha หลุดช่วง
+                int alphaValue = Math.max(0, Math.min(255, (int) (alpha * 255)));
+                g2d.setColor(new Color(0, 0, 0, alphaValue));
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
@@ -547,33 +551,29 @@ public class part9 extends JFrame {
 
     private void setupStatusOverlay() {
         statusOverlay = new JPanel(new BorderLayout(10, 10));
-        statusOverlay.setBackground(new Color(0, 0, 0, 210));
-        statusOverlay.setBounds(440, 150, 400, 400);
+        statusOverlay.setBackground(new Color(0, 0, 0, 210)); 
+        statusOverlay.setBounds(440, 150, 400, 400); 
         statusOverlay.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
         statusOverlay.setVisible(false);
+        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
+        onlineCountLabel.setForeground(Color.CYAN); 
+        onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
         JLabel titleLabel = new JLabel("--- Scoreboard ---", SwingConstants.CENTER);
-        titleLabel.setForeground(Color.YELLOW);
+        titleLabel.setForeground(Color.YELLOW); 
         titleLabel.setFont(new Font("Tahoma", Font.BOLD, 22));
         affinityStatusLabel = new JLabel("กำลังโหลดข้อมูล...", SwingConstants.CENTER);
-        affinityStatusLabel.setForeground(Color.WHITE);
+        affinityStatusLabel.setForeground(Color.WHITE); 
         affinityStatusLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
-        onlineCountLabel = new JLabel("ผู้เล่นออนไลน์: 1", SwingConstants.CENTER);
-        onlineCountLabel.setForeground(Color.CYAN);
-        onlineCountLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
+        affinityStatusLabel.setVerticalAlignment(SwingConstants.TOP);
         statusOverlay.add(titleLabel, BorderLayout.NORTH);
         statusOverlay.add(affinityStatusLabel, BorderLayout.CENTER);
-        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH);
+        statusOverlay.add(onlineCountLabel, BorderLayout.SOUTH); 
         layeredPane.add(statusOverlay, JLayeredPane.DRAG_LAYER);
     }
 
     private void setupTabKeyBinding() {
         layeredPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("TAB"), "toggleTab");
-        layeredPane.getActionMap().put("toggleTab", new AbstractAction() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                statusOverlay.setVisible(!statusOverlay.isVisible());
-            }
-        });
+        layeredPane.getActionMap().put("toggleTab", new AbstractAction() { @Override public void actionPerformed(java.awt.event.ActionEvent e) { statusOverlay.setVisible(!statusOverlay.isVisible()); } });
     }
 
     private void handleNext() {
