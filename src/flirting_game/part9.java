@@ -739,12 +739,41 @@ public class part9 extends JFrame {
         }).start();
     }
 
+        // ในไฟล์ part9.java เมธอด calculateOnlineEnding()
     private void calculateOnlineEnding() {
-        String n1 = relationdata.playerName;
-        int p1A = relationdata.aliceRel.getAffinity();
-        int p1N = relationdata.nebulaRel.getAffinity();
+        // 1. ประกาศตัวแปรรับค่าเบื้องต้น
+        String resN1 = relationdata.playerName, resN2 = "Player 2", resN3 = "Player 3";
+        int resP1A = relationdata.aliceRel.getAffinity(), resP1N = relationdata.nebulaRel.getAffinity();
+        int resP2A = 0, resP2N = 0, resP3A = 0, resP3N = 0;
+        String myRole = "P1";
+
+        if (allPlayersData != null && !allPlayersData.isEmpty()) {
+            // ประกาศ Array ตรงนี้เพื่อหายแดงที่ players.length
+            String[] players = allPlayersData.split(","); 
+            for (int i = 0; i < players.length; i++) {
+                String[] pts = players[i].split("=");
+                String name = pts[0];
+                int aScore = 0, nScore = 0;
+                if (pts.length > 1 && pts[1].contains("/")) {
+                    aScore = Integer.parseInt(pts[1].split("/")[0]);
+                    nScore = Integer.parseInt(pts[1].split("/")[1]);
+                }
+
+                if (name.equals(relationdata.playerName)) myRole = "P" + (i + 1);
+                
+                if (i == 0) { resN1 = name; resP1A = aScore; resP1N = nScore; }
+                else if (i == 1) { resN2 = name; resP2A = aScore; resP2N = nScore; }
+                else if (i == 2) { resN3 = name; resP3A = aScore; resP3N = nScore; }
+            }
+        }
+
+        // 2. สร้างตัวแปร f (final) เพื่อหายแดงใน Lambda
+        final String fN1 = resN1, fN2 = resN2, fN3 = resN3, fRole = myRole;
+        final int fP1A = resP1A, fP1N = resP1N, fP2A = resP2A, fP2N = resP2N, fP3A = resP3A, fP3N = resP3N;
+
         SwingUtilities.invokeLater(() -> {
-            new EndingController(n1, p1A, p1N, "Player 2", 0, 0, "Player 3", 0, 0, "P1").setVisible(true);
+            // ใช้ตัวแปร f ทั้งหมดในนี้จะหายแดงทันที
+            new EndingController(fN1, fP1A, fP1N, fN2, fP2A, fP2N, fN3, fP3A, fP3N, fRole).setVisible(true);
             dispose();
         });
     }
@@ -779,20 +808,43 @@ public class part9 extends JFrame {
     }
 
     private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) {
+            return;
+        }
         new Thread(() -> {
             try {
-                Socket s = new Socket(relationdata.serverIP, 5000);
-                networkOut = new PrintWriter(s.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                // *** ใช้ Socket ส่วนกลาง ห้าม new Socket ใหม่เด็ดขาด ***
+                networkOut = relationdata.globalOut;
+                java.io.BufferedReader in = relationdata.globalIn;
+                
                 networkOut.println("SET_NAME:" + relationdata.playerName);
                 networkOut.println("SET_PART:9");
+                networkOut.println("GET_AFFINITY"); // ขอข้อมูลล่าสุด
+                
                 String line;
                 while ((line = in.readLine()) != null) {
                     if (line.startsWith("ALL_STATS:")) {
-                        allPlayersData = line.substring(10);
+                        allPlayersData = line.substring(10); 
                         updateLeaderboardUI(allPlayersData);
-                    } else if (line.equals("PROCEED_TO_NEXT")) goToNextPart();
+                    } else if (line.startsWith("LOAD_AFFINITY:")) {
+                        int score = Integer.parseInt(line.substring(14).trim());
+                        relationdata.aliceRel.setAffinity(score); 
+                        SwingUtilities.invokeLater(() -> { affinityLabel.setText("อริส: " + score); statusLabel.setText("สถานะ: " + relationdata.aliceRel.getStatus()); });
+                    } else if (line.startsWith("LOAD_NEBULA:")) {
+                        int nScore = Integer.parseInt(line.substring(12).trim());
+                        relationdata.nebulaRel.setAffinity(nScore); 
+                        SwingUtilities.invokeLater(() -> { nebulaAffinityLabel.setText("เนบิวล่า: " + nScore); nebulaStatusLabel.setText("สถานะ: " + relationdata.nebulaRel.getStatus()); });
+                    } else if (line.startsWith("LOAD_ENDINGS:")) {
+                        String[] eds = line.substring(13).split(",");
+                        if (eds.length > 0) relationdata.isEnding1Unlocked = eds[0].equals("1");
+                        if (eds.length > 1) relationdata.isEnding2Unlocked = eds[1].equals("1");
+                        if (eds.length > 2) relationdata.isEnding3Unlocked = eds[2].equals("1");
+                        if (eds.length > 3) relationdata.isEnding4Unlocked = eds[3].equals("1");
+                    }
+                    if (line.equals("PROCEED_TO_NEXT")) {
+                        goToNextPart();
+                        break; // *** อย่าลืมใส่ break เพื่อหยุด loop เวลาไปหน้าถัดไป ***
+                    }
                 }
             } catch (Exception e) {}
         }).start();

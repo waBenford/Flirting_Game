@@ -21,7 +21,7 @@ public class part6 extends JFrame {
     private int currentIndex = 0;
     private Clip bgmClip;      
     private Clip effectClip;
-    private JButton choiceButton1, choiceButton2;
+    private JButton choiceButton1, choiceButton2, choiceButton3;
     private boolean isChoosing = false;
     private Timer typewriterTimer;
     private int charIndex = 0;
@@ -53,7 +53,7 @@ public class part6 extends JFrame {
     private String[] imagePaths = {
        "res/scene6/s1new.png", "res/scene6/s1new.png", "res/scene6/s1new.png", "res/scene6/s1new.png",
        "res/scene6/s1new.png", "res/scene6/s1new.png", "res/scene6/s1new.png", "res/scene6/s1new.png",
-       "res/scene6/s1new.png", "res/scene6/s1new.png", "res/scene6/s2new.png", "res/scene6/s2new.png", 
+       "res/scene6/s1new.png", "res/scene6/s1new.png", "res/scene6/s1new.png", "res/scene6/s2new.png", "res/scene6/s2new.png", 
        "res/scene6/s2new.png", "res/scene6/s2new.png", "res/scene6/s2new.png", "res/scene6/s2new.png", 
        "res/scene6/s2new.png", "res/scene6/s2new.png", "res/scene6/s2new.png", "res/scene6/s2new.png", 
        "res/scene6/s2new.png", "res/scene6/s2new.png", "res/scene6/s2new.png", "res/scene6/s2new.png", 
@@ -69,14 +69,14 @@ public class part6 extends JFrame {
     private String[] charPaths = {
        "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower2.png",
        "res/scene5/Alice-shower2.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower3.png", "res/scene5/Alice-shower1.png", 
-       "res/scene5/Alice-shower1.png", "res/scene5/Alice-shower1.png", "res/empty.png", "res/empty.png", "res/empty.png",
-       "res/empty.png", "res/Charactor/Alice/Girl/Alice-shy1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
+       "res/scene5/Alice-shower1.png", "res/scene5/Alice-shower1.png", "res/scene5/Alice-shower1.png","res/empty.png", "res/empty.png", "res/empty.png",
+       "res/Charactor/Alice/Girl/Alice-shy2.png", "res/Charactor/Alice/Girl/Alice-shy1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png",
        "res/Charactor/Alice/Girl/Alice-normal1.png", "res/Charactor/Alice/Girl/Alice-normal1.png", "res/empty.png", "res/empty.png",
        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png", 
        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png",
        "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal2.png", "res/Charactor/Alice/Girl/Alice-normal1.png", 
-       "res/Charactor/Alice/Girl/Alice-shy2.png","res/Charactor/Alice/Girl/Alice-shy1.png", "res/empty.png","res/empty.png", 
+       "res/Charactor/Alice/Girl/Alice-shy2.png","res/Charactor/Alice/Girl/Alice-shy1.png","res/Charactor/Alice/Girl/Alice-normal1.png","res/empty.png","res/empty.png", 
        "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Alice/Girl/Alice-normal1.png", 
        "res/empty.png", "res/empty.png", "res/empty.png", "res/empty.png","res/empty.png", 
     };
@@ -84,7 +84,7 @@ public class part6 extends JFrame {
     private String[] charPaths2 = {
        "res/empty.png", "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-showhand1.png",
        "res/Charactor/Dan/dan-showhand1.png", "res/empty.png", "res/empty.png", "res/empty.png", 
-       "res/empty.png", "res/empty.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",
+       "res/empty.png", "res/empty.png", "res/empty.png","res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal2.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png",
        "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal2.png", "res/Charactor/Dan/dan-normal1.png", "res/Charactor/Dan/dan-normal1.png", 
@@ -98,35 +98,67 @@ public class part6 extends JFrame {
     
     private String[] names = { 
             "อริส", "อริส", "อริส", "คนลึกลับ", "ฉัน", "อริส", "ฉัน", "อริส", 
-            "อริส", "อริส", "ฉัน", "Dan", "Dan", "อริส", "อริส", "อริส", 
-            "Dan", "Dan", "ฉัน", "ฉัน", "Dan", "Dan", "ฉัน", "ฉัน", 
+            "อริส", "อริส", "อริส", "ฉัน", "Dan", "Dan", "อริส", "อริส", "อริส", 
+            "อริส","Dan", "Dan", "ฉัน", "ฉัน", "Dan", "Dan", "ฉัน", "ฉัน", 
             "ฉัน", "ฉัน", "ฉัน", "ฉัน", "Dan", "Dan", "Dan", "Dan", 
-            "ฉัน", "อริส", "อริส", "ฉัน", "อริส","อริส", "Dan", "Dan", 
+            "ฉัน", "อริส", "อริส", "ฉัน", "อริส","อริส","อริส", "Dan", "Dan", 
             "ฉัน", "Dan", "Dan", "ฉัน", "อริส", " ", " ", " ", " "
             };
     
     private String[] dialogues = {
-        "ใครอยู่ตรงนั้น!?", "ออกมาเดี๋ยวนี้นะ!!", "ถ้าไม่ออกมา ฉันจะใช้พลังเวทย์ใส่เเกทั้งเเบบนี้เเหละ", 
-        "ใจเย็นก่อน ฉันไม่ได้คิดร้าย", "อริส เกิดอะไรขึ้น!!", "นายไม่ต้องวิ่งมาขนาดนั้นก็ได้ ฉันไม่ได้เป็นอะไรสักหน่อย",
-        "ก็ฉันได้ยินเสียงเธอร้องนี่", "นายเป็นห่วงฉันขนาดนั้นเลยหรอ?", 
-        "นะ…นายพูดอะไรแบบนั้นกัน…","อือ ก็จริงของนาย", 
-        "สรุปเเล้วนายเป็นใครกัน?", "ฉันชื่อ Dan เป็นนักผจญภัยหนะ", "พวกเธอสองคนเป็นคู่รักกันหรอ?", 
-        "ดะ…เดี๋ยวสิ! ใครบอกว่าเป็นแบบนั้น!", "นะ…นายพูดอะไรของนายเนี่ย!!", 
-        "เเล้วทําไมเมื่อกี้ต้องซ่อนด้วย", "ฉันไม่ได้จะเเอบดูเธอหรอกนะ ฉันเเค่เดินผ่านมา", "เเล้วพวกเธอหละชื่ออะไร กําลังจะไปที่ไหนกัน?", 
-        "ฉันชื่อ..(ชื่อตัวละครเรา) ส่วนนี่ก็ อริส", "พวกเรากําลังจะมุ่งหน้าไปที่ป่า Death End", "Death End หรอ..",
-        "มีเหตุผลอะไรที่พวกเธอต้องไปที่เเบบนั้นหรอ?", "ช่วงนี้เริ่มมีปีศาจโจมตี ในหลายๆพื้นที่", "เเละดูเหมือนว่าจะมีคนที่คอยสั่งเจ้าพวกนั้น",
-        "คนที่สามารถสั่งเจ้าพวกนั้นได้คงต้องเป็นคนที่เเข็งเเกร่งมากเเน่ๆ", "คนเดียวที่ทําเเบบนั้นได้ คือจอมมาร", 
-        "เพราะเเบบนั้นพวกเราเลยออกเดินทางเพื่อไปยังที่อยู่ของจอมมาร","เเหละจบเรื่องนี้ จะได้ไม่มีผู้คนต้องบาดเจ็บ",
-        "มันค่อนข้างอันตรายนะ", "ป่า Death End เป็นป่าที่มีความซับซ้อนของเส้นทาง", 
-        "อีกทั้งยังมีปีศาจเเละต้นไม้าอาถรรพ์ที่สามารถทําร้ายเราได้ตลอดเวลา","ฉันก็เคยเข้าไปครั้งนึง เเต่ก็สามารถรอดออกมาได้", 
-        "งั้นนายช่วยมาร่วมเดินทางกับพวกเราหน่อยจะได้มั้ย", "นี่นายเเน่ใจเเล้วหรอ?", "หมอนั่นอาจจะเป็นคนไม่ดีก็ได้นะ",
-        "ไม่เป็นไรหรอก ดูเเล้วคนๆนี้ก็ไม่น่ามีพิษภัยอะไร", 
-        "เข้าใจเเล้ว...","เอาตามนั้นก็ได้", 
-        "ดูเหมือนพวกเธอจะสนิทกันดีนะ", "ถ้าอย่างนั้น...ฉันจะนําทางพวกเธอไปที่ป่า Death End เอง","จริงหรอ!?",
-        "แต่เส้นทางมันยาวนะ พวกเธอคงต้องเตรียมตัวให้พร้อม", "เพราะถ้าเข้าไปในป่านั้นแล้ว...จะไม่มีทางถอยกลับง่ายๆ",
-        "ไม่เป็นไรหรอก พวกเราตัดสินใจแล้ว", "อือ!","หลังจากนั้น พวกเราเริ่มออกเดินทางไปยังป่า Death End",
-        "การเดินทางที่ยาวนานได้เริ่มต้นขึ้น", "เวลาผ่านไปหลายสัปดาห์...","...", 
-    };
+    /* 0  */ "ใครอยู่ตรงนั้น!?",
+    /* 1  */ "ออกมาเดี๋ยวนี้นะ!!",
+    /* 2  */ "ถ้าไม่ออกมา ฉันจะใช้พลังเวทย์ใส่เเกทั้งเเบบนี้เเหละ",
+    /* 3  */ "ใจเย็นก่อน ฉันไม่ได้คิดร้าย",
+    /* 4  */ "อริส เกิดอะไรขึ้น!!",
+    /* 5  */ "นายไม่ต้องวิ่งมาขนาดนั้นก็ได้ ฉันไม่ได้เป็นอะไรสักหน่อย",
+    /* 6  */ "ก็ฉันได้ยินเสียงเธอร้องนี่",
+    /* 7  */ "นายเป็นห่วงฉันขนาดนั้นเลยหรอ?",
+    /* 8  */ "นะ…นายพูดอะไรแบบนั้นกัน…",//choice1
+    /* 9  */ "อือ ก็จริงของนาย",//choice2
+    /* 10 */ "อะงั้นหรอกหรอ",//choice3
+    /* 11 */ "สรุปเเล้วนายเป็นใครกัน?",
+    /* 12 */ "ฉันชื่อ Dan เป็นนักผจญภัยหนะ",
+    /* 13 */ "พวกเธอสองคนเป็นคู่รักกันหรอ?",
+    /* 14 */ "ดะ…เดี๋ยวสิ! ใครบอกว่าเป็นแบบนั้น!",//choice1
+    /* 15 */ "นะ…นายพูดอะไรของนายเนี่ย!!",//choice2
+    /* 16 */ "ก็...ตามนั้น", //choice3
+    /* 17 */ "เเล้วทําไมเมื่อกี้ต้องซ่อนด้วย",
+    /* 18 */ "ฉันไม่ได้จะเเอบดูเธอหรอกนะ ฉันเเค่เดินผ่านมา",
+    /* 19 */ "เเล้วพวกเธอหละชื่ออะไร กําลังจะไปที่ไหนกัน?",
+    /* 20 */ "ฉันชื่อ..(ชื่อตัวละครเรา) ส่วนนี่ก็ อริส",
+    /* 21 */ "พวกเรากําลังจะมุ่งหน้าไปที่ป่า Death End",
+    /* 22 */ "Death End หรอ..",
+    /* 23 */ "มีเหตุผลอะไรที่พวกเธอต้องไปที่เเบบนั้นหรอ?",
+    /* 24 */ "ช่วงนี้เริ่มมีปีศาจโจมตี ในหลายๆพื้นที่",
+    /* 25 */ "เเละดูเหมือนว่าจะมีคนที่คอยสั่งเจ้าพวกนั้น",
+    /* 26 */ "คนที่สามารถสั่งเจ้าพวกนั้นได้คงต้องเป็นคนที่เเข็งเเกร่งมากเเน่ๆ",
+    /* 27 */ "คนเดียวที่ทําเเบบนั้นได้ คือจอมมาร",
+    /* 28 */ "เพราะเเบบนั้นพวกเราเลยออกเดินทางเพื่อไปยังที่อยู่ของจอมมาร",
+    /* 29 */ "เเหละจบเรื่องนี้ จะได้ไม่มีผู้คนต้องบาดเจ็บ",
+    /* 30 */ "มันค่อนข้างอันตรายนะ",
+    /* 31 */ "ป่า Death End เป็นป่าที่มีความซับซ้อนของเส้นทาง",
+    /* 32 */ "อีกทั้งยังมีปีศาจเเละต้นไม้าอาถรรพ์ที่สามารถทําร้ายเราได้ตลอดเวลา",
+    /* 33 */ "ฉันก็เคยเข้าไปครั้งนึง เเต่ก็สามารถรอดออกมาได้",
+    /* 34 */ "งั้นนายช่วยมาร่วมเดินทางกับพวกเราหน่อยจะได้มั้ย",
+    /* 35 */ "นี่นายเเน่ใจเเล้วหรอ?",
+    /* 36 */ "หมอนั่นอาจจะเป็นคนไม่ดีก็ได้นะ",
+    /* 37 */ "ไม่เป็นไรหรอก ดูเเล้วคนๆนี้ก็ไม่น่ามีพิษภัยอะไร",
+    /* 38 */ "เข้าใจเเล้ว...",//choice1
+    /* 39 */ "เอาตามนั้นก็ได้",//choice2
+    /* 40 */ "...", //choice3
+    /* 41 */ "ดูเหมือนพวกเธอจะสนิทกันดีนะ",
+    /* 42 */ "ถ้าอย่างนั้น...ฉันจะนําทางพวกเธอไปที่ป่า Death End เอง",
+    /* 43 */ "จริงหรอ!?",
+    /* 44 */ "แต่เส้นทางมันยาวนะ พวกเธอคงต้องเตรียมตัวให้พร้อม",
+    /* 45 */ "เพราะถ้าเข้าไปในป่านั้นแล้ว...จะไม่มีทางถอยกลับง่ายๆ",
+    /* 46 */ "ไม่เป็นไรหรอก พวกเราตัดสินใจแล้ว",
+    /* 47 */ "อือ!",
+    /* 48 */ "หลังจากนั้น พวกเราเริ่มออกเดินทางไปยังป่า Death End",
+    /* 49 */ "การเดินทางที่ยาวนานได้เริ่มต้นขึ้น",
+    /* 50 */ "เวลาผ่านไปหลายสัปดาห์...",
+    /* 51 */ "...",
+};
 
     public part6() {
         setTitle("ISEKAI DEMO - Part 6: Hidden Shadow");
@@ -424,12 +456,30 @@ public class part6 extends JFrame {
             return;
         }
 
-        if (currentIndex == 7) { showChoices("ก็เธอสําคัญกับฉันนี่", "ใครๆก็ต้องช่วยเพื่อนอยู่แล้ว", 8, 9); return; }
-        if (currentIndex == 8) { jumpToIndex(10); return; }
-        if (currentIndex == 12) { showChoices("ตอนนี้อาจจะยังไม่ใช่เเต่อนาคตไม่เเน่", "ถ้าเธออยากเป็นก็ได้นะ", 13, 14); return; }
-        if (currentIndex == 13) { jumpToIndex(15); return; }
-        if (currentIndex == 35) { showChoices("ถ้าเกิดอะไรขึ้น ฉันจะปกป้องเธอเอง", " เพราะงั้น ไม่ต้องห่วงหรอก", 36, 37); return; }
-        if (currentIndex == 36) { jumpToIndex(38); return; }
+        if (currentIndex == 7) { 
+            showChoices("ก็เธอสําคัญกับฉันนี่", "ใครๆก็ต้องช่วยเพื่อนอยู่แล้ว","ฉันนึกว่ามีปีศาจมาโจมตีเลยวิ่งมาดู", 8, 9,10); 
+            return; 
+        }
+        if (currentIndex == 8 || currentIndex == 9 || currentIndex == 10) { 
+            jumpToIndex(11); 
+            return; 
+        }
+        if (currentIndex == 13) { 
+            showChoices("ตอนนี้อาจจะยังไม่ใช่เเต่อนาคตไม่เเน่", "ถ้าเธออยากเป็นก็ได้นะ","จะเป็นเเบบนั้นงั้นยังได้ไง", 14, 15, 16); 
+            return; 
+        }
+        if (currentIndex == 14 || currentIndex == 15 || currentIndex == 16) { 
+            jumpToIndex(17); 
+            return; 
+        }
+        if (currentIndex == 35) { 
+            showChoices("ถ้าเกิดอะไรขึ้น ฉันจะปกป้องเธอเอง", "เพราะงั้น ไม่ต้องห่วงหรอก", "เรื่องเเค่นี้จะกลัวทําไม",38, 39, 40); 
+            return; 
+        }
+        if (currentIndex == 38 || currentIndex == 39 || currentIndex == 40) { 
+            jumpToIndex(41); 
+            return; 
+        }
 
         int nextIndex = currentIndex + 1;
         if (nextIndex < dialogues.length) {
@@ -455,12 +505,17 @@ public class part6 extends JFrame {
         if (index == 44) playEffect("res/sound/emmm.wav", 5.0f);
     }
 
-    private void showChoices(String text1, String text2, int t1, int t2) {
+    private void showChoices(String text1, String text2, String text3, int t1, int t2, int t3) {
         isChoosing = true;
-        choiceButton1 = createChoiceButton(text1, 350, t1); 
-        choiceButton2 = createChoiceButton(text2, 425, t2); 
+        if (choiceButton1 != null) layeredPane.remove(choiceButton1);
+        if (choiceButton2 != null) layeredPane.remove(choiceButton2);
+        if (choiceButton3 != null) layeredPane.remove(choiceButton3);
+        choiceButton1 = createChoiceButton(text1, 310, t1); 
+        choiceButton2 = createChoiceButton(text2, 380, t2); 
+        choiceButton3 = createChoiceButton(text3, 450, t3);
         layeredPane.add(choiceButton1, JLayeredPane.POPUP_LAYER);
         layeredPane.add(choiceButton2, JLayeredPane.POPUP_LAYER);
+        layeredPane.add(choiceButton3, JLayeredPane.POPUP_LAYER);
         layeredPane.repaint();
     }
 
@@ -511,12 +566,14 @@ public class part6 extends JFrame {
             playEffect("res/sound/click.wav", 0.0f);
             layeredPane.remove(choiceButton1);
             layeredPane.remove(choiceButton2);
+            layeredPane.remove(choiceButton3);
             isChoosing = false; 
 
-            if (target == 8 || target == 13 || target == 36) {
-                relationdata.aliceRel.addAffinity(10); 
-            } else {
-                relationdata.aliceRel.decreaseAffinity(5); 
+            if (target == 8 || target == 14 || target == 15 || target == 38) {
+                relationdata.aliceRel.addAffinity(10); //คะแนนเพิ่ม 10
+            } else if (target == 16 || target == 40){
+                relationdata.aliceRel.decreaseAffinity(5); //คะแนนลด 5
+            } else if (target == 9 || target == 10 || target == 39){ //คะแนนเท่าเดิม
             }
 
             if (relationdata.isOnlineMode && networkOut != null) {
@@ -572,16 +629,15 @@ public class part6 extends JFrame {
     }
 
     private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) return;
         new Thread(() -> {
             try {
-                java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
-                networkOut = new java.io.PrintWriter(socket.getOutputStream(), true);
-                java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
+                // *** ดึงข้อมูลจากส่วนกลาง ไม่ต้อง new Socket ใหม่ เหมือน Part 5 และ 7 ***
+                networkOut = relationdata.globalOut;
+                java.io.BufferedReader in = relationdata.globalIn;
 
                 networkOut.println("SET_NAME:" + relationdata.playerName);
                 networkOut.println("SET_PART:6");
-                
                 networkOut.println("GET_AFFINITY"); 
 
                 String line;
@@ -596,8 +652,9 @@ public class part6 extends JFrame {
                     } else if (line.startsWith("ALL_STATS:")) {
                         updateLeaderboardUI(line.substring(10));
                     }
-                    if (line.equals("PROCEED_TO_NEXT")) {
+                    else if (line.equals("PROCEED_TO_NEXT")) {
                         goToNextPart();
+                        break; // *** สำคัญ! ต้องมี break เพื่อหยุด loop การรอรับข้อมูล ***
                     }
                 }
             } catch (Exception e) { e.printStackTrace(); }

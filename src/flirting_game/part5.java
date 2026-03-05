@@ -824,15 +824,12 @@ public class part5 extends JFrame {
     }
 
     private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) return;
         new Thread(() -> {
             try {
-                java.net.Socket socket = new java.net.Socket(relationdata.serverIP, 5000);
-                networkOut = new java.io.PrintWriter(socket.getOutputStream(), true);
-                java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
-
-                networkOut.println("SET_NAME:" + relationdata.playerName);
-                networkOut.println("SET_PART:5");
+                // *** ดึงข้อมูลจากส่วนกลาง ไม่ต้อง new Socket ใหม่ ***
+                networkOut = relationdata.globalOut;
+                java.io.BufferedReader in = relationdata.globalIn;
 
                 String line;
                 while ((line = in.readLine()) != null) {
@@ -846,8 +843,9 @@ public class part5 extends JFrame {
                         } else if (line.startsWith("ALL_STATS:")) {
                         updateLeaderboardUI(line.substring(10));
                     }
-                    if (line.equals("PROCEED_TO_NEXT")) {
+                    else if (line.equals("PROCEED_TO_NEXT")) {
                     	goToNextPart();
+                        break; // *** สำคัญ! ต้องมี break เช่นกัน ***
                     }
                 }
             } catch (Exception e) {}

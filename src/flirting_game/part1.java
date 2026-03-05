@@ -374,20 +374,18 @@ public class part1 extends JFrame {
     }
 
     private void initNetwork() {
-        if (!relationdata.isOnlineMode) return;
+        if (!relationdata.isOnlineMode || relationdata.globalSocket == null) return;
         new Thread(() -> {
             try {
-                Socket socket = new Socket(relationdata.serverIP, 5000);
-                networkOut = new PrintWriter(socket.getOutputStream(), true);
-                networkOut.println("SET_NAME:" + relationdata.playerName);
-                networkOut.println("SET_PART:1"); 
+                // *** ดึงข้อมูลจากส่วนกลาง ไม่ต้อง new Socket ใหม่ ***
+                networkOut = relationdata.globalOut;
+                BufferedReader in = relationdata.globalIn;
                 
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 String line;
                 while ((line = in.readLine()) != null) {
-                    // --- หัวใจสำคัญ: รอคำสั่งข้ามฉากจาก Server ---
                     if (line.equals("PROCEED_TO_NEXT")) {
                         goToNextPart();
+                        break; // *** สำคัญ! ต้องมี break เพื่อหยุดอ่านข้อความเมื่อย้ายด่าน ***
                     }
                 }
             } catch (Exception e) { e.printStackTrace(); }

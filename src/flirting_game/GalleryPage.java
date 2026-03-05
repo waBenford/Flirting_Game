@@ -19,11 +19,12 @@ public class GalleryPage extends JFrame {
         layeredPane = new JLayeredPane();
         setContentPane(layeredPane);
 
-        // 1. ตรวจสอบสถานะออนไลน์และดึงข้อมูลจาก SQL ก่อนแสดงผล
+        // --- แก้ไขที่นี่: สั่งวาด UI ทันทีเพื่อแก้ปัญหาหน้าจอขาว ---
+        refreshGalleryUI();
+
+        // 1. ตรวจสอบสถานะออนไลน์และดึงข้อมูลจาก SQL เพื่อมาอัปเดตแบบเรียลไทม์
         if (relationdata.isOnlineMode) {
             syncGalleryFromSQL();
-        } else {
-            refreshGalleryUI(); // ถ้าออฟไลน์ให้แสดงตามค่าที่มีในเครื่อง
         }
     }
 
