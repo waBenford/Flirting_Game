@@ -851,7 +851,30 @@ public class part9 extends JFrame {
     }
 
     private void updateLeaderboardUI(String data) {
-        // Implementation for scoreboard display
+        StringBuilder sb = new StringBuilder("<html><body style='padding:10px;'><table width='360' style='color:white; font-family:Tahoma;'>");
+        sb.append("<tr style='color:#FFD700;'><th align='left' width='160'>ผู้เล่น</th><th align='right' width='90'>อริส</th><th align='right' width='90'>เนบิวล่า</th></tr>");
+        for (String p : data.split(",")) {
+            if (p.contains("=")) {
+                String[] pts = p.split("=");
+                String name = pts[0], aV = "0", nV = "0";
+                if (pts[1].contains("/")) {
+                    String[] sc = pts[1].split("/");
+                    aV = sc[0];
+                    nV = sc[1];
+                } else {
+                    aV = pts[1];
+                }
+                String col = name.equals(relationdata.playerName) ? "#00FF7F" : "white";
+                sb.append("<tr><td style='color:").append(col).append(";'>").append(name).append("</td>")
+                        .append("<td align='right' style='color:#FFC0CB;'>").append(aV).append("</td>")
+                        .append("<td align='right' style='color:#DA70D6;'>").append(nV).append("</td></tr>");
+            }
+        }
+        sb.append("</table></body></html>");
+        SwingUtilities.invokeLater(() -> {
+            affinityStatusLabel.setText(sb.toString());
+            onlineCountLabel.setText("ผู้เล่นออนไลน์: " + data.split(",").length);
+        });
     }
 
     private void showWaitPoint() {
