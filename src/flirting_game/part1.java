@@ -277,7 +277,7 @@ public class part1 extends JFrame {
 
     private void goToNextPart() {
         SwingUtilities.invokeLater(() -> {
-            new part2().setVisible(true);
+            new part9().setVisible(true);
             dispose(); 
         });
     }
